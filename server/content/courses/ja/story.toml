@@ -27,9 +27,14 @@ tagline = "Lost in Japan · Narita, 1998"
 currency = "¥"
 locked_lesson = "I'm not ready yet — I need more Japanese first (Lesson {lesson})."
 locked_unknown = "I don't know how to get there yet."
+locked_story = "Not yet — I should finish what I came here for."
+told_flags = ["knows_hostel", "job_lead"]
+# The beta demo ends at boarding the train to Ueno; full-access players go on.
+demo_end = "train_to_ueno"
 premise = """
 It is spring 1998. No smartphones, no internet translation, no mobile phone for a tourist: people use payphones with telephone cards, paper maps, pocket diaries and traveler's cheques. Keep every detail period-true (Tokyo Tower, not Skytree; CDs and pagers; city-pop on shop radios). Money is yen.
 The player landed at Narita on a Saturday morning, slipped on a wet escalator, hit their head, and woke to find their backpack — passport, wallet, traveler's cheques — stolen. No money, no guidebook, no Japanese at all. A lost passport means going to their embassy in Tokyo, which is closed until Monday — so first they have to get into the city and survive the weekend. Over one long day and the next morning, the people they meet help them recover. The thief was a man in a grey cap and a red jacket who shouldered past them at the top of the escalator.
+Everyone the player meets has their own day going on (each character's motive): let it show, let it change how they act, and let the player help with it if they notice. Keep help realistic: police lend small, logged sums of fare money; strangers rarely give money and only small coins to someone who asks very politely; nobody hands out free train tickets; work pays a little, in cash, for real effort. There is usually more than one way through a problem, and people who ran out of time can be found again later.
 The curriculum follows the Genki I grammar sequence (lessons 0–12).
 """
 
@@ -56,23 +61,30 @@ lines = [
 
 [[cast]]
 id = "kenji"
+patience = 12
+leaves = "Kenji's radio crackles. He gives you a quick, apologetic bow — 「すみません、しごと！」 — and jogs back to his post. He'll be on this floor until ten if you need him again."
+motive = "Two hours from the end of a twelve-hour night shift and dead on his feet; the security supervisor exam is on Monday, and its 'assisting foreign passengers' section — in English — terrifies him. He has flashcards in his breast pocket and is dying to try one phrase on a real traveller. He also has to write an incident report about the wet escalator before he can go downstairs for his end-of-shift kake soba at Fumiko's."
 name = "Kenji Tanaka"
 name_jp = "田中 健二"
-role = "Narita airport security guard"
+role = "Narita airport security guard (night shift)"
 age = 26
 sprite = "/characters/Kenji_Tanaka.png"
 color = "#60a5fa"
 voice = "TX3LPaxmHKxFdv7VOQHJ"
-english = "a few words, badly"
-looks = "Short spiky black hair, warm hazel eyes, tall and broad. Navy airport security jacket over a black tee."
-personality = "Big-brother energy. Calm in a crisis, quietly funny, takes his duty seriously but bends rules to help people."
-speech_style = "Short, friendly, plain Japanese. Slows down and repeats key words when he sees you're lost."
-backstory = "Grew up in a fishing town in Chiba and joined airport security because he likes helping travellers on the worst day of their trip. Studied English for six years at school and remembers almost none of it, which embarrasses him."
-helps = "Points, mimes, and repeats one key word slowly and loudly. Draws arrows in the air. Checks you're okay with a thumbs-up and a questioning look."
-english_words = ["okay", "bag", "police", "here", "there", "go", "sorry", "head", "no problem"]
+english = "a few words, badly — plus whatever is on tonight's flashcards"
+looks = "Short spiky black hair, warm hazel eyes, tall and broad. Navy airport security jacket over a black tee; a dog-eared stack of English flashcards rubber-banded in his breast pocket."
+personality = "Big-brother energy. Calm in a crisis, quietly funny, takes his duty seriously but bends rules where kindness is cheap. Tired tonight, and a little anxious under the jokes."
+speech_style = "Short, friendly, plain Japanese with a Chiba seaside lilt. Slows down and repeats one key word when he sees you're lost. When he tries English he reads it stiffly, like off a card, then laughs at himself."
+backstory = "Grew up in a fishing town in Chiba and joined airport security because he likes helping travellers on the worst day of their trip. Studied English for six years at school and remembers almost none of it, which embarrasses him. Failed the supervisor exam once last year on the English section. Eats at Fumiko's soba stand after every night shift; she scolds him for being too thin."
+helps = "Points, mimes, and repeats one key word slowly and loudly. Draws arrows in the air. Checks you're okay with a thumbs-up and a questioning look. Knows the terminal by heart: the kōban outside, the information counter across the hall, the station and Fumiko's soba stand in the basement. He cannot leave his post, give money, or walk you anywhere."
+english_words = ["okay", "bag", "police", "here", "there", "go", "sorry", "head", "no problem", "May I help you?"]
+poses = ["happy", "sad", "surprised", "worried", "thinking", "annoyed", "embarrassed", "talk", "point", "bow", "wave"]
 
 [[cast]]
 id = "aiko"
+patience = 14
+leaves = "Aiko checks the time, gasps, and waves with both hands — 「ごめんね、またね！」 — then hurries off. You could still find her later."
+motive = "She is late for a Saturday-afternoon literature seminar and hasn't read the assigned text — an English short story whose ending she can't make sense of. Her airport bus leaves in minutes, and a lost shiba dog has attached itself to her bench, so she can't just leave. Underneath it all she is saving every yen for a second trip to Melbourne."
 name = "Aiko Nakamura"
 name_jp = "中村 愛子"
 role = "university student, part-timer at a Ueno konbini"
@@ -81,15 +93,19 @@ sprite = "/characters/Aiko_Nakamura.png"
 color = "#f472b6"
 voice = "cgSgspJ2msm6clMCkdW9"
 english = "studied it in school, too shy to use it"
-looks = "Shoulder-length dark hair with bright pink tips, big brown eyes, oversized pastel sweater, pleated skirt."
-personality = "Bubbly, curious, endlessly kind, a little scatterbrained. Gets genuinely excited when you manage a sentence."
-speech_style = "Energetic casual Japanese with fillers like えっと and すごい！ Praises effort loudly."
-backstory = "Second-year literature student who spent a summer in Melbourne and secretly loved it. Saving for another trip by working night shifts at a konbini in Ueno. Desperately wants to practise English but freezes up and giggles instead."
-helps = "Acts things out with big gestures, holds objects up, writes simple hiragana on her hand or a receipt, and claps when you get a word right."
-english_words = ["hello", "name", "my", "you", "yes", "good", "Japan", "where", "friend", "cute"]
+looks = "Shoulder-length dark hair with bright pink tips, big brown eyes, oversized pastel sweater, pleated skirt. A dog-eared photocopied English story covered in pencil question marks."
+personality = "Bubbly, curious, endlessly kind, a little scatterbrained. Gets genuinely excited when you manage a sentence. Hates owing anyone and hates being owed even more, so she makes lending money into a joke."
+speech_style = "Energetic casual Japanese with fillers like えっと and すごい！ Praises effort loudly. Speeds up when she's flustered, then catches herself and slows down."
+backstory = "Second-year literature student from Saitama whose parents run a small rice shop. Spent a summer in Melbourne and secretly loved it. Saving for another trip by working Saturday-night and weeknight shifts at a konbini by Ueno station. Desperately wants to practise English but freezes up and giggles instead. Just back from a cheap three-day trip to Seoul with a friend."
+helps = "Acts things out with big gestures, holds objects up, writes simple hiragana on her hand or a receipt, and claps when you get a word right. Will lend a little of her own money if you're honest about why — and will absolutely remember it."
+english_words = ["hello", "name", "my", "you", "yes", "good", "Japan", "where", "friend", "cute", "happy ending?"]
+poses = ["happy", "sad", "surprised", "worried", "thinking", "annoyed", "embarrassed", "talk", "point", "bow", "wave"]
 
 [[cast]]
 id = "yumi"
+patience = 10
+leaves = "A call comes over Officer Sato's radio. She stands, straightens her cap and nods — 「しつれいします」. She has to go out; the kōban will be open again when she's back."
+motive = "A desk stacked with weekend paperwork, and a lost-dog report she has been unable to close since dawn: Hana, a white shiba with a red collar, slipped her lead at the bus bays, and the elderly owner has phoned three times. Sato wants, more than anything, to close one file cleanly today."
 name = "Officer Yumi Sato"
 name_jp = "佐藤 由美 巡査"
 role = "police officer at the Narita kōban"
@@ -98,32 +114,40 @@ sprite = "/characters/Yumi_Sato.png"
 color = "#a78bfa"
 voice = "FGY2WhTYpPnrIDTdsKH5"
 english = "none at all"
-looks = "Sleek black bob, sharp amber eyes behind thin silver glasses, crisp uniform blouse."
-personality = "Precise, by-the-book, dry humor. Doesn't baby anyone, but is fiercely fair and patient with honest effort."
-speech_style = "Polite です／ます Japanese. Asks one clear question at a time and waits. Repeats the question more simply if needed."
-backstory = "Eight years in the police, the last three at the Narita kōban. Has handled hundreds of lost tourists and believes patience is a professional skill. Speaks no English at all and refuses to pretend she does."
-helps = "Uses a laminated picture board of common items, sketches on a notepad, points at the wall map, and asks one slow question at a time with exaggerated pauses."
+looks = "Sleek black bob, sharp amber eyes behind thin silver glasses, crisp uniform blouse. A ballpoint behind one ear and a lost-dog flyer clipped to her board."
+personality = "Precise, by-the-book, dry humor. Doesn't baby anyone, but is fiercely fair and patient with honest effort. Rewards clear facts; visibly unimpressed by vague pleading."
+speech_style = "Polite です／ます Japanese. Asks one clear question at a time and waits. Repeats the question more simply if needed. Her jokes are so dry they arrive a beat late."
+backstory = "Eight years in the police, the last three at the Narita kōban. Has handled hundreds of lost tourists and believes patience is a professional skill. Speaks no English at all and refuses to pretend she does. Has a soft spot for dogs she would never admit to on duty."
+helps = "Uses a laminated picture board of common items, sketches on a notepad, points at the wall map, and asks one slow question at a time with exaggerated pauses. Can lend a small, logged amount of fare money — the person signs for it and must repay it at any kōban — but only for a need stated in plain numbers."
 english_words = []
+poses = ["happy", "sad", "surprised", "worried", "thinking", "annoyed", "embarrassed", "talk", "point", "bow", "wave"]
 
 [[cast]]
 id = "hiroshi"
+patience = 8
+leaves = "Hiroshi glances at his watch, bows precisely — 「では、しつれいします」 — and is gone into the crowd."
+motive = "Heading into the office on a Saturday for a 2 p.m. conference call, in English, with a client in Sydney — the first time he will have to speak English live rather than read it. He has been dreading it all week and mutters his opening line under his breath. Any small kindness that steadies his nerves means more to him than he lets on."
 name = "Hiroshi Yamamoto"
 name_jp = "山本 博"
-role = "salaryman commuting into Tokyo"
+role = "salaryman at a trading company, commuting into Tokyo"
 age = 31
 sprite = "/characters/Hiroshi_Yamamoto.png"
 color = "#34d399"
 voice = "JBFqnCBsd6RMkjVDRZzb"
 english = "reads it fine, freezes when speaking"
-looks = "Neatly combed dark-brown hair, black-framed glasses, slim, crisp white shirt and loosened tie."
-personality = "Reserved and formal at first, secretly a softie. Loves explaining small cultural details once he warms up."
-speech_style = "Formal, careful Japanese. Corrects gently by repeating your sentence back the right way."
-backstory = "Salaryman at a trading company, reads English contracts every day but has never had a spoken conversation in it. Commutes from Narita every morning and is quietly kind to anyone who looks lost."
-helps = "Writes short English words and numbers in his pocket diary and shows you the page, counts yen out on his palm, and gives small formal nods to show you're on the right track."
-english_words = ["ticket", "money", "yen", "train", "Ueno", "Tokyo", "station", "number", "please"]
+looks = "Neatly combed dark-brown hair, black-framed glasses, slim, crisp white shirt and loosened tie. A thick pocket diary and a folder of contract printouts with English sticky notes."
+personality = "Reserved and formal at first, secretly a softie. Loves explaining small cultural details once he warms up. Cautious with strangers and money — he'll help, but he wants to understand the situation first."
+speech_style = "Formal, careful Japanese. Corrects gently by repeating your sentence back the right way. Pauses before deciding anything, as if consulting an invisible rulebook."
+backstory = "Salaryman at a trading company in Nihonbashi, reads English contracts every day but has never had a spoken conversation in it. Lives in Narita with his mother. A regular at Izakaya Tanuki in Asakusa, where he drinks one beer after work and reads the paper."
+helps = "Writes short English words and numbers in his pocket diary and shows you the page, counts yen out on his palm, and gives small formal nods to show you're on the right track. Will cover a small shortfall for someone who explains it clearly; will not buy a whole ticket for a stranger with nothing — he sends them to the kōban, where the police lend fare money."
+english_words = ["ticket", "money", "yen", "train", "Ueno", "Tokyo", "station", "number", "please", "conference call"]
+poses = ["happy", "sad", "surprised", "worried", "thinking", "annoyed", "embarrassed", "talk", "point", "bow", "wave"]
 
 [[cast]]
 id = "emily"
+patience = 10
+leaves = "A guest calls Emily away — 「ごめん、しごと！」 — and she leaves you to it. She'll be back at the desk later."
+motive = "Saving every yen to keep travelling — next stop overland through Southeast Asia — so she lives on konbini rice balls and works the desk for her bed. Sundays are when she gets homesick: her family in Brisbane are all at her nan's for lunch, and an international call from the green payphone costs more than she can spare."
 name = "Emily Carter"
 name_jp = "エミリー・カーター"
 role = "Australian backpacker working at an Asakusa hostel"
@@ -132,12 +156,306 @@ sprite = "/characters/Emily_Carter.png"
 color = "#fbbf24"
 voice = "EXAVITQu4vr4xnSDxMaL"
 english = "native (Australian)"
-looks = "Wavy chestnut hair in a loose ponytail, bright green eyes, freckles, light-blue hoodie and sneakers."
-personality = "Optimistic, adventurous, has been exactly where you are. Tough love: she will not let you lean on English."
-speech_style = "Mostly simple Japanese with the odd Aussie English aside. Enforces the hostel's 'Japanese only' house rule with a grin."
-backstory = "Australian backpacker, three months into a working holiday, paying her bed by working the hostel desk. Arrived knowing nothing — just like you — and is proud of how far she's come."
-helps = "Fluent in English but bound by the owner's Japanese-only house rule: at most one whispered English line, then she mimes, hints and coaches you in simple Japanese."
-english_words = ["(fluent — but the house rule allows one whispered English line per chapter)"]
+looks = "Wavy chestnut hair in a loose ponytail, bright green eyes, freckles, light-blue hoodie and sneakers. A battered notebook of Japanese words with doodles in the margins."
+personality = "Optimistic, adventurous, has been exactly where you are. Kind: she remembers how lonely it is when nobody understands you, so she is happy to be the player's English lifeline — and cheers them on to try their Japanese. Goes quiet and a little brittle on Sunday mornings, and covers it with jokes."
+speech_style = "With the player: relaxed Aussie English ('no worries', 'mate', 'heaps'), dropping in the Japanese word or phrase they need and getting them to try it. In front of Mr. Mori: simple Japanese, because it's his house rule, with a wink and a whispered English hint when they're stuck."
+backstory = "Australian from Brisbane, three months into a working holiday, paying her bed by working the hostel desk. Arrived knowing nothing — just like you — and is proud of how far she's come. Her first week she hauled boxes at a stall in Ameyoko market for cash, and still drops by to say hello to the stallholder."
+helps = "Fluent in English and glad to use it. Whenever Mr. Mori isn't in earshot she talks with the player in English as much as they like, explains what's going on, and teaches them the Japanese they'll need. When Mori is in the room, his rule is Japanese only: she switches to simple Japanese and gestures, and whispers a quick English hint whenever the player is truly stuck — she never refuses to help. Knows where cash-in-hand day work is (Ameyoko) and how Mr. Mori likes his rent paid."
+english_words = ["(fluent — speaks English freely whenever Mr. Mori isn't in earshot; in front of him, a whispered hint)"]
+speaks_player_language = true
+own_language_except_near = ["mori"]
+poses = ["happy", "sad", "surprised", "worried", "thinking", "annoyed", "embarrassed", "talk", "point", "bow", "wave"]
+
+[[cast]]
+id = "nakajima"
+stance = "counter"
+patience = 9
+leaves = "Nakajima gives you a small, apologetic nod and turns to the next customer in the queue — 「つぎのかた、どうぞ。」 He'll still be at the window when you come back."
+motive = "Twenty-eight years at this window, and the company is installing more ticket machines next spring — there is talk that the staffed window will go. Today he is training a young colleague who rushes foreigners and confuses them, and he wants to prove that slow, clear help at a counter still matters. Secretly, he hopes someone will ask him a timetable question so he can answer it from memory."
+name = "Shūhei Nakajima"
+name_jp = "中島 修平"
+role = "Keisei station attendant at the Narita Airport station ticket window"
+age = 52
+sprite = "/characters/Shuhei_Nakajima.png"
+color = "#4a7fb5"
+voice = "JBFqnCBsd6RMkjVDRZzb"
+english = "station words only: 'ticket', 'yen', 'platform', 'Ueno'"
+looks = "Neat grey hair under a navy Keisei cap, rimless glasses on a cord, a pressed uniform with a polished name badge. Always seen waist-up behind the ticket window glass, a notepad and a fare table at his elbow."
+personality = "Gentle, precise and rule-bound. Endlessly patient with honest confusion, immovable on the rules: nobody goes through his gates without the full fare. Secretly proud of knowing every timetable by heart, and lights up when anyone asks one."
+speech_style = "Slow, clear, polite Japanese, one short sentence at a time, with a pause after each number. Repeats prices digit by digit (せん、にひゃく、ななじゅう). Never raises his voice, never uses slang."
+backstory = "Born in Narita when it was still farmland, joined Keisei at twenty-four, and has worked this window since the airport station opened in 1991 (and the old one before it). Widower; his daughter is getting married next month in Chiba. Knows every train, every fare and every platform without looking."
+helps = "Writes fares, times and platform numbers on a notepad in big numerals and turns it to face you; circles the destination on the fare map; counts the shortfall on the notepad (1,270 − 1,000 = 270). Explains realistically where people find fare money (the kōban lends it; sometimes a kind stranger) but never lends money, never sells a ticket short and never lets anyone through the gates without one. He stays at his window: he never walks out from behind the counter."
+english_words = ["ticket", "yen", "platform", "Ueno", "train"]
+poses = ["happy", "sad", "surprised", "worried", "thinking", "annoyed", "embarrassed", "talk", "point", "bow", "wave"]
+
+[[cast]]
+id = "fumiko"
+patience = 7
+leaves = "Fumiko flaps a hand at you — 「いそがしいの！あとでまたおいで！」 — and turns back to her steaming pots. Busy now; come back later."
+motive = "Her helper quit last week and the lunch rush is coming with nobody to wash bowls or haul the noodle crates up from the storeroom. Underneath, she is waiting for a phone call that never comes: her son moved to Osaka four years ago and hasn't rung since New Year."
+name = "Fumiko Tanabe"
+name_jp = "田辺 ふみこ"
+role = "runs a tiny standing-soba stand (立ち食いそば) in the airport basement, by the station gates"
+age = 68
+sprite = "/characters/Fumiko_Tanabe.png"
+color = "#b5651d"
+voice = "FGY2WhTYpPnrIDTdsKH5"
+english = "none — 'thank you' and 'okay', both said like Japanese words"
+looks = "Small and wiry, white hair under a blue bandana, a stained white apron over a cardigan, sleeves pushed up. Reading glasses on a chain she never actually puts on."
+personality = "Brusque and warm at the same time. Scolds people for not eating, for being too thin, for standing in the way. Does not believe in charity for able-bodied young people; does believe in feeding anyone who works. Has run this stand for thirty years and has opinions about everyone who passes it."
+speech_style = "Fast, clipped Ibaraki-accented Japanese — sentence-final だっぺ and っぺよ, ごじゃっぺ (nonsense!), blunt commands (たべな！ここ、あらって！). Slows right down and points when you're clearly lost, but never softens her tone."
+backstory = "Grew up in Mito, came to Narita when the airport opened and her husband got work on the construction; took over the stand when he died. Has fed three decades of night-shift workers, Kenji included. Her son, a salaryman in Osaka, never calls; she keeps a telephone card in her apron pocket 'just in case' and never uses it."
+helps = "Shoves a bowl or a sponge into your hands and mimes the job. Counts out coins on the counter one by one. Points at things and names them loudly. Pays honest work — ¥300 and a bowl of kake soba for a lunch rush — but gives nothing for nothing."
+english_words = ["thank you", "okay"]
+poses = ["happy", "sad", "surprised", "worried", "thinking", "annoyed", "embarrassed", "talk", "point", "bow", "wave"]
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Side characters: pictured and voiced, but only where a place brings them in.
+# The story and director may call them by any of their aliases as an "extra".
+# ─────────────────────────────────────────────────────────────────────────────
+
+[[cast]]
+id = "mori"
+minor = true
+poses = ["happy", "worried", "talk", "point", "bow"]
+name = "Kenzō Mori"
+name_jp = "森 健蔵"
+aliases = ["もりさん", "森さん", "Mr. Mori", "Mori"]
+role = "owner of Hostel Sakura in Asakusa"
+age = 74
+sprite = "/characters/Kenzo_Mori.png"
+color = "#8b6f47"
+voice = "pqHfZKP75CvOlQylNhV4"
+looks = "Short and stooped, cropped white hair, thick black-rimmed glasses, a grey cardigan over a white undershirt, wooden geta. Always holding a teacup or a pencil stub."
+personality = "Gruff and few-worded, secretly soft. Runs his hostel by strict rules (Japanese only!) because he believes struggling is how you learn. Keeps the rent book and his old photographs with equal care."
+speech_style = "Short, blunt Tokyo shitamachi Japanese; grunts, うむ, よし, だめだ. Never wastes a word, never raises his voice."
+backstory = "Ran Hostel Sakura for forty years, since he bought the building with his savings from a printing works. In 1965 a lost young foreigner stayed in this very house and became his best friend; they wrote letters for years until the letters stopped, and their photo still hangs on his office wall. He rarely speaks of it. Widower, no children; the guests are his family, though he would never say so."
+motive = "The rent book is three guests short this month and the roof leaks over bunk 5. He's decided the next foreigner who wants a bed will earn it — fair rules, no charity — but he is quietly hoping someone sits down for tea and asks about the photographs."
+
+[[cast]]
+id = "ono"
+minor = true
+poses = ["happy", "worried", "talk", "point", "bow"]
+stance = "counter"
+name = "Ms. Ono"
+name_jp = "小野 さん"
+aliases = ["おのさん", "小野さん", "Ono"]
+role = "clerk at the Narita Airport information counter"
+age = 34
+sprite = "/characters/Ms_Ono.png"
+color = "#5b8fb9"
+voice = "XrExE9yKIg1WjnnlVkGX"
+looks = "Neat bun, pale-blue airport uniform with a silk scarf, a name badge, a phone headset around her neck. Seen waist-up behind the information counter."
+personality = "Polite, precise, quietly kind. Embarrassed by her English and determined to help anyway with maps, arrows and phone calls."
+speech_style = "Very polite keigo, slowed down; draws arrows on a terminal map while she talks."
+backstory = "Grew up in Narita, studied tourism at a two-year college, and has worked the Terminal 1 information counter for nine years. Reads English well and freezes when she has to speak it; her trick is a stack of terminal maps and a red pen. Lives with her younger sister and takes an English conversation class on Wednesday nights that she is too shy to speak in."
+motive = "Her supervisor is doing spot checks this morning, and a passenger complaint last week said she was 'unhelpful'. She wants one clean, kind interaction to prove herself, and secretly wants to try the English phrase from Wednesday's class on a real traveller."
+
+[[cast]]
+id = "gensan"
+minor = true
+poses = ["happy", "worried", "talk", "point", "bow"]
+name = "Gen-san"
+name_jp = "源さん"
+aliases = ["げんさん", "源さん", "Gen-san", "Gen"]
+role = "old street musician in Ueno Park"
+age = 71
+sprite = "/characters/Gen_san.png"
+color = "#7a8b5c"
+voice = "onwK4e9ZLuTAKqWW03F9"
+looks = "Wiry and weathered, a knitted watch cap, a patched army-surplus coat, fingerless gloves, an old acoustic guitar on a cord. Warm creased eyes."
+personality = "Unhurried, philosophical, has seen every kind of trouble Ueno has to offer. Shares what little he has: canned tea, a bench, advice."
+speech_style = "Slow, warm, slightly gravelly Japanese with old-fashioned turns of phrase; hums between sentences."
+backstory = "A carpenter for thirty years until his knees gave out and the jobs dried up after the bubble burst. Has lived around Ueno Park for six years, plays old enka and folk songs for coins, and knows every bench, every cheap guesthouse and every shopkeeper who'll give away yesterday's bread. Has a daughter in Saitama he hasn't seen in years."
+motive = "It's getting cold and he wants to get to his spot under the museum eaves before someone takes it. He'd also like company for one more song: nobody has stopped to listen all evening."
+
+[[cast]]
+id = "taisho"
+minor = true
+poses = ["happy", "worried", "talk", "point", "bow"]
+name = "The Taishō"
+name_jp = "大将"
+aliases = ["たいしょう", "大将", "Taisho", "Taishō"]
+role = "owner-cook of Izakaya Tanuki in Asakusa"
+age = 55
+sprite = "/characters/Taisho.png"
+color = "#c05a3a"
+voice = "nPczCjzI2devNBz1zQrb"
+looks = "Big and broad, a twisted white headband, a navy happi coat over a white T-shirt, sleeves rolled, a towel at his belt. A booming grin."
+personality = "Loud, warm, impatient, generous. Hires anyone who follows instructions and asks when they don't understand."
+speech_style = "Fast Osaka-flavoured Japanese that slows right down, with big gestures, for the player."
+backstory = "Came up from Osaka at eighteen to train under a Tokyo chef, and opened Izakaya Tanuki at thirty with a loan from his mother-in-law. Loud, sentimental, a Hanshin Tigers fan in Giants territory. His regulars, Hiroshi among them, are like family; his wife runs the till and the books."
+motive = "Friday is the busiest night, his part-timer has the flu, and a party of twelve has booked the back room. He needs hands now — someone who listens and says 'はい!' — and he loves a story to tell the regulars later."
+
+[[cast]]
+id = "kaneko"
+minor = true
+poses = ["happy", "worried", "talk", "point", "bow"]
+name = "Kaneko-san"
+name_jp = "金子 さん"
+aliases = ["かねこさん", "金子さん", "Kaneko"]
+role = "market vendor at Ameyoko in Ueno"
+age = 46
+sprite = "/characters/Kaneko.png"
+color = "#d18b2f"
+voice = "cjVigY5qzO86Huf0OWal"
+looks = "Stocky, a short buzz cut, a rubber apron over a quilted vest, a money pouch at his waist, a wooden price board under one arm."
+personality = "Sharp, funny, a born salesman. Hires day help to shout prices; respects anyone who isn't shy."
+speech_style = "Loud market patter: prices shouted in rhythm, short cheerful commands."
+backstory = "Third generation at the same Ameyoko stall: his grandfather sold black-market sugar under the tracks after the war. Sells chocolate, dried fruit and nuts by the bag with a voice you can hear from the station. Coaches his daughter's softball team on Sundays."
+motive = "His nephew didn't show up, the lunchtime crowd is about to hit, and he can't shout prices and bag sweets at the same time. He'll hire anyone with a loud voice and no shyness, and he enjoys teasing a foreigner into shouting prices with him."
+
+[[cast]]
+id = "master"
+minor = true
+poses = ["happy", "worried", "talk", "point", "bow"]
+stance = "counter"
+name = "The Master"
+name_jp = "マスター"
+aliases = ["マスター", "Master"]
+role = "owner of a retro kissaten (coffee house) in Asakusa"
+age = 63
+sprite = "/characters/Kissaten_Master.png"
+color = "#6b4a3a"
+voice = "JBFqnCBsd6RMkjVDRZzb"
+looks = "Slim, silver hair slicked back, a neat moustache, a white shirt with a black bow tie and a dark vest. Seen waist-up behind the wooden counter with a siphon coffee maker."
+personality = "Silent, observant, theatrical with coffee. Says almost nothing; shows kindness with an extra biscuit."
+speech_style = "A few quiet, formal words at most; nods do the rest."
+backstory = "Opened Kissaten Lamp in 1971 after ten years as a hotel barista, and has made every cup on the same glass siphon since. A widower who speaks little and reads a great deal; his regulars include students, retirees and Aiko, who studies in the corner booth."
+motive = "The coffee-bean supplier has raised prices again and the young people all go to the new chain café by the station. He wants to keep his shop exactly as it is, and quietly enjoys anyone who notices how good the coffee is."
+
+[[cast]]
+id = "receptionist"
+minor = true
+poses = ["happy", "worried", "talk", "point", "bow"]
+stance = "counter"
+name = "Clinic receptionist"
+name_jp = "受付の人"
+aliases = ["うけつけ", "受付", "receptionist"]
+role = "receptionist at a neighbourhood clinic in Asakusa"
+age = 40
+sprite = "/characters/Clinic_Receptionist.png"
+color = "#8fb3a8"
+voice = "Xb7hH8MSUJpSbSDYk0k2"
+looks = "A pink-white nurse-style uniform, hair in a low ponytail, a pen on a cord. Seen waist-up behind the reception window."
+personality = "Efficient and gentle; has explained forms to many confused patients."
+speech_style = "Polite, clear, slightly brisk Japanese; points at the form as she speaks."
+backstory = "Has worked the front desk of Ishida Clinic for twelve years and knows half of Asakusa by their insurance cards. A mother of two who keeps a tin of sweets under the counter for frightened children and foreigners."
+motive = "Monday-morning queue, the fax machine is jammed, and she is the only one at the desk. She wants every form filled in properly so the doctor isn't delayed, and she's kind to anyone who is polite and patient."
+
+[[cast]]
+id = "ishida"
+minor = true
+poses = ["happy", "worried", "talk", "point", "bow"]
+name = "Dr. Ishida"
+name_jp = "石田 先生"
+aliases = ["いしだせんせい", "石田先生", "Dr. Ishida", "Ishida"]
+role = "doctor at a neighbourhood clinic in Asakusa"
+age = 58
+sprite = "/characters/Dr_Ishida.png"
+color = "#9aa8b5"
+voice = "pNInz6obpgDQGcFmaJgB"
+looks = "Tall, grey at the temples, round wire glasses, a white coat over a cardigan, a stethoscope, kind tired eyes."
+personality = "Calm, patient, dry humour; has treated half the neighbourhood since they were children."
+speech_style = "Slow, simple, reassuring Japanese; asks one question at a time."
+backstory = "Took over the clinic from his father thirty years ago and has treated three generations of the neighbourhood. Studied in Edinburgh for a year as a young doctor and remembers a few English words with fondness; plays shogi with the Taishō on Thursdays."
+motive = "It's been a long week of colds and he is behind schedule. He wants to understand the problem quickly and clearly — where it hurts, since when — and he would be quietly delighted if a foreign patient tried to explain in Japanese."
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Townsfolk: generic passers-by. Never written into scenes; the game gives an
+# unnamed "extra" the face and voice of the first one whose alias appears in
+# its speaker_name (listed most specific first), or a stable pick otherwise.
+# ─────────────────────────────────────────────────────────────────────────────
+
+[[cast]]
+id = "folk_station"
+townsfolk = true
+poses = []
+name = "Station worker"
+name_jp = "駅員"
+aliases = ["駅員", "えきいん", "車掌", "しゃしょう", "係員", "かかりいん", "警備", "けいび", "station", "conductor", "attendant", "guard", "staff"]
+role = "railway station worker"
+age = 0
+sprite = "/characters/townsfolk/jp_stationstaff.png"
+color = "#3f4a5c"
+voice = "pqHfZKP75CvOlQylNhV4"
+looks = "Navy railway uniform and cap, white gloves."
+personality = "A passer-by."
+
+[[cast]]
+id = "folk_clerk"
+townsfolk = true
+poses = []
+name = "Clerk"
+name_jp = "店員"
+aliases = ["店員", "てんいん", "レジ", "店", "みせ", "売り", "うり", "clerk", "cashier", "shop", "vendor", "seller", "waiter", "waitress", "cook"]
+role = "shop or konbini clerk"
+age = 0
+sprite = "/characters/townsfolk/jp_clerk.png"
+color = "#8a7a5c"
+voice = "cgSgspJ2msm6clMCkdW9"
+looks = "Plain striped apron over a white shirt."
+personality = "A passer-by."
+
+[[cast]]
+id = "folk_student"
+townsfolk = true
+poses = []
+name = "Student"
+name_jp = "学生"
+aliases = ["学生", "がくせい", "高校生", "こうこうせい", "中学生", "少年", "少女", "子ども", "こども", "男の子", "女の子", "student", "boy", "girl", "kid", "child", "teen"]
+role = "high-school student"
+age = 0
+sprite = "/characters/townsfolk/jp_student.png"
+color = "#2f3b55"
+voice = "TX3LPaxmHKxFdv7VOQHJ"
+looks = "Navy school uniform, school bag."
+personality = "A passer-by."
+
+[[cast]]
+id = "folk_grandma"
+townsfolk = true
+poses = []
+name = "Elderly woman"
+name_jp = "おばあさん"
+aliases = ["おばあ", "おばあさん", "おばあちゃん", "お婆", "老人", "ろうじん", "おばさん", "old", "elderly", "grandma", "granny", "aunt"]
+role = "elderly woman"
+age = 0
+sprite = "/characters/townsfolk/jp_obaachan.png"
+color = "#8c7b8f"
+voice = "XrExE9yKIg1WjnnlVkGX"
+looks = "Plain cardigan, long skirt, cloth shopping bag."
+personality = "A passer-by."
+
+[[cast]]
+id = "folk_officeworker"
+townsfolk = true
+poses = []
+name = "Office worker"
+name_jp = "会社員の女性"
+aliases = ["女性", "じょせい", "女の人", "おんなのひと", "お姉さん", "おねえさん", "ol", "woman", "lady", "women"]
+role = "office worker"
+age = 0
+sprite = "/characters/townsfolk/jp_officelady.png"
+color = "#a08d74"
+voice = "FGY2WhTYpPnrIDTdsKH5"
+looks = "Beige skirt suit, small handbag."
+personality = "A passer-by."
+
+[[cast]]
+id = "folk_salaryman"
+townsfolk = true
+poses = []
+name = "Salaryman"
+name_jp = "サラリーマン"
+aliases = ["サラリーマン", "会社員", "かいしゃいん", "男性", "だんせい", "男の人", "おとこのひと", "おじさん", "運転手", "うんてんしゅ", "man", "driver", "businessman", "commuter", "passer", "stranger", "通行人", "つうこうにん"]
+role = "office worker"
+age = 0
+sprite = "/characters/townsfolk/jp_salaryman.png"
+color = "#4a4f57"
+voice = "iP95p4xoKVk53GoZ742B"
+looks = "Charcoal suit, plain tie, briefcase."
+personality = "A passer-by."
 
 # ─────────────────────────────────────────────────────────────────────────────
 # The hint device: a battered electronic dictionary (it's 1998 — nothing
@@ -229,6 +547,12 @@ id = "terminal_map"
 name = "Terminal map, with arrows drawn in pen"
 name_jp = "ターミナルの地図"
 icon = "🗺️"
+
+[[items]]
+id = "fare_note"
+name = "Nakajima's fare slip: Ueno ¥1,270, 10:31, platform 1"
+name_jp = "うんちんのメモ"
+icon = "🧾"
 
 [[items]]
 id = "apron"
@@ -353,7 +677,7 @@ id = "asakusa_street"
 name = "Asakusa — Shopping Street"
 name_jp = "浅草 仲見世"
 description = "A bustling old shopping street by day, temple gate in the distance, noren curtains, a parked rickshaw, a green payphone."
-music = "morning"
+music = "town"
 ambience = "curbside"
 
 [[scenes]]
@@ -361,7 +685,7 @@ id = "izakaya"
 name = "Izakaya Tanuki"
 name_jp = "居酒屋たぬき"
 description = "A small warm izakaya: wooden counter, hanging lanterns, sake bottles, steam from the kitchen."
-music = "night"
+music = "work"
 ambience = "izakaya"
 
 [[scenes]]
@@ -369,7 +693,7 @@ id = "mori_room"
 name = "Mr. Mori's Office"
 name_jp = "森さんの部屋"
 description = "A tatami office behind the hostel: low table, old black-and-white photos on the wall, a rotary phone."
-music = "cozy"
+music = "memory"
 ambience = "hostel"
 
 [[scenes]]
@@ -377,7 +701,7 @@ id = "cafe"
 name = "Kissaten Lamp"
 name_jp = "喫茶ランプ"
 description = "A retro coffee shop with wooden booths, stained-glass lamps and a siphon coffee maker; rain on the window."
-music = "cozy"
+music = "cafe"
 ambience = "cafe"
 
 [[scenes]]
@@ -385,7 +709,7 @@ id = "matsuri"
 name = "Summer Festival"
 name_jp = "夏祭り"
 description = "Rows of lantern-lit food stalls at dusk, yukata, paper fans, fireworks starting overhead."
-music = "journey"
+music = "festival"
 ambience = "festival"
 
 [[scenes]]
@@ -393,7 +717,7 @@ id = "kabuki_theatre"
 name = "Kabuki Theatre"
 name_jp = "歌舞伎座"
 description = "A grand theatre: red and gold curtain, wooden balconies, a hushed, expectant audience."
-music = "careful"
+music = "theatre"
 ambience = "theatre"
 
 [[scenes]]
@@ -401,7 +725,7 @@ id = "clinic"
 name = "Ishida Clinic"
 name_jp = "石田クリニック"
 description = "A small neighbourhood clinic waiting room: vinyl benches, a reception window, an old CRT TV."
-music = "careful"
+music = "clinic"
 ambience = "clinic"
 
 [[scenes]]
@@ -411,6 +735,30 @@ name_jp = "成田空港 出発ロビー"
 description = "The departures hall at golden hour: check-in counters, a clattering flip-board, planes beyond the glass."
 music = "finale"
 ambience = "airport"
+
+[[scenes]]
+id = "soba_stand"
+name = "Narita — Standing-Soba Stand"
+name_jp = "成田空港 立ち食いそば"
+description = "A tiny standing-only soba stand in a 1990s Japanese airport basement, steps from the train ticket gates: a short steel counter with no stools, a meal-ticket vending machine, two big steaming noodle pots, stacked white bowls, a faded blue noren curtain reading そば, handwritten price cards on the wall, warm yellow light against the cool fluorescent corridor behind."
+music = "work"
+ambience = "station"
+
+[[scenes]]
+id = "ticket_window"
+name = "Narita Airport Station — Ticket Window"
+name_jp = "成田空港駅 きっぷうりば"
+description = "Front view of a staffed 1990s Japanese railway ticket window: a waist-high counter with a glass partition and a round brass speaking grille, a fare table and route map pinned under the glass, a notepad, a ticket stamp and coin tray on the counter, a framed timetable on the back wall, cool station fluorescent light. Composed for a character seen waist-up behind the counter."
+music = "journey"
+ambience = "station"
+
+[[scenes]]
+id = "ameyoko"
+name = "Ameyoko Market — Day"
+name_jp = "アメ横（昼）"
+description = "Ameyoko market street in Ueno by day, 1998: a narrow crowded lane under elevated railway tracks, a steel girder bridge overhead, stalls piled with fish on ice, dried squid, chocolate in bags, sneakers and watches, hand-painted price boards, red and yellow shop signs, shoppers in spring jackets, bright sun cutting between the tracks."
+music = "town"
+ambience = "city_night"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Audio
@@ -452,6 +800,34 @@ epilogue_music = "finale"
   [[audio.music]]
   id = "finale"
   prompt = "Uplifting instrumental finale. Piano and strings swelling gently, light percussion, a sense of relief, gratitude and new friendship. 88 BPM. No vocals."
+
+  [[audio.music]]
+  id = "town"
+  prompt = "Bright, bouncy instrumental for a sunny morning stroll through an old Tokyo shopping street lined with temples and snack stalls. Shamisen and koto melodies over a laid-back lo-fi hip-hop beat, soft Rhodes piano, light shaker. Cheerful and curious. 92 BPM. No vocals."
+
+  [[audio.music]]
+  id = "work"
+  prompt = "Lively, warm instrumental for a busy little Japanese pub kitchen in the evening. Upbeat acoustic folk with shamisen riffs, hand claps, wood block, walking upright bass and a playful accordion. Fast-paced but friendly, like a first day at a new job going well. 118 BPM. No vocals."
+
+  [[audio.music]]
+  id = "cafe"
+  prompt = "Rainy-afternoon jazz for a retro Japanese coffee house in the 1990s. Soft piano trio with brushed drums and upright bass, a gentle vibraphone melody, a hint of 1980s city-pop chords. Tender, romantic and unhurried. 78 BPM. No vocals."
+
+  [[audio.music]]
+  id = "festival"
+  prompt = "Joyful Japanese summer festival instrumental. Taiko drums, bamboo fue flute and kane bells in a festival rhythm, layered with warm modern strings and a soaring melody that builds toward fireworks. Celebratory and nostalgic. 112 BPM. No vocals."
+
+  [[audio.music]]
+  id = "theatre"
+  prompt = "Dramatic, slightly eerie instrumental inspired by classical Japanese theatre. Sharp wooden clappers, shamisen, a low shakuhachi flute, sparse taiko hits and a slow swelling string section. Mysterious and theatrical, like a ghost story on stage. 70 BPM. No vocals."
+
+  [[audio.music]]
+  id = "memory"
+  prompt = "Melancholic, beautiful solo piano instrumental about remembering something long forgotten. Slow, sparse, a simple pentatonic melody with soft string pads drifting in, faint music-box echoes. Bittersweet and warm. 66 BPM. No vocals."
+
+  [[audio.music]]
+  id = "clinic"
+  prompt = "Calm, gentle instrumental for a quiet hospital waiting room. Soft ambient pads, slow celesta and harp arpeggios, a single cello line. Reassuring and hopeful, with a feeling of healing. 64 BPM. No vocals."
 
   [[audio.ambience]]
   id = "airport"
@@ -1635,11 +2011,135 @@ title = "I have to get out of this airport and into Tokyo."
 title_jp = "東京へ"
 flags_any = ["reached_tokyo"]
 
+  [[quests.steps]]
+  id = "help"
+  title = "Find out what to do"
+  why = "I hit my head, my bag is gone, and I can't read a word here. I need someone to help me."
+  done_any = ["asked_for_help", "reported_theft"]
+
+    [[quests.steps.branches]]
+    flag = "asked_for_help"
+    at = "arrivals_hall"
+    label = "Ask the security guard"
+
+  [[quests.steps]]
+  id = "report"
+  title = "Report the theft"
+  why = "My passport and wallet were stolen. The police have to know — and maybe they can help."
+  done_any = ["reported_theft"]
+
+    [[quests.steps.branches]]
+    flag = "reported_theft"
+    at = "koban"
+    label = "Report it at the police box"
+
+  [[quests.steps]]
+  id = "fare"
+  title = "Find out the fare to Tokyo"
+  why = "I need to know what the train to Tokyo costs."
+  done_any = ["knows_fare"]
+
+    [[quests.steps.branches]]
+    flag = "knows_fare"
+    at = "ticket_window"
+    label = "Ask at the ticket window"
+
+    [[quests.steps.branches]]
+    flag = "knows_fare"
+    at = "info_counter"
+    label = "Ask at the information counter"
+
+  [[quests.steps]]
+  id = "money"
+  title = "Get ¥1,270 for the ticket"
+  why = "The fare to Ueno is ¥1,270, and I only have what people give me."
+  done_any = ["has_ticket"]
+  done_min_yen = 1270
+
+    [[quests.steps.branches]]
+    flag = "koban_topup"
+    at = "koban"
+    label = "Police top-up"
+
+    [[quests.steps.branches]]
+    flag = "aiko_loan"
+    at = "narita_exterior"
+    label = "Aiko's loan"
+
+    [[quests.steps.branches]]
+    flag = "worked_soba"
+    at = "soba_stand"
+    label = "Work at the soba stand"
+
+    [[quests.steps.branches]]
+    flag = "hiroshi_paid"
+    at = "airport_station"
+    label = "Hiroshi covers the difference"
+
+    [[quests.steps.branches]]
+    flag = "stranger_coins"
+    at = "airport_station"
+    label = "Strangers' coins"
+
+  [[quests.steps]]
+  id = "ticket"
+  title = "Buy the ticket"
+  why = "I have the fare: the staffed window sells the ticket."
+  done_any = ["has_ticket"]
+
+    [[quests.steps.branches]]
+    flag = "has_ticket"
+    at = "ticket_window"
+    label = "Buy it at the ticket window"
+
+  [[quests.steps]]
+  id = "ride"
+  title = "Get to Tokyo"
+  why = "The embassy in Tokyo can make me a new passport — it opens Monday."
+  done_any = ["reached_tokyo"]
+
+    [[quests.steps.branches]]
+    flag = "reached_tokyo"
+    at = "ueno_street"
+    label = "Ride the Keisei line to Ueno"
+
 [[quests]]
 id = "bed"
 title = "I need somewhere to sleep tonight."
 title_jp = "今夜の宿"
 flags_any = ["has_bed"]
+
+  [[quests.steps]]
+  id = "where"
+  title = "Find out where to sleep"
+  why = "It's night in Ueno and I have nowhere to sleep."
+  done_any = ["knows_hostel"]
+
+    [[quests.steps.branches]]
+    flag = "knows_hostel"
+    at = "konbini"
+    label = "Aiko's hostel"
+
+    [[quests.steps.branches]]
+    flag = "knows_hostel"
+    at = "ueno_park"
+    label = "Gen-san's tip"
+
+    [[quests.steps.branches]]
+    flag = "knows_hostel"
+    at = "ueno_street"
+    label = "Ask a passer-by"
+
+  [[quests.steps]]
+  id = "bed"
+  title = "Get a bed"
+  why = "A guesthouse might let me work for a bed."
+  done_any = ["has_bed"]
+
+    [[quests.steps.branches]]
+    flag = "has_bed"
+    at = "hostel_lobby"
+    label = "Work for a bed at Hostel Sakura"
 
 [[quests]]
 id = "work"
@@ -1647,11 +2147,49 @@ title = "No money, no papers. I need a job."
 title_jp = "仕事さがし"
 flags_any = ["has_job"]
 
+  [[quests.steps]]
+  id = "lead"
+  title = "Find work"
+  why = "No money and no papers: I need work to get by."
+  done_any = ["job_lead"]
+
+    [[quests.steps.branches]]
+    flag = "job_lead"
+    at = "asakusa_street"
+    label = "The help-wanted sign at Izakaya Tanuki"
+
+  [[quests.steps]]
+  id = "hired"
+  title = "Get hired"
+  why = "Someone is looking for help — I have to get the job."
+  done_any = ["has_job"]
+
+    [[quests.steps.branches]]
+    flag = "has_job"
+    at = "izakaya"
+    label = "A trial shift at Izakaya Tanuki"
+
 [[quests]]
 id = "rent"
 title = "Rent's due. I have to pay Mr. Mori."
 title_jp = "家賃"
 flags_any = ["paid_rent"]
+
+  [[quests.steps]]
+  id = "pay"
+  title = "Pay Mr. Mori the rent (¥7,000)"
+  why = "Mr. Mori wants the week's rent: ¥7,000."
+  done_any = ["paid_rent"]
+
+    [[quests.steps.branches]]
+    flag = "paid_rent"
+    at = "mori_room"
+    label = "Pay him in his office"
+
+    [[quests.steps.branches]]
+    flag = "paid_rent"
+    at = "hostel_lobby"
+    label = "Pay him at the desk"
 
 [[quests]]
 id = "love"
@@ -1696,17 +2234,18 @@ clock = "7:42 AM"
 act = 1
 cast = ["kenji"]
 situation = """
-The player slipped on a wet escalator, hit their head, and woke on the floor of the arrivals hall. Their backpack — passport, wallet, traveler's cheques — was stolen while they were out. They remember only their first name; everything else is fog. It is Saturday morning. Kenji, a security guard, is kneeling beside them. He can point to the police box just outside the arrivals exit, or to the information counter across the hall, but he is on duty and cannot leave his post.
+The player slipped on a wet escalator, hit their head, and woke on the floor of the arrivals hall. Their backpack — passport, wallet, traveler's cheques — was stolen while they were out. They remember only their first name; everything else is fog. It is Saturday morning. Kenji, a security guard two hours from the end of a night shift, is kneeling beside them.
+What Kenji can and can't do:
+- He is on duty and cannot leave his post, give money or walk anyone anywhere. He points the way instead, and offers all the real options, in any order the player likes: the police box (こうばん) just outside the arrivals exit, the information counter (あんないじょ) across the hall, the bus bays outside (そと), and the station downstairs (えき, した). If the player mentions money or food, he mentions Fumiko's tiny standing-soba stand in the basement by the station gates — "ふみこさん、こわい…でも、やさしい" — where he eats after every shift, and that she's always short of hands before lunch.
+- His own day: he has to write an incident report about the wet escalator (he asks, in simple words, where they fell and whether anyone pushed them — the player may remember the man in the grey cap and red jacket), and he is nervous about Monday's supervisor exam. At some natural moment he pulls out an English flashcard and tries one phrase on the player, stiffly ("May I help you?" / "Are you hurt?"). If the player shows they understood it, or tells him it was good (じょうず, わかります, はい！), he lights up — set helped_kenji. Laughing at him or ignoring it costs trust.
+- If his patience runs out he jogs back to his post, but he's still on this floor: coming back later finds him again.
 """
 goal = "I need to tell him I'm okay — and that my bag is gone."
 success = """
-The player reassures Kenji (e.g. 大丈夫です) and gets across that their bag is gone, in any Japanese at all. Kenji then points towards the police box (こうばん) outside, or the information counter (あんないじょ). Set go_to only once the player clearly decides where to go.
+The player reassures Kenji (e.g. 大丈夫です) and gets across that their bag is gone, in any Japanese at all. Kenji then points to the options: the police box (こうばん) outside, the information counter (あんないじょ), or the station and soba stand downstairs. Set go_to only once the player clearly decides where to go.
 """
 goal_flags = []
 on_enter_flags = []
-items_allowed = []
-max_yen_gain = 0
-max_yen_spend = 0
 reward_yen = 0
 reward_items = []
 recharge = 0
@@ -1748,6 +2287,21 @@ candos = ["l0_okay", "l0_sorry", "l0_dont_understand"]
   romaji = "asoko"
   en = "over there"
 
+  [[places.pack]]
+  jp = "じょうず"
+  romaji = "jouzu"
+  en = "good at it / skilful"
+
+  [[places.events]]
+  flag = "helped_kenji"
+  when = "Kenji tries an English phrase from his exam flashcards and the player shows they understood it or tells him it was good (じょうず, わかります), giving his confidence a real boost"
+
+  [[places.events]]
+  flag = "asked_for_help"
+  when = "the player tells Kenji what happened (the bag, the passport, the wallet) or asks him what to do, and he points them to the police box just outside"
+  label = "Kenji points you to the police box"
+  must_convey = ["the police box (こうばん) is just outside the arrivals exit: that is where to report a theft"]
+
   [[places.exits]]
   to = "koban"
   label = "The police box Kenji points to, just outside"
@@ -1763,6 +2317,12 @@ candos = ["l0_okay", "l0_sorry", "l0_dont_understand"]
   [[places.exits]]
   to = "narita_exterior"
   label = "Out through the glass doors"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "soba_stand"
+  label = "Downstairs to Fumiko's soba stand, by the station gates"
   requires_flags = []
   min_lesson = 0
 
@@ -1868,9 +2428,14 @@ aliases = ["あんないじょ", "案内所", "インフォメーション", "in
 scene = "info_counter"
 clock = "8:00 AM"
 act = 1
-cast = []
+cast = ["ono"]
 situation = """
-An airport information counter. Ms. Ono (speaker "extra", speaker_name "おのさん") is polite, precise, and knows only "sorry, English… little". She can phone the police box, draw arrows on a free terminal map, and point to the train station downstairs. She asks one simple question at a time.
+An airport information counter. Ms. Ono (speaker "extra", speaker_name "おのさん") is polite, precise, and knows only "sorry, English… little". She asks one simple question at a time. Her own day: she is covering the counter alone because her colleague called in sick, and a tour group is due at nine.
+What she can do here — different help from the kōban:
+- Draw the way on a free terminal map and give it to the player: the kōban outside, the bus bays, the station downstairs, the soba stand by the station gates.
+- Phone the kōban to say the player is coming (she does this if they mention a theft or passport).
+- If asked about the train or a price, she looks it up in a binder and writes the fare: うえの ¥1,270. She can't lend money or sell tickets; asked about money, she says, clearly and realistically, that the police box lends small amounts of fare money to people in trouble (こうばんで、かりることができます).
+- She will not hand out money, phone cards or free tickets. Nobody here does.
 """
 goal = "Someone here must know where I can get help."
 success = """
@@ -1878,14 +2443,11 @@ The player asks where something is (〜はどこですか or similar) and Ms. On
 """
 goal_flags = []
 on_enter_flags = []
-items_allowed = ["terminal_map"]
-max_yen_gain = 0
-max_yen_spend = 0
 reward_yen = 0
 reward_items = ["terminal_map"]
 recharge = 0
 
-candos = ["l2_where", "l0_dont_understand"]
+candos = ["l2_where", "l0_dont_understand", "l3_price"]
 
   [[places.pack]]
   jp = "どこ"
@@ -1911,6 +2473,17 @@ candos = ["l2_where", "l0_dont_understand"]
   jp = "した"
   romaji = "shita"
   en = "downstairs / below"
+
+  [[places.pack]]
+  jp = "せんにひゃくななじゅうえん"
+  romaji = "sen nihyaku nanajuu en"
+  en = "¥1,270"
+
+  [[places.events]]
+  flag = "knows_fare"
+  when = "Ms. Ono looks up the fare and writes ¥1,270 to Ueno for the player"
+  heard = ["1270", "せんにひゃくななじゅう", "千二百七十"]
+  label = "Ms. Ono looks up the fare: ¥1,270"
 
   [[places.exits]]
   to = "koban"
@@ -1983,12 +2556,18 @@ clock = "8:40 AM"
 act = 1
 cast = ["yumi"]
 situation = """
-Officer Yumi Sato runs the tiny police box. She speaks zero English and communicates with a laminated picture board (passport, wallet, bag, train, embassy, phone icons), quick sketches on a notepad, and the wall map. She treats a stolen passport as serious and is patient and kind about it. What really happens here, step by step, whenever the player asks or worries:
+Officer Yumi Sato runs the tiny police box. She speaks zero English and communicates with a laminated picture board (passport, wallet, bag, train, embassy, phone icons), quick sketches on a notepad, and the wall map. She treats a stolen passport as serious and is patient and kind about it. Her desk is buried in weekend paperwork, and a lost-dog flyer is clipped to her board: Hana, a white shiba with a red collar, lost at the bus bays since dawn.
+ASK ONCE: she asks what was stolen ONE time. Whatever the player lists (bag, passport, wallet, even one thing) is enough; she never asks "anything else?" again and never re-asks something already answered. As soon as she has it, she files the report in that same reply (that's when reported_theft happens), and the game has her explain the loan and what to do next.
+FIRST VISIT, step by step, whenever the player asks or worries:
 - She takes the theft report: what was stolen (she points at icons), what the bag looked like, and asks for a contact — the player has none, so she writes the report number and the kōban's phone number on a card: "if we find it, we call — you call us".
 - She shows bags from the lost-property shelf asking これはあなたのですか — none are theirs.
 - Passport: she points at the embassy icon, says たいしかん slowly, writes 大使館 and draws Tokyo on the map. Today is Saturday — she points at a calendar and mimes "closed" (しまっています) until Monday (げつようび). That's WHY the player must get to Tokyo and survive the weekend.
-- Money: as Japanese police really can for stranded people, she lends ¥1,000 for the train to Tokyo, and points to the station downstairs.
-If the player asks why, what next, or about their passport, phone or luggage, she always answers with this information — never just "go to the station".
+- Money: as Japanese police really do for stranded people, she lends a small, logged sum — a fixed ¥1,000 on the form, which the player signs and must repay at any kōban later. She believes it covers the train; it doesn't quite (Ueno is ¥1,270). The game caps what she can hand over in one visit at ¥1,000, so she never gives more than that in a single visit. If the player already knows the shortfall on this first visit, she dryly says one form, one amount: get the exact fare confirmed at the station window and come back for a second entry.
+RETURN VISITS (reported_theft already set):
+- The top-up: if the player comes back and explains the shortfall clearly — numbers, いくら, たりません, e.g. 「うえのまで1,270えんです。270えんたりません」, or by showing Nakajima's written fare slip — then in that SAME reply she glances at her fare chart once, sighs at herself ("…わたしのミスですね"), writes a second line in the log and hands over ¥300 (rounded up). Set koban_topup and yen_delta 300 in that reply — no re-checking, no second turn. Vague pleading ("money… please…") gets a patient, unimpressed repeat of the question: いくら たりませんか。She tops up once only, and never lends for food or a hotel.
+- If her patience ran out before, she's back at the desk now; the player can simply try again.
+THE DOG: if the player brings Hana in (took_dog) or tells her clearly where the dog is (いぬ, そと, バス, あそこ), she drops her pen, radios the owner and, for once, smiles. Set found_dog. She's warmer for the rest of the story, though she would never say so.
+If the player asks why, what next, or about their passport, phone or luggage, she always answers with the information above — never just "go to the station".
 """
 goal = "Report my stolen bag and passport to Officer Sato, and get help to reach Tokyo."
 success = """
@@ -1996,14 +2575,11 @@ The player explains what was stolen (or refuses a wrong bag with 〜じゃあり
 """
 goal_flags = ["reported_theft"]
 on_enter_flags = []
-items_allowed = ["theft_report"]
-max_yen_gain = 1000
-max_yen_spend = 0
-reward_yen = 1000
-reward_items = ["theft_report"]
+reward_yen = 0
+reward_items = []
 recharge = 20
 
-candos = ["l2_lost", "l2_not_mine"]
+candos = ["l2_lost", "l2_not_mine", "l3_price"]
 
   [[places.pack]]
   jp = "パスポート"
@@ -2045,6 +2621,72 @@ candos = ["l2_lost", "l2_not_mine"]
   romaji = "getsuyoubi"
   en = "Monday"
 
+  [[places.pack]]
+  jp = "たりません"
+  romaji = "tarimasen"
+  en = "not enough"
+
+  [[places.pack]]
+  jp = "いぬ"
+  romaji = "inu"
+  en = "dog"
+
+  [[places.events]]
+  flag = "koban_topup"
+  when = "on a return visit after the first loan, the player clearly explains the fare shortfall with numbers (いくら / たりません / 1,270えん) or shows the fare slip, and Officer Sato logs a second loan of ¥300"
+  label = "Officer Sato tops you up ¥300"
+  gives_yen = 300
+  requires_flags = ["reported_theft", "knows_fare"]
+
+    [[places.events.says]]
+    who = "yumi"
+    jp = "…わたしの ミスですね。さんびゃくえん、もう いちぎょう かきます。"
+    romaji = "…Watashi no misu desu ne. Sanbyaku-en, mō ichigyō kakimasu."
+    en = "…My mistake. ¥300 more — one more line on the form."
+
+    [[places.events.says]]
+    who = "yumi"
+    jp = "ぜんぶで せんさんびゃくえん。いっしょに かえしてください。"
+    romaji = "Zenbu de sen-sanbyaku-en. Issho ni kaeshite kudasai."
+    en = "¥1,300 in all. Pay it back together."
+
+
+  [[places.events]]
+  flag = "found_dog"
+  when = "the player brings in Hana the lost shiba, or tells Officer Sato clearly where the dog is, and she closes the lost-dog report"
+
+  [[places.events]]
+  flag = "reported_theft"
+  when = "the player has said what was stolen (one or two things is enough: bag, passport, wallet); Officer Sato files the report right then, gives them the report card and lends the fixed ¥1,000 for the train"
+  label = "Officer Sato files the report and lends ¥1,000"
+  gives_yen = 1000
+  gives_items = ["theft_report"]
+
+    [[places.events.says]]
+    who = "yumi"
+    jp = "はい、ほうこくしょです。かばんが みつかったら、でんわします。"
+    romaji = "Hai, hōkokusho desu. Kaban ga mitsukattara, denwa shimasu."
+    en = "Here's your report. If we find the bag, we'll call."
+
+    [[places.events.says]]
+    who = "yumi"
+    jp = "パスポートは とうきょうの たいしかんです。でも、げつようびまで しまっています。"
+    romaji = "Pasupōto wa Tōkyō no taishikan desu. Demo, getsuyōbi made shimatte imasu."
+    en = "For a new passport, it's the embassy in Tokyo. But it's closed until Monday."
+
+    [[places.events.says]]
+    who = "yumi"
+    jp = "でんしゃの おかね、せんえん かします。あとで こうばんで かえしてください。"
+    romaji = "Densha no okane, sen-en kashimasu. Ato de kōban de kaeshite kudasai."
+    en = "I'll lend you ¥1,000 for the train. Pay it back at any police box later."
+
+    [[places.events.says]]
+    who = "yumi"
+    jp = "えきは したです。でんしゃで うえのへ いってください。"
+    romaji = "Eki wa shita desu. Densha de Ueno e itte kudasai."
+    en = "The station is downstairs. Take the train to Ueno, in Tokyo."
+
+
   [[places.exits]]
   to = "airport_station"
   label = "The station Officer Sato points to"
@@ -2067,7 +2709,7 @@ candos = ["l2_lost", "l2_not_mine"]
   speaker = "narrator"
   scene = "koban"
   transition = "whip"
-  en = "The kōban is the size of a closet: one desk, one map, one red lamp — and one very upright police officer."
+  en = "The kōban is the size of a closet: one desk, one map, one red lamp, a tower of paperwork — and one very upright police officer."
 
   [[places.intro]]
   speaker = "yumi"
@@ -2104,7 +2746,12 @@ clock = "8:05 AM"
 act = 1
 cast = ["aiko"]
 situation = """
-Outside the terminal: bus bays, taxis, a red vending machine. Aiko, a university student just back from a trip, sits on her suitcase eating melon bread, waiting for her bus. She notices the dazed foreigner. She is shy about her English but brave with gestures, and mentions (plant it casually) that she works nights at a konbini in Ueno. She can point to the police box and the station.
+Outside the terminal: bus bays, taxis, a red vending machine. Aiko, a university student just back from a cheap trip to Seoul, sits on her suitcase absorbed in a photocopied English short story; she doesn't approach strangers, but once the player speaks to her she's friendly and curious covered in pencil question marks — a seminar this afternoon, and she hasn't understood the ending. Her bus into Tokyo is due (it's running late; if the player comes back later she's still waiting, more frantic each time). A small white shiba with a red collar and a trailing lead has adopted her and is eating her melon bread; she can't leave it and can't take it on the bus.
+What Aiko will and won't do:
+- She's shy about her English but brave with gestures. She asks the player's name and where they're from, and mentions (plant it casually) that she works at a konbini by Ueno station, Saturday nights and weeknights.
+- She can point to the police box (by the taxi rank) and the station.
+- Money: if the player explains honestly that they're short for the train (おかね、たりません, いくら), she hesitates — she's saving every yen — then presses a ¥500 coin into their hand and writes the konbini's name on their palm: "pay me back there!" (set aiko_loan). She lends at most ¥500, once, and never if the player just asks for money without explaining.
+- Her own problems, which the player can help with: (1) the story — if the player reads its last line aloud for her, or tells her whether it ends happily or sadly (しあわせ / かなしい), she squeals with relief; (2) the dog — if the player offers to take it to the kōban (こうばんにいきます), she hands over the lead with a deep bow (set took_dog). Either favour sets helped_aiko, and she remembers it at the konbini.
 """
 goal = "Maybe the girl on the suitcase can help me…"
 success = """
@@ -2112,9 +2759,6 @@ The player tells Aiko their name (〜です) and answers at least one of her que
 """
 goal_flags = ["met_aiko"]
 on_enter_flags = []
-items_allowed = []
-max_yen_gain = 0
-max_yen_spend = 0
 reward_yen = 0
 reward_items = []
 recharge = 0
@@ -2151,6 +2795,48 @@ candos = ["l1_name", "l1_from", "l1_ask"]
   romaji = "basu"
   en = "bus"
 
+  [[places.pack]]
+  jp = "いぬ"
+  romaji = "inu"
+  en = "dog"
+
+  [[places.pack]]
+  jp = "コンビニ"
+  romaji = "konbini"
+  en = "convenience store"
+
+  [[places.events]]
+  flag = "aiko_loan"
+  when = "the player honestly explains they're short of money for the train and Aiko lends them a ¥500 coin, telling them to pay her back at her konbini in Ueno"
+  label = "Aiko lends you ¥500"
+  gives_yen = 500
+
+    [[places.events.says]]
+    who = "aiko"
+    jp = "はい、ごひゃくえん！ わたしの コンビニで かえしてね。"
+    romaji = "Hai, gohyaku-en! Watashi no konbini de kaeshite ne."
+    en = "Here, ¥500! Pay me back at my konbini."
+
+    [[places.events.says]]
+    who = "aiko"
+    jp = "うえのの コンビニ。てに かくね！"
+    romaji = "Ueno no konbini. Te ni kaku ne!"
+    en = "The konbini in Ueno — I'll write it on your hand!"
+
+
+  [[places.events]]
+  flag = "took_dog"
+  when = "the player offers to take the lost shiba to the kōban and Aiko hands over its lead"
+
+  [[places.events]]
+  flag = "helped_aiko"
+  when = "the player helps Aiko with her seminar story (reads the last line, or says whether it ends happily or sadly) or takes the lost dog off her hands so she can catch her bus"
+
+  [[places.events]]
+  flag = "met_aiko"
+  when = "the player and Aiko actually talk"
+  label = "Met Aiko"
+
   [[places.exits]]
   to = "koban"
   label = "The police box by the taxi rank"
@@ -2171,25 +2857,22 @@ candos = ["l1_name", "l1_from", "l1_ask"]
 
   [[places.intro]]
   speaker = "narrator"
-  en = "Outside, the air smells like jet fuel and rain. Buses. Taxis. Signs. No kōban that you can see."
+  en = "Outside, the air smells like jet fuel and rain. Buses. Taxis. A small white dog trailing a red lead, nosing at someone's melon bread."
 
   [[places.intro]]
-  speaker = "aiko"
-  expression = "surprised"
-  action = "enter_left"
-  emote = "question"
-  jp = "あの…すみません、大丈夫ですか？"
-  romaji = "Ano… sumimasen, daijoubu desu ka?"
-  en = "Um… excuse me, are you okay?"
+  speaker = "narrator"
+  enter = ["aiko"]
+  en = "On a suitcase by the bus bay, a student with pink-tipped hair frowns at a photocopied page covered in pencil question marks. The dog has settled at her feet; she hasn't noticed."
 
   [[places.intro]]
-  speaker = "aiko"
-  expression = "happy"
-  action = "hop"
-  jp = "わたしはあいこです！おなまえは？"
-  romaji = "Watashi wa Aiko desu! O-namae wa?"
-  en = "I'm Aiko! What's your name?"
+  speaker = "thought"
+  en = "She looks local, and about my age. Maybe she knows how to get into Tokyo — if I'm brave enough to say すみません."
 
+
+  [[places.choices]]
+  jp = "すみません。"
+  romaji = "Sumimasen."
+  en = "Excuse me."
 
   [[places.choices]]
   jp = "わたしは＿＿です。"
@@ -2201,14 +2884,142 @@ candos = ["l1_name", "l1_from", "l1_ask"]
   romaji = "Kouban wa doko desu ka."
   en = "Where's the police box?"
 
+
+[[places]]
+id = "soba_stand"
+unhurried = false
+timer = { turns = 10, label = "The lunch rush starts", expires = "The gates chime and a wave of flight crews, baggage handlers and cleaners pours in, all shouting orders at once. Fumiko has no time for anything but noodles now — 「あとで、あとで！」" }
+name = "Fumiko's Soba Stand"
+name_jp = "立ち食いそば ふみこ"
+aliases = ["そばや", "そば屋", "おそば", "たちぐい", "立ち食い", "たちぐいそば", "ふみこ", "soba", "noodles", "noodle stand", "fumiko"]
+scene = "soba_stand"
+clock = "10:40 AM"
+act = 1
+cast = ["fumiko"]
+situation = """
+A standing-soba stand in the airport basement, a few steps from the Keisei ticket gates: a steel counter for six, a ticket machine for meal tickets, two steaming pots, a wall of stacked bowls. Fumiko, sixty-eight, has run it for thirty years. Her helper quit last week; the lunch rush is coming; the sink is full of breakfast bowls and three crates of noodles are still in the storeroom.
+What Fumiko will and won't do:
+- She sees the player and scolds them first for looking hungry (たべてないでしょ！). She gives nothing for nothing — no free bowls, no coins, no "charity for a young person with two good arms".
+- But she'll put them to work: wash the bowls (おさらをあらって), carry the noodle crates (はこんで), wipe the counter. She mimes each job and names it loudly. If the player asks to help or for work (てつだいます, しごと, おねがいします) and actually does a couple of tasks on screen before the rush, she pays ¥300 and stands a bowl of kake soba in front of them: 「たべな！」 (set worked_soba). That's the deal, once.
+- Her son: while they work she grumbles about her son in Osaka who never calls. If the player asks about him or gently tells her to call him (でんわしてください / むすこさん), she goes quiet, pats the phone card in her apron and says maybe tonight (set fumiko_son). Don't force it.
+- She knows Kenji (she feeds him after every night shift and thinks he's too thin), Nakajima at the ticket window (punctual, eats at 10:05 every day), and that the kōban lends fare money.
+- If her patience runs out, she shoos them off — "come back later" — and on a later visit she's still here, still short of hands.
+"""
+goal = "She looks fierce — and short of hands. Maybe I can work for a few coins?"
+success = """
+The player asks to help or for work politely (てつだいます, おねがいします, すみません), follows at least one of Fumiko's instructions on screen, and she pays them ¥300 and a bowl of kake soba (set worked_soba).
+"""
+goal_flags = ["worked_soba"]
+on_enter_flags = []
+reward_yen = 0
+reward_items = []
+recharge = 15
+
+candos = ["l0_sorry", "l0_thanks", "l3_request", "l2_where"]
+
+  [[places.pack]]
+  jp = "そば"
+  romaji = "soba"
+  en = "buckwheat noodles"
+
+  [[places.pack]]
+  jp = "どんぶり"
+  romaji = "donburi"
+  en = "big bowl"
+
+  [[places.pack]]
+  jp = "あらって"
+  romaji = "aratte"
+  en = "wash (it)"
+
+  [[places.pack]]
+  jp = "はこんで"
+  romaji = "hakonde"
+  en = "carry (it)"
+
+  [[places.pack]]
+  jp = "しごと"
+  romaji = "shigoto"
+  en = "work / job"
+
+  [[places.pack]]
+  jp = "てつだいます"
+  romaji = "tetsudaimasu"
+  en = "I'll help"
+
+  [[places.pack]]
+  jp = "たべて"
+  romaji = "tabete"
+  en = "eat!"
+
+  [[places.pack]]
+  jp = "むすこ"
+  romaji = "musuko"
+  en = "(my) son"
+
+  [[places.events]]
+  flag = "fumiko_son"
+  when = "the player asks Fumiko about her son or gently tells her to call him, and she admits she might phone him tonight"
+
+  [[places.events]]
+  flag = "worked_soba"
+  when = "the player asks Fumiko for work and actually helps before the lunch rush; she pays them ¥300 and feeds them"
+  label = "Worked the lunch rush at the soba stand"
+  gives_yen = 300
+
+  [[places.exits]]
+  to = "airport_station"
+  label = "Through to the station concourse"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "arrivals_hall"
+  label = "Up the stairs to arrivals"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "soba_stand"
+  transition = "fade"
+  ambient = "clear"
+  sfx = "footsteps"
+  en = "In the basement, a few steps from the ticket gates: a steel counter, two steaming pots, a noren curtain reading そば. The smell of dashi hits you like a hug."
+
+  [[places.intro]]
+  speaker = "fumiko"
+  expression = "annoyed"
+  action = "enter_right"
+  emote = "anger"
+  jp = "ちょっと！かおいろ、わるいよ。あさごはん、たべた？"
+  romaji = "Chotto! Kaoiro, warui yo. Asagohan, tabeta?"
+  en = "Hey! You look awful. Have you eaten breakfast?"
+
+  [[places.intro]]
+  speaker = "narrator"
+  en = "Behind her, a sink overflowing with bowls, and a clock ticking towards lunch."
+
+
   [[places.choices]]
-  jp = "がくせいですか。"
-  romaji = "Gakusei desu ka."
-  en = "Are you a student?"
+  jp = "すみません、おかねがありません…"
+  romaji = "Sumimasen, okane ga arimasen…"
+  en = "Sorry, I have no money…"
+
+  [[places.choices]]
+  jp = "てつだいます！おねがいします。"
+  romaji = "Tetsudaimasu! Onegaishimasu."
+  en = "I'll help! Please let me."
+
+  [[places.choices]]
+  jp = "えきはどこですか。"
+  romaji = "Eki wa doko desu ka."
+  en = "Where's the station?"
 
 
 [[places]]
 id = "airport_station"
+timer = { turns = 8, label = "The next train to Ueno leaves", expires = "The 10:31 Keisei limited express slides out without you. The board flips over: the next one is in twenty minutes." }
 name = "Narita Airport Station"
 name_jp = "成田空港駅"
 aliases = ["えき", "駅", "でんしゃ", "電車", "station", "train", "ticket"]
@@ -2217,19 +3028,23 @@ clock = "10:15 AM"
 act = 1
 cast = ["hiroshi"]
 situation = """
-Ticket machines and a wall-sized fare map in kanji. Ueno costs ¥1,270. Hiroshi, a salaryman heading into the city, notices the player staring at the map. If the player has the police loan, he covers the difference when asked properly; with no money at all, he hesitates, then buys the whole ticket if the player explains sincerely. He writes numbers in his pocket diary to communicate.
+The station concourse: a row of ticket machines under a wall-sized fare map in kanji, automatic gates chiming, departure boards. Ueno costs ¥1,270 — the machines want exact coins or notes and give no credit. The staffed Keisei ticket window (Mr. Nakajima) is just along the wall; the soba stand is by the gates. Commuters (speaker "extra") stream past.
+Hiroshi, a salaryman heading into the office on a Saturday for an English conference call he dreads, stands by the fare map muttering an English sentence under his breath and checking his watch. He does NOT approach the player; he only talks if the player goes up to him. He's cautious with strangers and money. What he will and won't do if asked:
+- He asks where they're going and reads the fare off the map for them (writes 1,270 in his diary).
+- If the player already has most of the fare (the police loan, Aiko's coin, Fumiko's pay…) and explains the shortfall properly — いくら, たりません, numbers, すみません — he counts the difference out of his coin purse (at most ¥300) and helps them buy the ticket at the machine (set hiroshi_paid).
+- If they have nothing, he will not buy a whole ticket for a stranger. He tells them, kindly and clearly, that the police box lends fare money (こうばんで、かりられます) and points the way. Realistic.
+- Talking with him at all sets met_hiroshi. He's on the same train to Ueno whether or not he helps.
+STRANGERS: most people hurry past anyone who stops them. Only if the player asks a passer-by very politely (すみません…, おねがいします, with the exact shortfall) is one — an older woman or a student — likely to press a ¥100 coin or two into their hand, with a small embarrassed bow (set stranger_coins). Rare, small, earned: at most ¥200 in total, once. Rude or English-only asks get ignored.
+The ticket machines here are all kanji and coin slots; a foreigner buys at the staffed ticket window (きっぷうりば) just along the concourse, and Hiroshi points there. No ticket is sold out here, and nobody hands out free tickets.
 """
-goal = "I need a ticket to Tokyo. How much is it — and how do I pay?"
+goal = "Find out how to get to Tokyo — and what it costs."
 success = """
-The player asks a price or destination and says where they're going (〜にいきます / 〜まで). One way or another they end up holding a ticket, and Hiroshi offers to ride together.
+The player asks someone (Hiroshi, or a passer-by) how to get to Tokyo or how much it costs, in any broken Japanese, and understands where to buy a ticket and roughly what it costs. (Walking straight to the staffed ticket window is also fine: they'll find out there.)
 """
-goal_flags = ["has_ticket", "met_hiroshi"]
+goal_flags = ["met_hiroshi"]
 on_enter_flags = []
-items_allowed = ["train_ticket", "hiroshi_card"]
-max_yen_gain = 300
-max_yen_spend = 1300
 reward_yen = 0
-reward_items = ["train_ticket"]
+reward_items = []
 recharge = 0
 
 candos = ["l3_price", "l3_going", "l3_request"]
@@ -2264,14 +3079,51 @@ candos = ["l3_price", "l3_going", "l3_request"]
   romaji = "ikimasu"
   en = "go"
 
+  [[places.pack]]
+  jp = "ひゃくえん"
+  romaji = "hyaku en"
+  en = "¥100"
+
+
   [[places.events]]
-  flag = "has_ticket"
-  when = "the player ends up holding a ticket to Ueno (bought, or paid for by Hiroshi)"
+  flag = "met_hiroshi"
+  when = "the player and Hiroshi actually talk (he asks where they're going, or they ask him something)"
+
+  [[places.events]]
+  flag = "hiroshi_paid"
+  when = "Hiroshi covers the player's shortfall (at most ¥300) after they explain it clearly"
+  must_convey = ["he counts out exactly the difference: the player now has the whole fare and can buy the ticket at the staffed window"]
+  label = "Hiroshi covers the difference"
+  gives_yen = 300
+  tops_up_to = 1270
+  min_yen = 970
+
+  [[places.events]]
+  flag = "stranger_coins"
+  when = "a passer-by, asked very politely with the exact shortfall, gives the player one or two ¥100 coins"
+  label = "Strangers' coins"
+  gives_yen = 200
+  tops_up_to = 1270
+  min_yen = 1070
 
   [[places.exits]]
   to = "train_to_ueno"
   label = "Through the gates to the Ueno train"
   requires_flags = ["has_ticket"]
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "ticket_window"
+  label = "The staffed Keisei ticket window"
+  requires_flags = []
+  min_lesson = 0
+  # Right there along the wall: never held back by the scene.
+  open_in_scene = true
+
+  [[places.exits]]
+  to = "soba_stand"
+  label = "The steaming soba stand by the gates"
+  requires_flags = []
   min_lesson = 0
 
   [[places.exits]]
@@ -2292,21 +3144,21 @@ candos = ["l3_price", "l3_going", "l3_request"]
   transition = "fade"
   sfx = "footsteps"
   ambient = "clear"
-  en = "Narita Airport Station. A fare map the size of a wall, in kanji. Ticket gates chiming like tiny bells."
+  en = "Narita Airport Station. A fare map the size of a wall, in kanji. Ticket gates chiming like tiny bells. Along the wall, a staffed ticket window with a grey-haired attendant behind the glass."
 
   [[places.intro]]
   speaker = "narrator"
   camera = "zoom_in"
-  en = "Ueno — ¥1,270. You look at the single crisp ¥1,000 note Officer Sato lent you."
+  en = "Somewhere on that map is Ueno. You count what's in your pocket, and then you count it again."
 
   [[places.intro]]
-  speaker = "hiroshi"
-  expression = "thinking"
-  action = "enter_right"
-  emote = "question"
-  jp = "あの…どちらまでですか。"
-  romaji = "Ano… dochira made desu ka."
-  en = "Um… where are you heading?"
+  speaker = "narrator"
+  enter = ["hiroshi"]
+  en = "By the map, a man in a grey suit is checking his watch and muttering something in English under his breath."
+
+  [[places.intro]]
+  speaker = "thought"
+  en = "The machines are all kanji and coin slots. I could try that ticket window along the wall — or ask the man in the suit how much it is to Ueno."
 
 
   [[places.choices]]
@@ -2320,13 +3172,156 @@ candos = ["l3_price", "l3_going", "l3_request"]
   en = "I'm going to Tokyo."
 
   [[places.choices]]
-  jp = "すみません、おかねがたりません。"
-  romaji = "Sumimasen, okane ga tarimasen."
-  en = "Sorry, I don't have enough money."
+  jp = "きっぷは、どこでかいますか。"
+  romaji = "Kippu wa, doko de kaimasu ka."
+  en = "Where do I buy a ticket?"
+
+
+[[places]]
+id = "ticket_window"
+name = "Keisei Ticket Window"
+name_jp = "京成線 きっぷうりば"
+aliases = ["まどぐち", "窓口", "きっぷうりば", "切符売り場", "えきいん", "駅員", "なかじま", "window", "ticket window", "ticket office", "attendant", "nakajima"]
+scene = "ticket_window"
+clock = "10:20 AM"
+act = 1
+cast = ["nakajima"]
+situation = """
+The staffed Keisei ticket window on the station concourse. Mr. Nakajima is always here, seen waist-up behind the glass and the counter: he never walks in or out, never comes round the counter, never leaves the window. A short queue forms behind the player now and then. His young colleague at the next window rushes a confused tourist; Nakajima pointedly does the opposite.
+What Nakajima will and won't do:
+- He speaks slow, clear Japanese, one short sentence at a time, and writes every number big on his notepad, turning it to face the player. Asked where they're going or how much (いくら), he writes: うえの ¥1,270, the next limited express 10:31, platform 1 — and tears off the slip for them (set knows_fare; the slip is fare_note). Officer Sato accepts this slip as proof for a second loan.
+- If the player says they don't have enough (たりません), he works out the gap on the notepad (1,270 − 1,000 = 270 — or whatever they actually hold) and lists, realistically, where people find it: the kōban upstairs lends fare money to people in trouble; sometimes a kind passenger helps; Fumiko's soba stand by the gates is short of hands before lunch. He does not lend money himself, does not sell a ticket short, and never lets anyone through the gates without the full fare — not even for a robbed tourist. He says so gently and does not budge.
+- With the full ¥1,270, he sells the ticket and points to the gates and platform (set has_ticket; the ticket is train_ticket).
+- His secret pride: if the player asks him a timetable question (なんじ, つぎのでんしゃ, どのでんしゃ, which car), he lights up and recites it from memory — times, the car nearest Ueno's exit, where to change for Asakusa — then looks slightly embarrassed at himself (set asked_timetable).
+- If his patience runs out he turns to the next customer in the queue; he'll still be at the window when the player comes back.
+"""
+goal = "The man behind the glass will know exactly what it costs — and what I can do."
+success = """
+The player asks the fare or says where they're going (いくら, 〜まで, 〜にいきます), and Nakajima writes the fare on a slip and explains the options (set knows_fare). With the full fare they can buy the ticket here.
+"""
+goal_flags = ["has_ticket"]
+on_enter_flags = []
+reward_yen = 0
+reward_items = []
+recharge = 0
+
+candos = ["l3_price", "l3_going", "l2_where"]
+
+  [[places.pack]]
+  jp = "きっぷ"
+  romaji = "kippu"
+  en = "ticket"
+
+  [[places.pack]]
+  jp = "いくら"
+  romaji = "ikura"
+  en = "how much"
+
+  [[places.pack]]
+  jp = "せんにひゃくななじゅうえん"
+  romaji = "sen nihyaku nanajuu en"
+  en = "¥1,270"
+
+  [[places.pack]]
+  jp = "たりません"
+  romaji = "tarimasen"
+  en = "not enough"
+
+  [[places.pack]]
+  jp = "なんじ"
+  romaji = "nanji"
+  en = "what time"
+
+  [[places.pack]]
+  jp = "〜ばんせん"
+  romaji = "-bansen"
+  en = "platform no. ~"
+
+  [[places.pack]]
+  jp = "かいさつ"
+  romaji = "kaisatsu"
+  en = "ticket gates"
+
+  [[places.events]]
+  flag = "has_ticket"
+  when = "the player pays Nakajima the full ¥1,270 and he sells them a ticket to Ueno"
+  must_convey = ["the 10:31 limited express to Ueno, platform 1, through the gates"]
+  price_known_by = "knows_fare"
+  label = "Bought the ticket to Ueno"
+  gives_items = ["train_ticket"]
+  cost = 1270
+
+    [places.events.ask]
+    jp = "うえのまで、いちまい おねがいします。"
+    romaji = "Ueno made, ichimai onegaishimasu."
+    en = "One ticket to Ueno, please."
+
+  [[places.events]]
+  flag = "knows_fare"
+  when = "Nakajima writes the fare and the player's shortfall on his notepad, so the player knows exactly what they still need"
+  must_convey = ["Ueno is ¥1,270", "if the player has said how much they have, exactly how much they are short"]
+  heard = ["1270", "せんにひゃくななじゅう", "千二百七十"]
+  label = "Nakajima writes the fare: ¥1,270"
+  gives_items = ["fare_note"]
+
+  [[places.events]]
+  flag = "asked_timetable"
+  when = "the player asks Nakajima a timetable question (what time, which train, which car) and he answers proudly from memory"
+
+  [[places.exits]]
+  to = "airport_station"
+  label = "Back to the ticket machines and concourse"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "train_to_ueno"
+  label = "Through the gates to platform 1"
+  requires_flags = ["has_ticket"]
+  min_lesson = 0
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "ticket_window"
+  transition = "crossfade"
+  en = "A small staffed window in the concourse wall: a brass speaking grille, a fare table under the glass, a notepad squared neatly beside a stamp."
+
+  [[places.intro]]
+  speaker = "nakajima"
+  expression = "neutral"
+  action = "enter_left"
+  jp = "いらっしゃいませ。どちらまで、ですか。"
+  romaji = "Irasshaimase. Dochira made, desu ka."
+  en = "Welcome. Where are you going?"
+
+  [[places.intro]]
+  speaker = "nakajima"
+  expression = "thinking"
+  action = "point"
+  jp = "ゆっくり、どうぞ。"
+  romaji = "Yukkuri, douzo."
+  en = "Take your time."
+
+
+  [[places.choices]]
+  jp = "うえのまで、いくらですか。"
+  romaji = "Ueno made, ikura desu ka."
+  en = "How much is it to Ueno?"
+
+  [[places.choices]]
+  jp = "うえのまで、いちまい、おねがいします。"
+  romaji = "Ueno made, ichimai, onegai shimasu."
+  en = "One ticket to Ueno, please."
+
+  [[places.choices]]
+  jp = "つぎのでんしゃは、なんじですか。"
+  romaji = "Tsugi no densha wa, nanji desu ka."
+  en = "What time is the next train?"
 
 
 [[places]]
 id = "train_to_ueno"
+timer = { turns = 6, label = "Arriving at Ueno", expires = "「つぎは、うえの、うえの」 — the train slows into Ueno. Hiroshi stands and gathers his briefcase: it's time to get off.", go_to = "ueno_street" }
 name = "Keisei Line to Ueno"
 name_jp = "京成線 上野行き"
 aliases = ["でんしゃ", "電車", "うえの", "上野", "train", "ueno"]
@@ -2335,7 +3330,12 @@ clock = "11:00 AM"
 act = 1
 cast = ["hiroshi"]
 situation = """
-Rice fields, then suburbs, slide past. Hiroshi, formal and kind, asks where the player will go tonight and what they'll do (ます verbs, に／へ, で). He gives them his business card before they arrive, in case they need help.
+Rice fields, then suburbs, slide past. Hiroshi is on this train whatever happened at the station — it's his train to the office.
+- If he helped (hiroshi_paid) or they talked (met_hiroshi), he sits down beside the player as if it's obvious, formal and kind, and asks where they'll go tonight and what they'll do (ます verbs, に／へ, で). If he paid, the player may try to thank him or promise to repay; he waves it off, embarrassed, and that's when he hands over his business card.
+- If they never spoke, the player notices him across the aisle — the man from the concourse — reading English printouts and mouthing words. They can go over and start the conversation themselves; otherwise he only nods politely. He still offers his card if they talk.
+- His motive shows: he rehearses his English opening line under his breath ("Good afternoon, this is Yamamoto from…"), sighs, and admits in Japanese that he has an English phone call at work today and is scared (こわいです). If the player encourages him — がんばってください, だいじょうぶ, じょうずです — he straightens his tie and actually smiles (set encouraged_hiroshi). He'll remember it.
+- If the player asked Nakajima for the timetable (asked_timetable), they're already in the front car, nearest the Ueno exit, as he told them.
+- Optional extra: someone mentions the player's fare debts: the police loan has to be repaid at any kōban, and if aiko_loan is set, the konbini name is still written on their palm.
 """
 goal = "Just get through the small talk until Tokyo."
 success = """
@@ -2343,11 +3343,8 @@ The player tells Hiroshi at least one thing they will do or where they'll go, us
 """
 goal_flags = []
 on_enter_flags = []
-items_allowed = ["hiroshi_card"]
-max_yen_gain = 0
-max_yen_spend = 0
 reward_yen = 0
-reward_items = ["hiroshi_card"]
+reward_items = []
 recharge = 0
 
 candos = ["l3_going"]
@@ -2377,6 +3374,25 @@ candos = ["l3_going"]
   romaji = "Toukyou"
   en = "Tokyo"
 
+  [[places.pack]]
+  jp = "がんばってください"
+  romaji = "ganbatte kudasai"
+  en = "good luck / do your best"
+
+  [[places.events]]
+  flag = "encouraged_hiroshi"
+  when = "Hiroshi admits he dreads today's English phone call and the player encourages him (がんばってください, だいじょうぶ, じょうず)"
+
+  [[places.events]]
+  flag = "met_hiroshi"
+  when = "the player and Hiroshi talk on the train"
+
+  [[places.events]]
+  flag = "got_card"
+  when = "Hiroshi hands the player his business card"
+  label = "Hiroshi's business card"
+  gives_items = ["hiroshi_card"]
+
   [[places.exits]]
   to = "ueno_street"
   label = "Step off the train into Ueno"
@@ -2391,13 +3407,19 @@ candos = ["l3_going"]
   en = "The doors hiss shut. The train glides out of the airport, and the rice fields begin: green, flat, flooded with spring water and sky."
 
   [[places.intro]]
-  speaker = "hiroshi"
-  expression = "neutral"
-  action = "enter_right"
-  jp = "こんばん、どこにいきますか。"
-  romaji = "Konban, doko ni ikimasu ka."
-  en = "Where will you go tonight?"
+  speaker = "narrator"
+  enter = ["hiroshi"]
+  en = "Black-framed glasses, a folder of English printouts: the salaryman from the concourse is in this carriage too, mouthing English words to himself."
 
+  [[places.intro]]
+  speaker = "thought"
+  en = "An hour to Ueno, and I don't even know where I'll sleep tonight. Maybe I should go and sit near him and say hello."
+
+
+  [[places.choices]]
+  jp = "こんにちは。"
+  romaji = "Konnichiwa."
+  en = "Hello."
 
   [[places.choices]]
   jp = "うえのにいきます。"
@@ -2408,11 +3430,6 @@ candos = ["l3_going"]
   jp = "わかりません…"
   romaji = "Wakarimasen…"
   en = "I don't know…"
-
-  [[places.choices]]
-  jp = "やまもとさんは、どこにいきますか。"
-  romaji = "Yamamoto-san wa, doko ni ikimasu ka."
-  en = "Where are you going, Mr. Yamamoto?"
 
 
 [[places]]
@@ -2425,7 +3442,9 @@ clock = "9:15 PM"
 act = 2
 cast = []
 situation = """
-Ueno at night: neon, an elevated train rumbling overhead, izakaya lanterns. The player is exhausted and hungry. Passers-by (speaker "extra") are busy but kind if approached politely; one can point to the konbini or the park, or — if asked about somewhere to sleep — mention cheap guesthouses in Asakusa.
+Ueno at night: neon, an elevated train rumbling overhead, izakaya lanterns. The player is exhausted and hungry. Passers-by (speaker "extra") are busy and never stop for a stranger on their own, but are kind if the player approaches them politely; one can point to the konbini or the park, or — if asked about somewhere to sleep — mention cheap guesthouses in Asakusa. Nobody gives money to a stranger on the street; asked for it, people apologise and walk faster.
+If aiko_loan is set, the konbini name Aiko wrote on the player's palm matches the glowing sign on the corner — she said she works Saturday nights.
+On later visits (new_day set) it's daytime Ueno: the station crowds, the park, and Ameyoko market under the tracks, where stallholders sometimes pay cash for an hour's help. Passers-by can point the way: アメよこは、あそこ。
 """
 goal = "I'm starving, and I need somewhere to sleep."
 success = """
@@ -2433,9 +3452,6 @@ The player asks a passer-by something useful (where, how much) and gets pointed 
 """
 goal_flags = []
 on_enter_flags = ["reached_tokyo"]
-items_allowed = []
-max_yen_gain = 0
-max_yen_spend = 0
 reward_yen = 0
 reward_items = []
 recharge = 0
@@ -2470,6 +3486,8 @@ candos = ["l2_where"]
   [[places.events]]
   flag = "knows_hostel"
   when = "someone tells the player where to find a cheap guesthouse in Asakusa"
+  must_convey = ["there are cheap guesthouses in Asakusa, close by; some let you work for your bed"]
+  label = "Told about the guesthouses in Asakusa"
 
   [[places.exits]]
   to = "konbini"
@@ -2495,6 +3513,12 @@ candos = ["l2_where"]
   requires_flags = ["has_bed"]
   min_lesson = 0
 
+  [[places.exits]]
+  to = "ameyoko"
+  label = "Ameyoko market under the tracks (open by day)"
+  requires_flags = ["new_day"]
+  min_lesson = 0
+
   [[places.intro]]
   speaker = "narrator"
   scene = "ueno_street_night"
@@ -2508,11 +3532,12 @@ candos = ["l2_where"]
   en = "A train rumbles across the bridge overhead. Neon signs, red lanterns, the smell of grilled chicken. Your stomach growls loudly enough to turn a head."
 
   [[places.intro]]
-  speaker = "extra"
-  speaker_name = "おばさん"
-  jp = "…だいじょうぶ？"
-  romaji = "…Daijoubu?"
-  en = "…You okay?"
+  speaker = "narrator"
+  en = "People stream past in both directions: salarymen loosening their ties, students laughing, a woman with shopping bags. Nobody looks twice at you."
+
+  [[places.intro]]
+  speaker = "thought"
+  en = "I'm starving and I have nowhere to sleep. Nobody's going to stop for me — I'll have to stop someone myself and ask. Politely."
 
 
   [[places.choices]]
@@ -2526,9 +3551,141 @@ candos = ["l2_where"]
   en = "Is there a cheap hotel?"
 
   [[places.choices]]
-  jp = "だいじょうぶです。ありがとうございます。"
-  romaji = "Daijoubu desu. Arigatou gozaimasu."
-  en = "I'm okay. Thank you."
+  jp = "すみません、ちょっといいですか。"
+  romaji = "Sumimasen, chotto ii desu ka."
+  en = "Excuse me, do you have a moment?"
+
+
+[[places]]
+id = "ameyoko"
+timer = { turns = 12, label = "The afternoon crowd thins out", expires = "The lunchtime crowd drains away towards the station. Kaneko-san counts the till, satisfied, and starts stacking empty boxes: the busy hour is over." }
+name = "Ameyoko Market"
+name_jp = "アメ横"
+aliases = ["アメよこ", "アメ横", "あめよこ", "アメヤ横丁", "あめやよこちょう", "いちば", "市場", "ameyoko", "market"]
+scene = "ameyoko"
+clock = "1:00 PM"
+act = 2
+cast = ["kaneko"]
+situation = """
+Ameyoko by day: a narrow, roaring market street running under the elevated JR tracks between Ueno and Okachimachi. Fish stalls with ice and shouting, dried squid, cheap sneakers, fake watches, a famous chocolate stall where the seller fills a bag and slashes the price — せんえん！せんえん！ — and trains thundering overhead every few minutes. Cash only; everyone shouts prices. It is daytime; the player has slept a night since arriving.
+The people (all speaker "extra"):
+- Kaneko-san (speaker_name "かねこさん"), fifties, hoarse, towel round his neck, runs a chocolate-and-dried-fruit stall. His nephew didn't show up today. He'll hire a foreigner on the spot for an hour, cash in hand — that's realistic here — but only if they ask (しごと, てつだいます, おねがいします) and prove they can do it: shout the prices back correctly (いくら？ — ごひゃくえん！せんえん！), take a customer's order with ください, or carry boxes from the van and say how many (ひとつ、ふたつ…). He pays ¥500 for the hour plus a bag of broken chocolate (set worked_ameyoko). One hour per visit; if they did well he'll hire them again on a later day.
+- If Emily mentioned him (cheered_emily), he grins: エミリーのともだち？ and skips the test.
+- Customers haggle with the player: いくら？ たかい！ やすくして！ The player can answer with numbers.
+- A fishmonger next door scoffs at the foreigner, then grudgingly applauds if they shout well.
+- Nobody gives money for nothing. If the player begs instead of working, Kaneko-san shakes his head and points at the boxes.
+"""
+goal = "This place runs on shouting and cash. Someone here must need an extra pair of hands."
+success = """
+The player asks Kaneko-san for work (しごと, てつだいます, おねがいします), then shouts at least one price or takes an order using numbers, いくら or ください, and he pays them ¥500 for the hour (set worked_ameyoko).
+"""
+goal_flags = ["worked_ameyoko"]
+on_enter_flags = []
+reward_yen = 0
+reward_items = []
+recharge = 20
+
+candos = ["l3_price", "l3_request", "l1_ask"]
+
+  [[places.pack]]
+  jp = "いくら"
+  romaji = "ikura"
+  en = "how much"
+
+  [[places.pack]]
+  jp = "ください"
+  romaji = "kudasai"
+  en = "please give me"
+
+  [[places.pack]]
+  jp = "せんえん"
+  romaji = "sen en"
+  en = "¥1,000"
+
+  [[places.pack]]
+  jp = "ごひゃくえん"
+  romaji = "gohyaku en"
+  en = "¥500"
+
+  [[places.pack]]
+  jp = "やすい"
+  romaji = "yasui"
+  en = "cheap"
+
+  [[places.pack]]
+  jp = "たかい"
+  romaji = "takai"
+  en = "expensive"
+
+  [[places.pack]]
+  jp = "はこ"
+  romaji = "hako"
+  en = "box"
+
+  [[places.pack]]
+  jp = "いらっしゃい"
+  romaji = "irasshai"
+  en = "come on in! (stall cry)"
+
+  [[places.events]]
+  flag = "worked_ameyoko"
+  when = "the player asks Kaneko-san for work and shouts prices or takes orders for an hour; he pays ¥500 cash"
+  label = "An hour at Kaneko's stall"
+  gives_yen = 500
+  repeatable = true
+
+  [[places.exits]]
+  to = "ueno_street"
+  label = "Back to Ueno station"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "asakusa_street"
+  label = "The Ginza line to Asakusa"
+  requires_flags = ["has_bed"]
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "hostel_lobby"
+  label = "Back to Hostel Sakura"
+  requires_flags = ["knows_hostel"]
+  min_lesson = 0
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "ameyoko"
+  transition = "fade"
+  ambient = "clear"
+  sfx = "whoosh"
+  en = "Ameyoko. A train thunders across the bridge overhead, and underneath it a whole street is shouting at once: fish, squid, sneakers, watches, chocolate."
+
+  [[places.intro]]
+  speaker = "extra"
+  speaker_name = "かねこさん"
+  jp = "いらっしゃい、いらっしゃい！チョコ、ぜんぶでせんえん！"
+  romaji = "Irasshai, irasshai! Choko, zenbu de sen en!"
+  en = "Roll up, roll up! The whole bag of chocolate, a thousand yen!"
+
+  [[places.intro]]
+  speaker = "narrator"
+  en = "A man with a towel round his neck heaves a box onto his stall, glances at the empty spot where a helper should be, and swears under his breath."
+
+
+  [[places.choices]]
+  jp = "すみません、しごとはありますか。"
+  romaji = "Sumimasen, shigoto wa arimasu ka."
+  en = "Excuse me, is there any work?"
+
+  [[places.choices]]
+  jp = "これはいくらですか。"
+  romaji = "Kore wa ikura desu ka."
+  en = "How much is this?"
+
+  [[places.choices]]
+  jp = "てつだいます。おねがいします！"
+  romaji = "Tetsudaimasu. Onegaishimasu!"
+  en = "I'll help. Please!"
 
 
 [[places]]
@@ -2541,7 +3698,11 @@ clock = "9:30 PM"
 act = 2
 cast = ["aiko"]
 situation = """
-A 24-hour convenience store — and the cashier is Aiko from the airport, overjoyed to see the player again. They have little or no money and no phone. She can explain where things are (location words), lend a telephone card for the green payphone, sell two AA batteries for their dictionary at staff discount, and write down the address of Hostel Sakura in Asakusa where her friend Emily works. She asks what happened today (past tense).
+A 24-hour convenience store by Ueno station, and the cashier is Aiko. Her Saturday-night shift; the seminar is over and she is tired but cheerful.
+- If met_aiko is set she recognises the player instantly and is overjoyed. If not, she still half-recognises them — the dazed foreigner from the Narita bus bays this morning — and is curious and kind.
+- If helped_aiko is set, she tells them first thing how it went: the seminar went fine thanks to them (or the dog got home — she heard). Warmer, and she pushes a free day-old onigiri across the counter.
+- THE LOAN: if aiko_loan is set and repaid_aiko isn't, she brings it up with a laugh only if the player doesn't. If the player pays back the ¥500 (they need to say it — おかえしします, ありがとうございました, here's the 500 yen), she's delighted and a little moved: people never actually come back (set repaid_aiko, trust up). If they can't pay it all yet, she says "later is fine" (あとでいいよ) and won't take their last coins; they can come back any night. If they never mention it on several visits, she notices, and is a little cooler.
+- They have little or no money and no phone. She can explain where things are (location words), lend a telephone card for the green payphone, sell two AA batteries for their dictionary at staff discount, and write down the address of Hostel Sakura in Asakusa where her friend Emily works. She asks what happened today (past tense).
 """
 goal = "Food, a phone, somewhere to sleep… maybe Aiko can help."
 success = """
@@ -2549,9 +3710,6 @@ The player asks where something is or whether something exists (あります), t
 """
 goal_flags = ["aiko_friend", "knows_hostel"]
 on_enter_flags = []
-items_allowed = ["onigiri", "telephone_card", "batteries", "hostel_address"]
-max_yen_gain = 0
-max_yen_spend = 300
 reward_yen = 0
 reward_items = ["hostel_address", "batteries"]
 recharge = 100
@@ -2594,8 +3752,30 @@ candos = ["l4_is_there", "l4_past", "l4_location"]
   en = "batteries"
 
   [[places.events]]
+  flag = "repaid_aiko"
+  when = "the player pays Aiko back the ¥500 she lent them at the airport"
+  label = "Paid Aiko back"
+  cost = 500
+  requires_flags = ["aiko_loan"]
+
+  [[places.events]]
   flag = "love_aiko"
   when = "a genuinely warm, romantic moment with Aiko happens and she clearly returns the feeling (only after several visits and high trust)"
+
+  [[places.events]]
+  flag = "bought_onigiri"
+  when = "the player buys an onigiri at the till"
+  label = "Bought an onigiri"
+  cost = 130
+  gives_items = ["onigiri"]
+  repeatable = true
+
+  [[places.events]]
+  flag = "bought_phone_card"
+  when = "the player buys a 50-unit telephone card"
+  label = "Bought a telephone card"
+  cost = 500
+  gives_items = ["telephone_card"]
 
   [[places.exits]]
   to = "hostel_lobby"
@@ -2620,9 +3800,9 @@ candos = ["l4_is_there", "l4_past", "l4_location"]
   expression = "surprised"
   action = "enter_right"
   emote = "exclaim"
-  jp = "いらっしゃいませ…えっ？！くうこうの…！"
-  romaji = "Irasshaimase… e?! Kuukou no…!"
-  en = "Welcome… huh?! You're the one from the airport…!"
+  jp = "いらっしゃいませ…えっ？！あれ？"
+  romaji = "Irasshaimase… e?! Are?"
+  en = "Welcome… huh?! Wait, I know you…?"
 
 
   [[places.choices]]
@@ -2649,19 +3829,16 @@ aliases = ["こうえん", "公園", "park", "bench"]
 scene = "ueno_park_night"
 clock = "11:40 PM"
 act = 2
-cast = []
+cast = ["gensan"]
 situation = """
-A quiet lamp-lit path, a pond, a lone bench. Gen-san (speaker "extra", speaker_name "げんさん"), an old street musician, is packing up his guitar. He shares warm canned tea, speaks slow, warm Japanese with no English, and tells the player that guesthouses in Asakusa are cheap — some let you work for your bed. The player can also simply sleep on the bench.
+A quiet lamp-lit path, a pond, a lone bench. Gen-san (speaker "extra", speaker_name "げんさん"), an old street musician, is packing up his guitar. He doesn't call out to strangers; once the player comes over or sits on his bench, he shares warm canned tea, speaks slow, warm Japanese with no English, and tells the player that guesthouses in Asakusa are cheap — some let you work for your bed. The player can also simply sleep on the bench.
 """
 goal = "It's late. Where do I spend the night?"
 success = """
-The player talks with Gen-san long enough to learn about the Asakusa guesthouses, or decides to sleep on the bench.
+The player talks with Gen-san long enough to learn about the Asakusa guesthouses, or decides to sleep on the bench. If they sleep here, they wake at dawn stiff and cold, with Gen-san's canned tea gone cold beside them (set slept_in_park and new_day together).
 """
 goal_flags = ["knows_hostel"]
 on_enter_flags = []
-items_allowed = []
-max_yen_gain = 0
-max_yen_spend = 0
 reward_yen = 0
 reward_items = []
 recharge = 0
@@ -2697,6 +3874,10 @@ candos = ["l4_past"]
   flag = "slept_in_park"
   when = "the player decides to sleep on the bench until morning"
 
+  [[places.events]]
+  flag = "new_day"
+  when = "the player sleeps on the bench and wakes at dawn (set together with slept_in_park)"
+
   [[places.exits]]
   to = "hostel_lobby"
   label = "Walk to Asakusa, as Gen-san described"
@@ -2718,17 +3899,14 @@ candos = ["l4_past"]
   en = "Up the hill, the city noise falls away. Lamps, cherry trees, a dark pond. On a bench, an old man is folding a guitar into its case."
 
   [[places.intro]]
-  speaker = "extra"
-  speaker_name = "げんさん"
-  jp = "…さむいね。おちゃ、のむ？"
-  romaji = "…Samui ne. Ocha, nomu?"
-  en = "…Cold, huh. Want some tea?"
+  speaker = "thought"
+  en = "He looks like he's spent a lot of nights out here. If anyone knows somewhere cheap to sleep, it's him. I could go and sit on the end of that bench."
 
 
   [[places.choices]]
-  jp = "はい、ありがとうございます。"
-  romaji = "Hai, arigatou gozaimasu."
-  en = "Yes, thank you."
+  jp = "こんばんは。"
+  romaji = "Konbanwa."
+  en = "Good evening."
 
   [[places.choices]]
   jp = "きょう、にほんにきました。"
@@ -2743,15 +3921,20 @@ candos = ["l4_past"]
 
 [[places]]
 id = "hostel_lobby"
+timer = { turns = 10, label = "The front desk closes", expires = "Mr. Mori flicks off the desk lamp. 「もうおそい。ねなさい。」 The front desk is closed for the night." }
 name = "Hostel Sakura — Lobby"
 name_jp = "ホステル桜 ロビー"
-aliases = ["ホステル", "ゲストハウス", "やど", "宿", "hostel", "guesthouse", "sakura"]
+aliases = ["ホステル", "ゲストハウス", "やど", "宿", "hostel", "guesthouse", "sakura", "さくら", "あさくさ", "浅草", "asakusa"]
 scene = "hostel_lobby"
 clock = "10:40 PM"
 act = 2
 cast = ["emily"]
 situation = """
-Hostel Sakura: a narrow wooden lobby and a hand-written 「日本語だけ！」 sign. Emily, an Australian who works the desk, may whisper one English line, then sticks to the owner's Japanese-only rule. Mr. Mori (speaker "extra", speaker_name "もりさん"), the gruff old owner, listens from the back. With no money, the player must ask permission (〜てもいいですか) and offer to work for a bed. On later visits this is home base: Emily chats and teaches, and Mori collects rent (¥7,000 a week) once the player has a job.
+Hostel Sakura: a narrow wooden lobby and a hand-written 「日本語だけ！」 sign. Emily, an Australian who works the desk, speaks English with the player whenever Mr. Mori is out of earshot. Mr. Mori (speaker "mori"), the gruff old owner, is mostly in his office at the back; he comes out now and then (when he speaks he's in the room; give him exit_right when he goes back to his office). While he's in the room his Japanese-only rule holds, so Emily switches to simple Japanese and gestures, with a quick whispered English hint whenever the player is stuck — never a refusal. When he steps out, she happily chats in English again. With no money, the player must ask permission (〜てもいいですか) and offer to work for a bed (cleaning, folding futons). By law a guesthouse has to note a foreign guest's passport; Mori grunts that he'll tell the local kōban about the guest with none — that's just how it's done.
+On later visits this is home base:
+- EMILY: she chats and teaches. On the first morning (new_day set, a Sunday) she's quiet and a little brittle — her family in Brisbane are all at her nan's for Sunday lunch and an international call costs more than she can spare. If the player notices and asks about her family or home (かぞく, オーストラリア, さびしい？), she talks, laughs, wipes her eyes, and in thanks tells them about Kaneko-san at Ameyoko who pays cash for an hour's help — she worked for him her first week (set cheered_emily). She won't lend money; she's counting every yen herself.
+- RENT: once the player has a job, Mori collects rent: ¥7,000 a week. He accepts it in two halves of ¥3,500 and writes each in his notebook; the first half sets rent_partial, the full week sets paid_rent. If he asks and the player can't pay anything, or asks him to wait (まってください, あとで), he narrows his eyes, writes おそい in the notebook and says "Friday" (set rent_late). After rent_late he is curt and makes them clean the bathroom before anything else; paying in full afterwards earns a grunt and, eventually, a cup of tea — he forgives, he doesn't forget.
+- Coming back after anyone ran out of patience works: they're still here.
 """
 goal = "I have no money. Can I somehow get a bed here?"
 success = """
@@ -2759,9 +3942,6 @@ The player asks permission to stay (〜てもいいですか or a て-form reque
 """
 goal_flags = ["has_bed"]
 on_enter_flags = []
-items_allowed = ["hostel_key"]
-max_yen_gain = 0
-max_yen_spend = 7000
 reward_yen = 0
 reward_items = ["hostel_key"]
 recharge = 100
@@ -2799,8 +3979,26 @@ candos = ["l4_is_there"]
   en = "room"
 
   [[places.events]]
+  flag = "rent_partial"
+  when = "the player pays Mr. Mori half the week's rent (¥3,500) and he notes it in his book"
+  label = "Paid half the week's rent"
+  cost = 3500
+  requires_flags = ["has_job"]
+
+  [[places.events]]
   flag = "paid_rent"
-  when = "the player pays Mr. Mori the week's rent"
+  when = "the player has paid Mr. Mori the whole week's rent (¥7,000, at once or as the second half)"
+  label = "Paid the week's rent"
+  cost = 3500
+  requires_flags = ["rent_partial"]
+
+  [[places.events]]
+  flag = "rent_late"
+  when = "Mr. Mori asks for the rent and the player can't pay any of it or asks him to wait"
+
+  [[places.events]]
+  flag = "cheered_emily"
+  when = "on a Sunday morning (new_day) the player notices Emily is homesick and gets her talking about her family or home, and she tells them about Kaneko-san's stall at Ameyoko"
 
   [[places.events]]
   flag = "love_emily"
@@ -2828,6 +4026,12 @@ candos = ["l4_is_there"]
   to = "ueno_street"
   label = "Back towards Ueno"
   requires_flags = []
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "ameyoko"
+  label = "Ameyoko market in Ueno, by day"
+  requires_flags = ["new_day"]
   min_lesson = 0
 
   [[places.intro]]
@@ -2871,6 +4075,9 @@ candos = ["l4_is_there"]
 
 [[places]]
 id = "hostel_room"
+# Everyone else is asleep behind bunk curtains: voices, not people on stage.
+unseen_extras = true
+unhurried = true
 name = "Dorm Room"
 name_jp = "ドミトリー"
 aliases = ["へや", "部屋", "ベッド", "bed", "room", "bunk", "sleep"]
@@ -2880,18 +4087,15 @@ act = 2
 cast = []
 situation = """
 A six-bed dorm upstairs at Hostel Sakura: bunks with curtains, paper lanterns, a window where Tokyo Tower glows orange in the distance. Bunk 3 is the player's. The other beds hold sleeping backpackers; one in the next bunk (speaker "extra", speaker_name "となりのひと", a sleepy traveller who speaks only a little slow Japanese and no English) mumbles a reply if spoken to, then goes back to sleep.
-First visit: the player is alone with their thoughts after the longest day of their life. Whatever they say — to the bunkmate, to the room, to themselves — the narrator then gives a dream fragment: an old letter in careful Japanese handwriting, a grandfather's voice saying a name, an address in Asakusa they can't quite read, a black-and-white photo of two laughing young men. They wake at dawn with one word in their head: もり (Mori). They do NOT yet connect it to the hostel owner; don't explain it.
+First visit: the player is alone with their thoughts after the longest day of their life. Whatever they say — to the bunkmate, to the room, to themselves — the narrator then gives a dream fragment: an old letter in careful Japanese handwriting, a grandfather's voice saying a name, an address in Asakusa they can't quite read, a black-and-white photo of two laughing young men. They wake at dawn with one word in their head: もり (Mori). They do NOT yet connect it to the hostel owner; don't explain it. Waking up sets new_day: it's Sunday morning, and Ameyoko market in Ueno is open.
 Later visits: morning or late night in the dorm. A quiet place to describe the room and the view (い／な adjectives: しずか, きれい, せまい, あたたかい), to say how the day went (〜でした／〜ました), and to chat with whoever is in the next bunk about what they like. Keep it gentle and short.
 """
 goal = "A real bed. Sleep — and maybe something will come back to me."
 success = """
 The player says anything at all, ideally describing the room or the view with an adjective (きれい, しずか, あたたかい…) or saying how the day was (たいへんでした). Then the dream fragment plays and they wake at dawn remembering the word もり. Set memory_letter only then.
 """
-goal_flags = ["memory_letter"]
+goal_flags = ["memory_letter", "new_day"]
 on_enter_flags = []
-items_allowed = []
-max_yen_gain = 0
-max_yen_spend = 0
 reward_yen = 0
 reward_items = []
 recharge = 0
@@ -2937,6 +4141,10 @@ candos = ["c5_describe", "l4_past"]
   jp = "てがみ"
   romaji = "tegami"
   en = "letter"
+
+  [[places.events]]
+  flag = "new_day"
+  when = "the player goes to sleep in the bunk and wakes at dawn"
 
   [[places.exits]]
   to = "hostel_lobby"
@@ -3003,8 +4211,9 @@ cast = ["aiko", "emily"]
 situation = """
 Asakusa by day: the great red lantern of the temple gate, the Nakamise shopping street behind it, rickshaws, rice-cracker stalls, noren curtains, and a green payphone that takes telephone cards. Shopkeepers (speaker "extra") call out いらっしゃいませ and are friendly to anyone who tries.
 Aiko (on her way to university — she works nights) or Emily (running errands for the hostel) may be out and about: at most one of them at a time, or nobody.
-The player has no money. In the window of Izakaya Tanuki down a side street hangs a hand-written sign: アルバイトぼしゅう (part-timer wanted). The player can't read it; whoever they talk to reads it aloud, mimes carrying plates, and points the way. Posters on a lamppost advertise a summer festival by the Sumida River and a kabuki programme in Ginza — plant them, they open up later.
-This is the hub of the player's new life: perfect for small talk with adjectives (きれい, にぎやか, ふるい), saying what they like (〜がすきです), asking what something is like (どうですか), and suggesting things to do together (〜ましょう). Once the player has a job, mention Kissaten Lamp, the little coffee shop where Aiko likes to sit on rainy days. If the police have called (bag_found), the green payphone is how the message reaches them.
+The player has little or no money (maybe a few hundred yen from Ameyoko or the airport). In the window of Izakaya Tanuki down a side street hangs a hand-written sign: アルバイトぼしゅう (part-timer wanted). The player can't read it; whoever they talk to reads it aloud, mimes carrying plates, and points the way. Posters on a lamppost advertise a summer festival by the Sumida River and a kabuki programme in Ginza — plant them, they open up later.
+This is the hub of the player's new life: perfect for small talk with adjectives (きれい, にぎやか, ふるい), saying what they like (〜がすきです), asking what something is like (どうですか), and suggesting things to do together (〜ましょう). Once the player has a job, mention Kissaten Lamp, the little coffee shop where Aiko likes to sit on rainy days. If the police have called (bag_found), the green payphone is how the message reaches them. If the player asks about money before they have a job, whoever they're with mentions Ameyoko market in Ueno, where stalls pay cash for an hour's help.
+If aiko_loan is set and repaid_aiko isn't, Aiko teases them about it (she's not angry — yet); repaying happens at her konbini.
 """
 goal = "I need work. And maybe… a life here."
 success = """
@@ -3012,9 +4221,6 @@ The player chats about the street or something they like, then notices or asks a
 """
 goal_flags = ["job_lead"]
 on_enter_flags = []
-items_allowed = []
-max_yen_gain = 0
-max_yen_spend = 0
 reward_yen = 0
 reward_items = []
 recharge = 0
@@ -3113,6 +4319,12 @@ candos = ["c5_describe", "c5_like", "c5_lets", "c5_ask_opinion"]
   requires_flags = []
   min_lesson = 0
 
+  [[places.exits]]
+  to = "ameyoko"
+  label = "Ameyoko market in Ueno"
+  requires_flags = ["new_day"]
+  min_lesson = 0
+
   [[places.intro]]
   speaker = "narrator"
   scene = "asakusa_street"
@@ -3123,7 +4335,7 @@ candos = ["c5_describe", "c5_like", "c5_lets", "c5_ask_opinion"]
 
   [[places.intro]]
   speaker = "narrator"
-  en = "Rice crackers sizzling on grills. A rickshaw driver stretching his calves. A green payphone. And you, with exactly zero yen."
+  en = "Rice crackers sizzling on grills. A rickshaw driver stretching his calves. A green payphone. And you, with almost nothing in your pocket."
 
   [[places.intro]]
   speaker = "emily"
@@ -3164,10 +4376,10 @@ aliases = ["いざかや", "居酒屋", "たぬき", "izakaya", "tanuki"]
 scene = "izakaya"
 clock = "6:00 PM"
 act = 2
-cast = ["hiroshi"]
+cast = ["hiroshi", "taisho"]
 situation = """
 A tiny izakaya with eight stools, a ceramic raccoon by the door and handwritten menus on the wall. Taishō (speaker "extra", speaker_name "たいしょう"), the owner-cook, is loud, warm and impatient; he speaks fast Osaka-flavoured Japanese but slows right down, with big gestures, for the player. He'll hire anyone who can follow instructions and ask when they don't understand.
-Hiroshi, the salaryman from the train, is a regular who drinks a beer here after work. He's astonished and pleased to see the player, quietly vouches for them, and helps by repeating Taishō's words more slowly.
+Hiroshi, the salaryman from the train, is a regular who drinks a beer here after work. He's astonished and pleased to see the player, quietly vouches for them, and helps by repeating Taishō's words more slowly. If encouraged_hiroshi is set, he tells them — half proud, half embarrassed — that the English call went fine, and vouches for them twice as hard (がんばってください、でしょう？). If hiroshi_paid is set and the player tries to repay him, he refuses the money but lets them pour his beer, which is how he accepts.
 The interview is really a test shift: Taishō gives requests (〜てください: てをあらってください, これをはこんでください) and rules (〜てはいけません: おきゃくさんのビールをのんではいけません, the tatami seats — くつではいってはいけません). The player should ask permission (ここではたらいてもいいですか, 〜てもいいですか), ask him to repeat or slow down (ゆっくりはなしてください), and say what they'll do in order (〜てから). Once hired, later visits are shifts: taking orders (ビール, やきとり, えだまめ), carrying dishes, being scolded and praised. A full shift pays ¥4,000 (at most two per visit).
 """
 goal = "If I can just get through this interview, I'll have a job."
@@ -3176,9 +4388,6 @@ The player asks permission or makes a request with the て-form, shows they unde
 """
 goal_flags = ["has_job"]
 on_enter_flags = []
-items_allowed = ["apron"]
-max_yen_gain = 8000
-max_yen_spend = 0
 reward_yen = 0
 reward_items = ["apron"]
 recharge = 0
@@ -3223,6 +4432,14 @@ candos = ["c6_please_do", "c6_may_i", "c6_rule", "c6_then", "l3_request"]
   [[places.events]]
   flag = "love_hiroshi"
   when = "a genuinely romantic moment with Hiroshi happens and he clearly returns the feeling (only after several visits and high trust)"
+
+  [[places.events]]
+  flag = "worked_shift"
+  when = "the player works a full shift (carrying plates, taking orders) and the Taishō pays ¥4,000 cash"
+  label = "A shift at Izakaya Tanuki"
+  gives_yen = 4000
+  requires_flags = ["has_job"]
+  repeatable = true
 
   [[places.exits]]
   to = "asakusa_street"
@@ -3290,15 +4507,16 @@ candos = ["c6_please_do", "c6_may_i", "c6_rule", "c6_then", "l3_request"]
 
 [[places]]
 id = "mori_room"
+unhurried = true
 name = "Mr. Mori's Office"
 name_jp = "森さんの部屋"
 aliases = ["もりさん", "森", "mori", "office"]
 scene = "mori_room"
 clock = "4:00 PM"
 act = 3
-cast = []
+cast = ["mori"]
 situation = """
-Mr. Mori's tatami office behind the hostel lobby: a low table, a black rotary phone, green tea, and walls covered in old black-and-white photos. Mori (speaker "extra", speaker_name "もりさん"), the owner, is seventy-something, gruff and few-worded, secretly soft. He speaks slow, plain Japanese and no English. Rent is ¥7,000 a week; he writes the amount in a notebook and taps it.
+Mr. Mori's tatami office behind the hostel lobby: a low table, a black rotary phone, green tea, and walls covered in old black-and-white photos. Mori (speaker "extra", speaker_name "もりさん"), the owner, is seventy-something, gruff and few-worded, secretly soft. He speaks slow, plain Japanese and no English. Rent is ¥7,000 a week; he writes the amount in a notebook and taps it. He takes it in two halves of ¥3,500 if need be (rent_partial after the first, paid_rent once the week is covered) — if rent_partial is already set, he taps the remaining ¥3,500. If rent_late is set he's stiff and silent until it's paid, and pours only one cup of tea, his own; once paid, the second cup appears without a word. If the player can't pay and asks him to wait, he writes おそい and says "Friday" (set rent_late).
 When the player shows interest in the photos he describes the people in them — this is a describing-people scene (〜をきています, めがねをかけています, せがたかい, わらっています, family words). His late wife in a kimono; his younger self with a moustache; and one photo of two young men laughing in front of Tokyo Tower, dated 1965 in pen. The other man was a young foreigner, lost in Tokyo, who stayed at this very house, tall, glasses, always laughing; he went home, wrote letters for years, then stopped. The player finds him oddly familiar (set memory_photo when it sparks something).
 If the player has the old letter AND remembers who they are (remembered), the truth comes out: the letter is addressed to Mori, from the player's late grandfather — his best friend in that photo (set mori_revealed). Never reveal this before both conditions hold. After the reveal, Mori is quiet, then laughs exactly like the man in the photo, and says that whatever the player decides, this house is theirs to come back to.
 """
@@ -3308,9 +4526,6 @@ The player pays the week's rent (paid_rent) and talks with Mori about at least o
 """
 goal_flags = ["paid_rent", "memory_photo"]
 on_enter_flags = []
-items_allowed = ["photo"]
-max_yen_gain = 0
-max_yen_spend = 7000
 reward_yen = 0
 reward_items = []
 recharge = 0
@@ -3358,8 +4573,32 @@ candos = ["c7_wearing", "c7_looks", "c7_doing", "c7_family"]
   en = "grandfather / old man"
 
   [[places.events]]
+  flag = "rent_partial"
+  when = "the player pays Mr. Mori half the week's rent (¥3,500) and he notes it in his book"
+  label = "Paid half the week's rent"
+  cost = 3500
+  requires_flags = ["has_job"]
+
+  [[places.events]]
+  flag = "rent_late"
+  when = "Mr. Mori asks for the rent and the player can't pay any of it or asks him to wait"
+
+  [[places.events]]
   flag = "mori_revealed"
   when = "the player has the old letter and remembers their past, shows Mori the letter, and Mori realises who their grandfather was"
+
+  [[places.events]]
+  flag = "paid_rent"
+  when = "the player has paid Mr. Mori the whole week's rent (¥7,000, at once or as the second half)"
+  label = "Paid the week's rent"
+  cost = 3500
+  requires_flags = ["rent_partial"]
+
+  [[places.events]]
+  flag = "memory_photo"
+  when = "the player asks about the photographs and Mr. Mori describes them, and the old photo of two young men sparks something in the player; he lets them hold it"
+  label = "The old photo"
+  gives_items = ["photo"]
 
   [[places.exits]]
   to = "hostel_lobby"
@@ -3428,7 +4667,7 @@ aliases = ["きっさてん", "喫茶", "喫茶店", "カフェ", "ランプ", "
 scene = "cafe"
 clock = "3:00 PM"
 act = 3
-cast = ["aiko"]
+cast = ["aiko", "master"]
 situation = """
 A retro kissaten on a rainy afternoon: wooden booths, stained-glass lamps, a siphon coffee maker bubbling, city-pop on the radio, an old man reading a newspaper, a couple sharing a parfait. The master (speaker "extra", speaker_name "マスター") takes orders silently with a nod. Aiko is here on her day off, relaxed and curious, and wants to get to know the player properly.
 Good topics, in this order of naturalness: what people around them are doing (〜ています: the man is reading, it's raining), family — Aiko talks about hers (parents run a small rice shop in Saitama, a younger brother obsessed with baseball) and asks about the player's, who can't remember theirs (handle that tenderly; a fragment like "a grandfather?" may surface), what they like and like doing (〜がすき, 〜のがすき), and opinions (〜と思います). Aiko confesses she's saving to go back to Melbourne one day.
@@ -3440,9 +4679,6 @@ The player talks about family or what someone is doing, shares at least one thin
 """
 goal_flags = []
 on_enter_flags = []
-items_allowed = []
-max_yen_gain = 0
-max_yen_spend = 800
 reward_yen = 0
 reward_items = []
 recharge = 30
@@ -3487,6 +4723,13 @@ candos = ["c7_family", "c7_doing", "c5_like", "c8_think", "c8_like_doing"]
   [[places.events]]
   flag = "love_aiko"
   when = "a genuinely romantic moment with Aiko happens and she clearly returns the feeling"
+
+  [[places.events]]
+  flag = "bought_coffee"
+  when = "the player pays for coffee"
+  label = "Bought coffee"
+  cost = 400
+  repeatable = true
 
   [[places.exits]]
   to = "asakusa_street"
@@ -3543,6 +4786,7 @@ candos = ["c7_family", "c7_doing", "c5_like", "c8_think", "c8_like_doing"]
 
 [[places]]
 id = "matsuri"
+timer = { turns = 10, label = "The fireworks start", expires = "With a thump you feel in your chest, the first firework blooms over the Sumida. Everyone looks up." }
 name = "Summer Festival"
 name_jp = "夏祭り"
 aliases = ["まつり", "祭", "祭り", "おまつり", "festival", "matsuri"]
@@ -3561,9 +4805,6 @@ The player gives an opinion or passes on what someone said, uses at least one ca
 """
 goal_flags = []
 on_enter_flags = []
-items_allowed = []
-max_yen_gain = 0
-max_yen_spend = 1500
 reward_yen = 0
 reward_items = []
 recharge = 30
@@ -3612,6 +4853,13 @@ candos = ["c8_think", "c8_said", "c8_dont", "c8_like_doing", "c5_lets"]
   [[places.events]]
   flag = "love_aiko"
   when = "a genuinely romantic moment with Aiko happens and she clearly returns the feeling"
+
+  [[places.events]]
+  flag = "festival_food"
+  when = "the player buys festival food (yakisoba, takoyaki, kakigōri)"
+  label = "Festival food"
+  cost = 500
+  repeatable = true
 
   [[places.exits]]
   to = "asakusa_street"
@@ -3670,6 +4918,7 @@ candos = ["c8_think", "c8_said", "c8_dont", "c8_like_doing", "c5_lets"]
 
 [[places]]
 id = "kabuki_theatre"
+timer = { turns = 8, label = "The next act begins", expires = "The wooden clappers crack. The house lights dim and the whole theatre falls silent: the next act has begun." }
 name = "Kabuki Theatre"
 name_jp = "歌舞伎座"
 aliases = ["かぶき", "歌舞伎", "かぶきざ", "歌舞伎座", "kabuki", "theatre", "theater"]
@@ -3688,9 +4937,6 @@ The player talks about the play with a past-tense opinion or a から reason, or
 """
 goal_flags = []
 on_enter_flags = []
-items_allowed = []
-max_yen_gain = 0
-max_yen_spend = 0
 reward_yen = 0
 reward_items = []
 recharge = 30
@@ -3800,6 +5046,7 @@ candos = ["c9_past_opinion", "c9_because", "c9_not_yet", "c9_verb_noun", "c10_co
 
 [[places]]
 id = "police_station"
+unhurried = true
 name = "Narita Police Station"
 name_jp = "成田警察署"
 aliases = ["けいさつしょ", "警察署", "police station"]
@@ -3808,7 +5055,12 @@ clock = "8:30 AM"
 act = 4
 cast = ["yumi", "kenji"]
 situation = """
-Officer Sato called the hostel: a man was caught at Narita with several stolen bags. The player rode the early train out. Kenji, the security guard who found them on the floor weeks ago, is here as a witness and is thrilled to hear how much Japanese they speak now. Yumi is as precise as ever and still speaks no English.
+Officer Sato called the hostel: a man was caught at Narita with several stolen bags. (If the player never filed a report — reported_theft not set — the police traced them anyway: Kenji's incident report about the fall, and Mr. Mori's note to the local kōban about a guest with no passport.) The player rode the early train out. Kenji, the security guard who found them on the floor weeks ago, is here as a witness and is thrilled to hear how much Japanese they speak now. Yumi is as precise as ever and still speaks no English.
+Callbacks, only if the flags say so:
+- helped_kenji: Kenji passed the supervisor exam — new badge — and tells them his English line worked on the examiner. His incident report, with the time and the red jacket, is what matched the arrest; he's proud and grateful.
+- worked_soba: Kenji passes on a gruff message from Fumiko (ふみこさんが、たべてる？って); fumiko_son as well: her son finally called.
+- found_dog: Yumi, deadpan, says Hana is home and well; she is noticeably warmer.
+- koban_topup or reported_theft: Yumi reminds them, dryly, that the fare loan is still on the books — any kōban will take it.
 Step by step:
 - Yumi lays out a folder of photos: a tall man in a suit and glasses, a young man with long hair in a T-shirt, an old man in a hat, and a thin man in a grey cap and red jacket. She asks one question at a time: どんなひとでしたか。なにをきていましたか。The player must describe the thief (はいいろのぼうしをかぶっていました, あかいジャケットをきていました, せがたかくない…). Kenji backs them up when they get it right.
 - Then she brings out a black backpack and two wrong bags: これはあなたのですか。The player must claim the right one (and can refuse the wrong ones).
@@ -3820,9 +5072,6 @@ The player describes the thief with at least one 〜ています／〜ていま�
 """
 goal_flags = ["got_backpack"]
 on_enter_flags = []
-items_allowed = ["backpack", "passport", "cheques", "letter"]
-max_yen_gain = 0
-max_yen_spend = 0
 reward_yen = 0
 reward_items = ["backpack", "passport", "cheques", "letter"]
 recharge = 40
@@ -3931,13 +5180,14 @@ candos = ["c7_wearing", "c7_looks", "c7_doing", "l2_not_mine", "l4_past"]
 
 [[places]]
 id = "clinic"
+unhurried = true
 name = "Ishida Clinic"
 name_jp = "石田クリニック"
 aliases = ["びょういん", "病院", "クリニック", "いしだ", "clinic", "doctor", "hospital"]
 scene = "clinic"
 clock = "2:00 PM"
 act = 4
-cast = []
+cast = ["receptionist", "ishida"]
 situation = """
 A small neighbourhood clinic: vinyl benches, a rubber plant, an old CRT TV showing high-school baseball with the sound off. A receptionist (speaker "extra", speaker_name "うけつけ") takes the player's passport — now that they have one — and calls their real name. Dr. Ishida (speaker "extra", speaker_name "いしだせんせい"), calm, precise, sixty, speaks slow clear Japanese and draws on a notepad: a head, a star where it hit.
 The consultation: what happened (the player explains with 〜んです: ころんだんです, おもいだせないんです), what they want (〜たいです: おもいだしたいです), how they've been spending their days (〜たり〜たりしています: はたらいたり、べんきょうしたり), and whether they've ever been to Japan or hit their head before (〜たことがありますか). The doctor advises with 〜ほうがいいです and 〜なければいけません (rest, don't work too much — はたらきすぎないで).
@@ -3949,9 +5199,6 @@ The player explains their situation (〜んです or similar) and says what they
 """
 goal_flags = ["remembered"]
 on_enter_flags = []
-items_allowed = []
-max_yen_gain = 0
-max_yen_spend = 3000
 reward_yen = 0
 reward_items = []
 recharge = 50
@@ -4050,15 +5297,22 @@ candos = ["c11_want", "c11_tari", "c11_ever", "c12_explain"]
 
 [[places]]
 id = "narita_departures"
+unhurried = true
 name = "Narita — Departures"
 name_jp = "出発ロビー"
 aliases = ["くうこう", "空港", "airport", "departures", "flight"]
 scene = "narita_departures"
 clock = "6:00 PM"
 act = 4
-cast = ["kenji", "aiko", "emily", "hiroshi"]
+cast = ["kenji", "aiko", "emily", "hiroshi", "fumiko"]
 situation = """
 Golden hour at Narita, where it all began. The player has a temporary passport from the embassy, their traveler's cheques cashed, and a ticket home in their hand. Everyone they met came to see them off — or to ask them to stay: Kenji (on duty here, in uniform, beaming), Aiko (trying not to cry), Emily (enforcing the Japanese-only rule one last time), Hiroshi (formal, with a small wrapped gift). Mr. Mori (speaker "extra", speaker_name "もりさん") stands back by a pillar holding the 1965 photo, gruff as ever.
+Cameos and callbacks, only if earned:
+- Fumiko appears ONLY if worked_soba is set: she comes up from the basement in her apron with a wrapped paper bag of onigiri, scolds the player for being too thin, and — if fumiko_son is set — mutters that her son called and is visiting at Golden Week. If worked_soba isn't set, she is not here and never speaks.
+- Kenji, if helped_kenji is set, wears his new supervisor badge and says his English line one last time, perfectly.
+- Aiko: if aiko_loan is set but repaid_aiko isn't, she laughs through her tears that the player still owes her ¥500 — "come back and pay it, okay?" If repaid_aiko, she says they're the only person who ever paid her back.
+- Hiroshi: if encouraged_hiroshi, his gift comes with a note in careful English: "Good luck. Ganbatte."
+- Mori: if rent_late was ever set, he grumbles about it as a joke; it's his way of saying he'll miss them.
 This is the finale. The player decides, in Japanese, whether to go home or stay. Going home: 〜たいです, 〜なければいけません, and a promise to return (またきます, またくるでしょう). Staying: 〜つもりです (にほんにのこるつもりです, ここではたらくつもりです). Each friend reacts in character, in short simple Japanese, and the player should say a proper goodbye or thank-you. Let them explain why (〜んです, 〜から) if they want to; don't rush the decision, but don't let it drift either.
 Set ending_home or ending_stay only when the player's decision is unmistakable.
 """
@@ -4068,9 +5322,6 @@ The player clearly states their decision in Japanese (going home, or staying) an
 """
 goal_flags = []
 on_enter_flags = []
-items_allowed = []
-max_yen_gain = 0
-max_yen_spend = 0
 reward_yen = 0
 reward_items = []
 recharge = 0

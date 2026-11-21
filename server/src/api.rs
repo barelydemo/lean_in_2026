@@ -27,10 +27,11 @@ use crate::story::{Beat, Phrase, Story};
 use crate::voice::{ElevenLabs, PronunciationService, Transcriber};
 
 /// One course (a target language for a learner language): its story and
-/// the director that runs it.
+/// the director that runs it, and its rendered music and sounds.
 pub struct CourseRt {
     pub story: Story,
     pub director: Director,
+    pub audio: AudioStore,
 }
 
 pub struct AppState {
@@ -42,9 +43,8 @@ pub struct AppState {
     pub tts: Option<ElevenLabs>,
     pub stt: Option<Transcriber>,
     pub pronunciation: PronunciationService,
-    pub audio: AudioStore,
     run_locks: Mutex<HashMap<String, Arc<tokio::sync::Mutex<()>>>>,
-    limiter: Limiter,
+    pub(crate) limiter: Limiter,
 }
 
 impl AppState {
@@ -55,10 +55,9 @@ impl AppState {
         db: SqlitePool,
         tts: Option<ElevenLabs>,
         stt: Option<Transcriber>,
-        audio: AudioStore,
     ) -> Self {
         let pronunciation = PronunciationService::from_config(&cfg);
-        AppState { cfg, courses, default_course, db, tts, stt, pronunciation, audio, run_locks: Mutex::default(), limiter: Limiter::default() }
+        AppState { cfg, courses, default_course, db, tts, stt, pronunciation, run_locks: Mutex::default(), limiter: Limiter::default() }
     }
 
     /// A course by id, falling back to the default for unknown or legacy ids.
@@ -74,7 +73,7 @@ impl AppState {
     }
 }
 
-type AppStateRef = Arc<AppState>;
+pub(crate) type AppStateRef = Arc<AppState>;
 
 pub fn router(state: AppStateRef) -> Router {
     let origins: Vec<HeaderValue> = state.cfg.cors_origins.iter().filter_map(|o| o.parse().ok()).collect();
@@ -95,12 +94,14 @@ pub fn router(state: AppStateRef) -> Router {
         .route("/runs/{id}/hint", post(unlock_hint))
         .route("/runs/{id}/translate", post(translate_phrase))
         .route("/runs/{id}/travel", post(travel))
+        .route("/runs/{id}/act", post(act))
         .route("/runs/{id}/score", post(record_scene_score))
         .route("/tts", post(tts))
         .route("/tts/preview", post(tts_preview))
         .route("/stt", post(stt).layer(DefaultBodyLimit::max(8 * 1024 * 1024)))
         .route("/audio", get(audio_manifest))
-        .route("/audio/{kind}/{file}", get(audio_file));
+        .route("/audio/{course}/{kind}/{file}", get(audio_file))
+        .merge(crate::accounts::routes());
 
     Router::new()
         .route("/healthz", get(|| async { "ok" }))
@@ -118,12 +119,12 @@ pub fn router(state: AppStateRef) -> Router {
 /// Fixed-window counter per key. Plenty for a single instance; swap for
 /// Redis when running more than one.
 #[derive(Default)]
-struct Limiter {
+pub(crate) struct Limiter {
     windows: Mutex<HashMap<String, (Instant, u32)>>,
 }
 
 impl Limiter {
-    fn check(&self, key: String, max: u32, per: Duration) -> AppResult<()> {
+    pub(crate) fn check(&self, key: String, max: u32, per: Duration) -> AppResult<()> {
         let mut w = self.windows.lock().unwrap();
         if w.len() > 50_000 {
             w.retain(|_, (start, _)| start.elapsed() < per);
@@ -138,7 +139,7 @@ impl Limiter {
     }
 }
 
-fn client_ip(headers: &HeaderMap, addr: SocketAddr, trust_proxy: bool) -> String {
+pub(crate) fn client_ip(headers: &HeaderMap, addr: SocketAddr, trust_proxy: bool) -> String {
     if !trust_proxy {
         return addr.ip().to_string();
     }
@@ -153,7 +154,7 @@ fn client_ip(headers: &HeaderMap, addr: SocketAddr, trust_proxy: bool) -> String
 
 // ── auth ───────────────────────────────────────────────────────────────────
 
-fn hash_token(token: &str) -> String {
+pub(crate) fn hash_token(token: &str) -> String {
     hex::encode(Sha256::digest(token.as_bytes()))
 }
 
@@ -172,11 +173,28 @@ impl FromRequestParts<AppStateRef> for Player {
             .and_then(|v| v.to_str().ok())
             .and_then(|v| v.strip_prefix("Bearer "))
             .ok_or(AppError::Unauthorized)?;
-        let id = db::player_by_token_hash(&state.db, &hash_token(token))
+        let id = db::player_by_session(&state.db, &hash_token(token))
             .await?
             .ok_or(AppError::Unauthorized)?;
         Ok(Player { id })
     }
+}
+
+/// Playing needs an account unless guests are allowed. Old guest tokens still
+/// identify the player, so signing up keeps their runs. Returns whether they
+/// play the full game or just the beta demo.
+async fn require_member(app: &AppState, player: &Player) -> AppResult<bool> {
+    let account = db::account_by_id(&app.db, &player.id).await?.filter(|a| a.email.is_some());
+    match account {
+        Some(a) => Ok(a.plays_full_game()),
+        None if app.cfg.allow_guests => Ok(false),
+        None => Err(AppError::Forbidden("sign in to play")),
+    }
+}
+
+/// The demo stops at the course's demo_end for anyone without full access.
+fn past_demo(story: &Story, full: bool, to: &str) -> bool {
+    !full && !story.course.demo_end.is_empty() && to == story.course.demo_end
 }
 
 // ── views ──────────────────────────────────────────────────────────────────
@@ -235,7 +253,26 @@ struct StateView<'a> {
     candos_done: &'a std::collections::BTreeSet<String>,
     unlocked_skills: &'a std::collections::BTreeMap<String, game::UnlockedSkill>,
     diary: &'a [game::DiaryEntry],
+    /// Turns of patience left per character here; maxima are on the cast.
+    patience: &'a std::collections::BTreeMap<String, i64>,
+    timer: Option<TimerView<'a>>,
+    scene_over: Option<&'a str>,
+    lead: &'a str,
+    /// People here the player can walk up to, and who they're talking with.
+    present: Vec<String>,
+    talking_to: &'a str,
+    /// The story graph as lived, for the flowchart.
+    flow: Vec<game::FlowQuest>,
+    /// The current objective: its step and the ways open.
+    objective: Option<game::ObjectiveView>,
     ending: Option<&'a str>,
+}
+
+#[derive(Serialize)]
+struct TimerView<'a> {
+    label: &'a str,
+    left: u32,
+    total: u32,
 }
 
 fn state_view<'a>(story: &'a Story, s: &'a RunState) -> StateView<'a> {
@@ -269,6 +306,17 @@ fn state_view<'a>(story: &'a Story, s: &'a RunState) -> StateView<'a> {
         candos_done: &s.candos_done,
         unlocked_skills: &s.unlocked_skills,
         diary: &s.diary,
+        patience: &s.patience,
+        timer: match (s.timer_left, story.place(&s.place).and_then(|p| p.timer.as_ref())) {
+            (Some(left), Some(t)) => Some(TimerView { label: &t.label, left, total: t.turns }),
+            _ => None,
+        },
+        scene_over: s.scene_over.as_deref(),
+        lead: &s.lead,
+        present: s.present(story),
+        talking_to: &s.talking_to,
+        flow: s.flow(story),
+        objective: s.objective(story),
         ending: s.ending.as_deref(),
     }
 }
@@ -323,19 +371,22 @@ async fn list_courses(State(app): State<AppStateRef>) -> Json<Value> {
     Json(json!({ "courses": courses, "default": app.default_course }))
 }
 
-async fn audio_manifest(State(app): State<AppStateRef>) -> Json<Value> {
-    Json(app.audio.manifest("/api/v1/audio"))
+async fn audio_manifest(State(app): State<AppStateRef>, Query(q): Query<CourseQuery>) -> Json<Value> {
+    let id = q.course.as_deref().unwrap_or(&app.default_course);
+    let course = app.course(id);
+    Json(course.audio.manifest(&format!("/api/v1/audio/{}", course.story.course.id)))
 }
 
 /// Serves a rendered asset. Ids are checked against the catalogue, so the
 /// path can't be used to read anything else.
 async fn audio_file(
     State(app): State<AppStateRef>,
-    Path((kind, file)): Path<(String, String)>,
+    Path((course, kind, file)): Path<(String, String, String)>,
 ) -> AppResult<impl IntoResponse> {
+    let course = app.courses.get(&course).ok_or(AppError::NotFound("unknown course"))?;
     let kind = Kind::parse(&kind).ok_or(AppError::NotFound("unknown audio kind"))?;
     let id = file.strip_suffix(".mp3").ok_or(AppError::NotFound("audio not found"))?;
-    let path = app.audio.path(kind, id).ok_or(AppError::NotFound("audio not found"))?;
+    let path = course.audio.path(kind, id).ok_or(AppError::NotFound("audio not found"))?;
     let bytes = tokio::fs::read(&path).await.map_err(|_| AppError::NotFound("audio not generated yet"))?;
     Ok((
         [(header::CONTENT_TYPE, "audio/mpeg"), (header::CACHE_CONTROL, "public, max-age=86400")],
@@ -348,6 +399,10 @@ async fn create_player(
     ConnectInfo(addr): ConnectInfo<SocketAddr>,
     headers: HeaderMap,
 ) -> AppResult<Json<Value>> {
+    // Without guests, everyone plays with an account.
+    if !app.cfg.allow_guests {
+        return Err(AppError::Forbidden("sign in to play"));
+    }
     app.limiter.check(format!("player:{}", client_ip(&headers, addr, app.cfg.trust_proxy)), 20, Duration::from_secs(3600))?;
     let id = uuid::Uuid::new_v4().to_string();
     // Two v4 UUIDs: 244 random bits.
@@ -368,6 +423,7 @@ async fn create_run(
     player: Player,
     Json(body): Json<CreateRun>,
 ) -> AppResult<Json<Value>> {
+    require_member(&app, &player).await?;
     app.limiter.check(format!("newrun:{}", player.id), 10, Duration::from_secs(3600))?;
     let name: String = body.player_name.trim().chars().filter(|c| !c.is_control()).take(24).collect();
     if name.is_empty() {
@@ -426,6 +482,7 @@ struct LessonCompleteView {
 struct GoalCompleteView {
     place: String,
     journal: String,
+    next_steps: Vec<String>,
 }
 
 /// Moves the player into `to` and produces the arrival: the authored intro
@@ -461,6 +518,7 @@ async fn take_turn(
     Path(run_id): Path<String>,
     Json(body): Json<TurnRequest>,
 ) -> AppResult<Json<Value>> {
+    let full = require_member(&app, &player).await?;
     let input = game::clean_input(&body.text).ok_or_else(|| AppError::BadRequest("say something first".into()))?;
     app.limiter.check(format!("turn:{}", player.id), 20, Duration::from_secs(60))?;
 
@@ -478,16 +536,27 @@ async fn take_turn(
     let (story, director) = (&course.story, &course.director);
 
     let transcript = db::recent_lines(&app.db, &run_id, game::TRANSCRIPT_LINES).await?;
+    // Saves from before directions were remembered: learn them once from the past.
+    if state.heard_of.is_empty() {
+        let past = db::recent_lines(&app.db, &run_id, 1000).await?;
+        game::hear_from(story, &mut state, &past);
+    }
     let segment = state.segment;
     let lesson_before = state.lesson_idx;
     let brief = game::lesson_brief(story, lesson_before);
     let message = game::director_message(story, &state, &transcript, game::Prompt::Turn { input: &input, via: body.via });
 
     let turn = director.direct_turn(&brief, body.difficulty, &message).await.map_err(AppError::Upstream)?;
+    state.difficulty = body.difficulty;
     let mut outcome = game::apply_turn_with_pron(story, &mut state, turn, body.via, &input, body.pron_score);
     // The player's stated intent wins if the director forgot to move them.
     if outcome.go_to.is_none() {
         outcome.go_to = game::intended_exit(story, &state, &input);
+    }
+    // The beta demo ends here: no further, and the client says thanks.
+    let demo_end = outcome.go_to.as_deref().is_some_and(|to| past_demo(story, full, to));
+    if demo_end {
+        outcome.go_to = None;
     }
     // Using a looked-up word yourself (not via a suggestion) counts toward owning it.
     let (words_used, words_owned) =
@@ -498,6 +567,9 @@ async fn take_turn(
     // Walking somewhere: the reaction stays in this visit, the arrival opens the next.
     let player_line = Beat::player(&input);
     let mut arrival = Vec::new();
+    if outcome.go_to.is_some() && outcome.goal_complete.is_none() {
+        outcome.goal_complete = game::finish_on_leaving(story, &mut state, &mut outcome.beats);
+    }
     if let Some(to) = outcome.go_to.clone() {
         let from = state.place.clone();
         state.place = to;
@@ -543,14 +615,123 @@ async fn take_turn(
         "beats": beats,
         "arrival_starts_at": arrival_starts_at,
         "moved_to": outcome.go_to,
+        "demo_end": demo_end,
         "new_phrases": outcome.new_phrases,
         "mastered": words_owned.iter().map(|(jp, w)| json!({ "jp": jp, "romaji": w.romaji, "en": w.en })).collect::<Vec<_>>(),
         "words_used": words_used.iter().map(|(jp, w)| json!({ "jp": jp, "en": w.en, "uses": w.uses })).collect::<Vec<_>>(),
         "candos_done": outcome.candos_done.iter().filter_map(|id| story.cando(id)).collect::<Vec<_>>(),
         "skill_unlocked": outcome.skill_unlocked,
-        "goal_complete": outcome.goal_complete.map(|g| GoalCompleteView { place: g.place, journal: g.journal }),
+        "departed": outcome.departed,
+        "scene_over": outcome.scene_over,
+        "steps_done": outcome.steps_done,
+        "goal_complete": outcome.goal_complete.map(|g| GoalCompleteView { place: g.place, journal: g.journal, next_steps: g.next_steps }),
         "lesson_complete": outcome.lesson_complete.map(|f| LessonCompleteView { finished: f, next: f + 1 }),
         "ending": state.ending,
+        "state": state_view(story, &state),
+    })))
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "snake_case", tag = "kind")]
+enum ActRequestKind {
+    /// Walk up to someone here.
+    Approach { who: String },
+    /// Stop and take stock.
+    Look,
+}
+
+#[derive(Deserialize)]
+struct ActRequest {
+    #[serde(flatten)]
+    kind: ActRequestKind,
+    #[serde(default)]
+    difficulty: director::Difficulty,
+}
+
+/// Approaching someone or looking around: the director plays it out, but
+/// there's no line to grade and nobody's patience is spent.
+async fn act(
+    State(app): State<AppStateRef>,
+    player: Player,
+    Path(run_id): Path<String>,
+    Json(body): Json<ActRequest>,
+) -> AppResult<Json<Value>> {
+    let full = require_member(&app, &player).await?;
+    app.limiter.check(format!("turn:{}", player.id), 20, Duration::from_secs(60))?;
+    let lock = app.run_lock(&run_id);
+    let _guard = lock.try_lock().map_err(|_| AppError::Conflict("a turn is already in progress"))?;
+
+    let mut state = db::get_run(&app.db, &run_id, &player.id).await?.ok_or(AppError::NotFound("run not found"))?;
+    if state.status != RunStatus::Playing {
+        return Err(AppError::Conflict("this story is already complete"));
+    }
+    let course = app.course(&state.course);
+    let (story, director) = (&course.story, &course.director);
+    let who = match &body.kind {
+        ActRequestKind::Approach { who } if state.present(story).contains(who) => Some(who.as_str()),
+        ActRequestKind::Approach { .. } => return Err(AppError::BadRequest("they're not here".into())),
+        ActRequestKind::Look => None,
+    };
+    if !db::take_turn_quota(&app.db, &player.id, app.cfg.max_turns_per_day).await? {
+        return Err(AppError::RateLimited);
+    }
+
+    let transcript = db::recent_lines(&app.db, &run_id, game::TRANSCRIPT_LINES).await?;
+    if state.heard_of.is_empty() {
+        let past = db::recent_lines(&app.db, &run_id, 1000).await?;
+        game::hear_from(story, &mut state, &past);
+    }
+    let segment = state.segment;
+    let brief = game::lesson_brief(story, state.lesson_idx);
+    let prompt = match who {
+        Some(who) => game::Prompt::Approach { who },
+        None => game::Prompt::Look,
+    };
+    let message = game::director_message(story, &state, &transcript, prompt);
+    let turn = director.direct_turn(&brief, body.difficulty, &message).await.map_err(AppError::Upstream)?;
+    state.difficulty = body.difficulty;
+    let who = who.map(str::to_string);
+    let mut outcome = game::apply_act(story, &mut state, turn, who.as_deref());
+    let demo_end = outcome.go_to.as_deref().is_some_and(|to| past_demo(story, full, to));
+    if demo_end {
+        outcome.go_to = None;
+    }
+    outcome.beats.extend(game::run_triggers(story, &mut state));
+    game::note_seen_words(story, &mut state, &outcome.beats);
+
+    // The scene's clock ran out while the player was looking around.
+    let mut arrival = Vec::new();
+    if let Some(to) = outcome.go_to.clone() {
+        let from = state.place.clone();
+        state.place = to;
+        let mut recent = transcript.clone();
+        recent.extend(outcome.beats.iter().cloned());
+        arrival = arrive(&app, &mut state, &from, &recent, body.difficulty).await?;
+        arrival.extend(game::run_triggers(story, &mut state));
+        game::note_seen_words(story, &mut state, &arrival);
+    }
+
+    let mut tx = app.db.begin().await?;
+    let mut beats = Vec::new();
+    for b in outcome.beats {
+        let id = db::insert_line(&mut tx, &run_id, segment, &b).await?;
+        beats.push(LineView { id, beat: b });
+    }
+    let arrival_starts_at = (!arrival.is_empty()).then_some(beats.len());
+    for b in arrival {
+        let id = db::insert_line(&mut tx, &run_id, state.segment, &b).await?;
+        beats.push(LineView { id, beat: b });
+    }
+    db::update_run(&mut tx, &run_id, &state).await?;
+    tx.commit().await?;
+
+    Ok(Json(json!({
+        "beats": beats,
+        "arrival_starts_at": arrival_starts_at,
+        "moved_to": outcome.go_to,
+        "demo_end": demo_end,
+        "departed": outcome.departed,
+        "scene_over": outcome.scene_over,
         "state": state_view(story, &state),
     })))
 }
@@ -569,6 +750,7 @@ async fn travel(
     Path(run_id): Path<String>,
     Json(body): Json<TravelRequest>,
 ) -> AppResult<Json<Value>> {
+    let full = require_member(&app, &player).await?;
     app.limiter.check(format!("turn:{}", player.id), 20, Duration::from_secs(60))?;
     let lock = app.run_lock(&run_id);
     let _guard = lock.try_lock().map_err(|_| AppError::Conflict("a turn is already in progress"))?;
@@ -579,8 +761,15 @@ async fn travel(
     }
     let course = app.course(&state.course);
     let story = &course.story;
+    if state.heard_of.is_empty() {
+        let past = db::recent_lines(&app.db, &run_id, 1000).await?;
+        game::hear_from(story, &mut state, &past);
+    }
     if !state.can_go(story, &body.to) {
         return Err(AppError::BadRequest("you can't go there from here (yet)".into()));
+    }
+    if past_demo(story, full, &body.to) {
+        return Ok(Json(json!({ "demo_end": true, "beats": [], "arrival_starts_at": 0, "state": state_view(story, &state) })));
     }
     let label = state
         .place(story)
@@ -590,6 +779,8 @@ async fn travel(
         .map(|e| e.label.clone())
         .unwrap_or_default();
     let segment = state.segment;
+    let mut finished = Vec::new();
+    let goal = game::finish_on_leaving(story, &mut state, &mut finished);
     let leaving = Beat::narration(&story.course.set_off.replace("{label}", &label));
     let mut transcript = db::recent_lines(&app.db, &run_id, game::TRANSCRIPT_LINES).await?;
     transcript.push(leaving.clone());
@@ -601,8 +792,18 @@ async fn travel(
     game::note_seen_words(story, &mut state, &arrival);
 
     let mut tx = app.db.begin().await?;
+    let mut beats = Vec::new();
+    for b in finished {
+        let id = db::insert_line(&mut tx, &run_id, segment, &b).await?;
+        beats.push(LineView { id, beat: b });
+    }
     let leaving_id = db::insert_line(&mut tx, &run_id, segment, &leaving).await?;
-    let mut beats = vec![LineView { id: leaving_id, beat: leaving }];
+    beats.push(LineView { id: leaving_id, beat: leaving });
+    if let Some(done) = &goal {
+        state.journal_seq += 1;
+        db::upsert_journal(&mut tx, &run_id, state.journal_seq, &done.journal).await?;
+    }
+    let arrival_starts_at = beats.len();
     for b in arrival {
         let id = db::insert_line(&mut tx, &run_id, state.segment, &b).await?;
         beats.push(LineView { id, beat: b });
@@ -610,7 +811,12 @@ async fn travel(
     db::update_run(&mut tx, &run_id, &state).await?;
     tx.commit().await?;
 
-    Ok(Json(json!({ "beats": beats, "arrival_starts_at": 1, "state": state_view(story, &state) })))
+    Ok(Json(json!({
+        "beats": beats,
+        "arrival_starts_at": arrival_starts_at,
+        "goal_complete": goal.map(|g| GoalCompleteView { place: g.place, journal: g.journal, next_steps: g.next_steps }),
+        "state": state_view(story, &state),
+    })))
 }
 
 #[derive(Deserialize)]
@@ -715,10 +921,19 @@ async fn translate_phrase(
 }
 
 /// Translator "hint": reveals the suggested replies for the current moment.
+#[derive(Deserialize)]
+struct HintQuery {
+    #[serde(default)]
+    difficulty: director::Difficulty,
+}
+
+/// Unlocks suggested replies. They cost battery, except on Beginner, where
+/// suggestions are always on.
 async fn unlock_hint(
     State(app): State<AppStateRef>,
     player: Player,
     Path(run_id): Path<String>,
+    Query(q): Query<HintQuery>,
 ) -> AppResult<Json<Value>> {
     let lock = app.run_lock(&run_id);
     let _guard = lock.lock().await;
@@ -726,10 +941,11 @@ async fn unlock_hint(
     let course = app.course(&state.course);
     let story = &course.story;
     if !state.choices_unlocked {
-        if state.battery < story.device.hint_cost {
+        let cost = if q.difficulty == director::Difficulty::Beginner { 0 } else { story.device.hint_cost };
+        if state.battery < cost {
             return Err(AppError::Conflict("the translator's battery is dead"));
         }
-        state.battery -= story.device.hint_cost;
+        state.battery -= cost;
         state.choices_unlocked = true;
         let mut conn = app.db.acquire().await?;
         db::update_run(&mut conn, &run_id, &state).await?;
@@ -740,8 +956,6 @@ async fn unlock_hint(
 #[derive(Deserialize)]
 struct SceneScoreRequest {
     place_id: String,
-    place_name: String,
-    place_name_jp: String,
     rank: String,
     score: i64,
     turns_used: i64,
@@ -779,28 +993,54 @@ async fn record_scene_score(
         _ => "C",
     };
 
-    let (reward_battery, reward_trust) = state.apply_scene_reward(story, &body.place_id, rank);
+    // The rank is the client's own tally, so it pays out at most once per
+    // visit, and only for the scene the player is actually in.
+    if body.place_id != state.place {
+        return Err(AppError::BadRequest("that isn't the current scene".into()));
+    }
+    let (reward_battery, reward_trust) = if state.rewarded_segments.insert(state.segment) {
+        state.apply_scene_reward(story, &body.place_id, rank)
+    } else {
+        (0, Vec::new())
+    };
+    let place = story.place(&body.place_id).ok_or(AppError::BadRequest("unknown place".into()))?;
+    let clip = |s: String, n: usize| s.chars().take(n).collect::<String>();
+    let journal = body.journal.map(|j| clip(j, 2000));
+    let mut metrics = body.metrics;
+    while metrics.len() > 12 {
+        metrics.pop_last();
+    }
+    let mut feedbacks = body.feedbacks;
+    feedbacks.truncate(60);
+    for f in &mut feedbacks {
+        for field in [&mut f.note, &mut f.better_jp, &mut f.better_romaji, &mut f.better_en] {
+            *field = clip(std::mem::take(field), 500);
+        }
+    }
 
     // Capture the current scene segment's dialogue backlog for the Diary.
     let seg_lines = db::chapter_lines(&app.db, &run_id, state.segment).await.unwrap_or_default();
 
     let mut tx = app.db.begin().await?;
-    let score_id = db::insert_scene_score(&mut tx, &run_id, &body.place_id, rank, body.score, body.turns_used).await?;
+    let score_id = db::insert_scene_score(&mut tx, &run_id, &body.place_id, rank, body.score.clamp(0, 100), body.turns_used.clamp(0, 999)).await?;
 
     let entry = game::DiaryEntry {
         id: format!("scene-{score_id}"),
         place_id: body.place_id.clone(),
-        place_name: body.place_name,
-        place_name_jp: body.place_name_jp,
+        place_name: place.name.clone(),
+        place_name_jp: place.name_jp.clone(),
         rank: rank.to_string(),
-        score: body.score,
-        turns_used: body.turns_used,
-        voice_turns: body.voice_turns,
-        difficulty: if body.difficulty.is_empty() { "beginner".into() } else { body.difficulty },
-        metrics: body.metrics,
+        score: body.score.clamp(0, 100),
+        turns_used: body.turns_used.clamp(0, 999),
+        voice_turns: body.voice_turns.clamp(0, 999),
+        difficulty: match body.difficulty.as_str() {
+            "intermediate" | "advanced" => body.difficulty,
+            _ => "beginner".into(),
+        },
+        metrics: metrics.into_iter().map(|(k, v)| (clip(k, 60), v.clamp(0, 100))).collect(),
         lines: seg_lines,
-        feedbacks: body.feedbacks,
-        journal: body.journal,
+        feedbacks,
+        journal,
         reward_battery,
         reward_trust: reward_trust.clone(),
         created_at: db::now(),
@@ -875,6 +1115,22 @@ async fn tts_preview(
     let course_id = body.course.as_deref().unwrap_or(&app.default_course);
     let story = &app.course(course_id).story;
 
+    // Only lines the game itself offers can be voiced, so the endpoint can't
+    // be used as a free text-to-speech service on our ElevenLabs credits.
+    let offered = || {
+        story.lessons.iter().flat_map(|l| l.candos.iter().map(|c| c.example.as_str()))
+            .chain(story.places.iter().flat_map(|p| p.pack.iter().chain(&p.choices).map(|w| w.jp.as_str())))
+            .chain(story.lessons.iter().flat_map(|l| l.grammar.iter().map(|g| g.example_jp.as_str())))
+            .any(|t| t.trim() == text)
+    };
+    let in_choices = match db::latest_run_in_course(&app.db, &player.id, &story.course.id).await? {
+        Some((_, state)) => state.choices.iter().any(|c| c.jp.trim() == text),
+        None => false,
+    };
+    if !in_choices && !offered() {
+        return Err(AppError::BadRequest("that line can't be previewed".into()));
+    }
+
     let cast = body
         .speaker
         .as_deref()
@@ -896,6 +1152,7 @@ async fn stt(State(app): State<AppStateRef>, player: Player, mut form: Multipart
 
     let mut audio_bytes: Option<(bytes::Bytes, String, String)> = None;
     let mut reference_text = String::new();
+    let mut course_id: Option<String> = None;
 
     while let Some(field) = form.next_field().await.map_err(|e| AppError::BadRequest(e.to_string()))? {
         match field.name() {
@@ -913,7 +1170,13 @@ async fn stt(State(app): State<AppStateRef>, player: Player, mut form: Multipart
             }
             Some("reference") => {
                 if let Ok(txt) = field.text().await {
-                    reference_text = txt;
+                    // A recognition hint, not free text: keep it short.
+                    reference_text = txt.chars().take(400).collect();
+                }
+            }
+            Some("course") => {
+                if let Ok(c) = field.text().await {
+                    course_id = Some(c);
                 }
             }
             _ => {}
@@ -922,8 +1185,9 @@ async fn stt(State(app): State<AppStateRef>, player: Player, mut form: Multipart
 
     let (bytes, filename, mime) = audio_bytes.ok_or_else(|| AppError::BadRequest("missing `audio` field".into()))?;
     let ref_opt = (!reference_text.trim().is_empty()).then_some(reference_text.as_str());
-    let text = stt.transcribe(bytes.clone(), filename, mime.clone(), ref_opt).await.map_err(AppError::Upstream)?;
-    let pronunciation = app.pronunciation.assess(&bytes, &mime, &reference_text, &text).await;
+    let target = app.course(course_id.as_deref().unwrap_or(&app.default_course)).story.course.target_lang.clone();
+    let text = stt.transcribe(bytes.clone(), filename, mime.clone(), ref_opt, &target).await.map_err(AppError::Upstream)?;
+    let pronunciation = app.pronunciation.assess(&bytes, &mime, &reference_text, &text, &target).await;
     Ok(Json(json!({
         "text": text,
         "pronunciation": pronunciation,

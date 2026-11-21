@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 import type { Device, Gloss, GlossWord, GrammarPoint, Translation } from "@/lib/types";
 import { useI18n } from "@/lib/i18n";
+import { ArrowDot } from "./Frame";
 
 /** One-character language names for the device's keys: 英→日 etc. */
 const SHORT: Record<string, string> = { en: "英", ja: "日" };
@@ -176,23 +177,32 @@ export function GlossCard({ gloss, grammar, onClose }: {
  * "How do I say…?" — the player holds the mic (or Space) to speak their English
  * query aloud, and gets a Japanese line to read aloud with its word map.
  */
-export function PhrasePanel({ result, busy, recording, transcribing, level = 0, cost, battery, grammar, onStartTalk, onStopTalk, onSay, onClose }: {
+export function PhrasePanel({ result, busy, recording, transcribing, level = 0, typing, cost, battery, grammar, onStartTalk, onStopTalk, onAsk, onSay, onClose }: {
   result: Translation | null;
   busy: boolean;
   recording: boolean;
   transcribing?: boolean;
   level?: number;
+  /** No microphone: ask by typing instead. */
+  typing: boolean;
   cost: number;
   battery: number;
   grammar: Record<string, GrammarPoint>;
   onStartTalk: () => void;
   onStopTalk: () => void;
+  onAsk: (question: string) => void;
   onSay: (jp: string) => void;
   onClose: () => void;
 }) {
   const { t, lang, target } = useI18n();
+  const [text, setText] = useState("");
   const lowBattery = battery < cost;
   const working = busy || !!transcribing;
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const ask = text.trim();
+    if (ask && !working && !lowBattery) onAsk(ask);
+  };
 
   return (
     <motion.div className="relative mx-auto w-full max-w-3xl px-3 sm:px-6"
@@ -203,55 +213,55 @@ export function PhrasePanel({ result, busy, recording, transcribing, level = 0, 
           <button onClick={onClose} className="rounded-full px-2 text-base leading-none hover:text-ink" aria-label={t.close}>×</button>
         </div>
 
-        {/* Voice-only query bar */}
-        <div className="mt-2.5 flex items-center gap-3 rounded-full bg-white/80 py-2 pl-2.5 pr-4">
-          <motion.button
-            type="button"
-            aria-label="Hold to ask in English"
-            disabled={working || lowBattery}
-            onPointerDown={(e) => { e.preventDefault(); onStartTalk(); }}
-            onPointerUp={onStopTalk}
-            onPointerLeave={() => recording && onStopTalk()}
-            whileTap={{ scale: 0.92 }}
-            animate={{ backgroundColor: recording ? "#9e1622" : "#c8202f" }}
-            className="relative grid h-11 w-11 shrink-0 place-items-center rounded-full bg-shu text-white shadow-md disabled:opacity-40"
-          >
-            {recording && (
-              <motion.span
-                className="absolute inset-0 rounded-full border-2 border-shu"
-                animate={{ scale: 1.15 + level * 0.5, opacity: 0.6 }}
-                transition={{ type: "spring", stiffness: 300, damping: 15 }}
-              />
-            )}
-            {working ? (
-              <motion.span
-                className="h-5 w-5 rounded-full border-2 border-white/30 border-t-white"
-                animate={{ rotate: 360 }}
-                transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
-              />
-            ) : (
-              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
-                <path d="M12 15a3.5 3.5 0 0 0 3.5-3.5v-6a3.5 3.5 0 1 0-7 0v6A3.5 3.5 0 0 0 12 15Z" />
-                <path d="M18.5 11.5a.75.75 0 0 0-1.5 0 5 5 0 0 1-10 0 .75.75 0 0 0-1.5 0 6.5 6.5 0 0 0 5.75 6.46V20.5h-2.5a.75.75 0 0 0 0 1.5h6.5a.75.75 0 0 0 0-1.5h-2.5v-2.54a6.5 6.5 0 0 0 5.75-6.46Z" />
-              </svg>
-            )}
-          </motion.button>
-
-          <div className="min-w-0 flex-1">
-            <p className="tight text-[15px] font-medium text-ink">
-              {lowBattery
-                ? t.batteryTooLow
-                : recording
-                  ? "Listening… ask in English (e.g. \"Where is the station?\")"
-                  : working
-                    ? "Translating your question…"
-                    : "Hold the mic or Space and ask in English"}
-            </p>
-            <p className="text-xs text-muted">
-              &ldquo;How do I say where is the station?&rdquo;
-            </p>
+        {typing ? (
+          <form onSubmit={submit} className="mt-2.5 flex items-center gap-2 rounded-full bg-white/80 py-1 pl-4 pr-1">
+            <input autoFocus value={text} onChange={(e) => setText(e.target.value)} maxLength={200}
+              placeholder={lowBattery ? t.batteryTooLow : t.askPlaceholder}
+              className="tight min-w-0 flex-1 bg-transparent text-[15px] placeholder:text-muted/70 focus:outline-none" />
+            <button type="submit" disabled={!text.trim() || working || lowBattery} aria-label={t.howDoISay} className="disabled:opacity-40">
+              {working ? (
+                <motion.span className="block h-8 w-8 rounded-full border-[3px] border-ink/20 border-t-ink"
+                  animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }} />
+              ) : (
+                <ArrowDot dark />
+              )}
+            </button>
+          </form>
+        ) : (
+          <div className="mt-2.5 flex items-center gap-3 rounded-full bg-white/80 py-2 pl-2.5 pr-4">
+            <motion.button
+              type="button"
+              aria-label={t.askHold}
+              disabled={working || lowBattery}
+              onPointerDown={(e) => { e.preventDefault(); onStartTalk(); }}
+              onPointerUp={onStopTalk}
+              onPointerLeave={() => recording && onStopTalk()}
+              whileTap={{ scale: 0.92 }}
+              animate={{ backgroundColor: recording ? "#9e1622" : "#c8202f" }}
+              className="relative grid h-11 w-11 shrink-0 place-items-center rounded-full bg-shu text-white shadow-md disabled:opacity-40"
+            >
+              {recording && (
+                <motion.span className="absolute inset-0 rounded-full border-2 border-shu"
+                  animate={{ scale: 1.15 + level * 0.5, opacity: 0.6 }} transition={{ type: "spring", stiffness: 300, damping: 15 }} />
+              )}
+              {working ? (
+                <motion.span className="h-5 w-5 rounded-full border-2 border-white/30 border-t-white"
+                  animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }} />
+              ) : (
+                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
+                  <path d="M12 15a3.5 3.5 0 0 0 3.5-3.5v-6a3.5 3.5 0 1 0-7 0v6A3.5 3.5 0 0 0 12 15Z" />
+                  <path d="M18.5 11.5a.75.75 0 0 0-1.5 0 5 5 0 0 1-10 0 .75.75 0 0 0-1.5 0 6.5 6.5 0 0 0 5.75 6.46V20.5h-2.5a.75.75 0 0 0 0 1.5h6.5a.75.75 0 0 0 0-1.5h-2.5v-2.54a6.5 6.5 0 0 0 5.75-6.46Z" />
+                </svg>
+              )}
+            </motion.button>
+            <div className="min-w-0 flex-1">
+              <p className="tight text-[15px] font-medium text-ink">
+                {lowBattery ? t.batteryTooLow : recording ? t.listening : working ? t.translating : t.askHold}
+              </p>
+              <p className="text-xs text-muted">{t.askExample}</p>
+            </div>
           </div>
-        </div>
+        )}
 
         {result && (
           <motion.div className="mt-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>

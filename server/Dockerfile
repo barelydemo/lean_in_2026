@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
 WORKDIR /app
 COPY --from=build /app/target/release/lexical-server /usr/local/bin/lexical-server
 COPY content ./content
-ENV BIND=0.0.0.0:8080 DATA_DIR=/data LOG_FORMAT=json STORY_PATH=/app/content/story.toml
+ENV BIND=0.0.0.0:8080 DATA_DIR=/data LOG_FORMAT=json COURSES_DIR=/app/content/courses
 USER lexical
 EXPOSE 8080
 VOLUME /data

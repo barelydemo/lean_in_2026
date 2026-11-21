@@ -73,10 +73,10 @@ export function SettingsPanel({ open, onClose, prefs, update, voiceAvailable, on
             className="frost absolute right-4 top-14 z-50 w-[min(22rem,calc(100%-2rem))] space-y-5 rounded-2xl p-5 text-ink sm:right-6"
             initial={{ opacity: 0, y: -10, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -10, scale: 0.96 }}
           >
-            <Group label="Difficulty">
+            <Group label={t.level}>
               {(["beginner", "intermediate", "advanced"] as Difficulty[]).map((v) => (
                 <Pill key={v} active={prefs.difficulty === v} onClick={() => update({ difficulty: v })}>
-                  {v.charAt(0).toUpperCase() + v.slice(1)}
+                  {t.levels[v].label}
                 </Pill>
               ))}
             </Group>

@@ -55,6 +55,41 @@ export const MOODS: Record<string, Mood> = {
     scale: PENTA_MAJ, keys: "epiano", arp: [0, -1, 1, -1, 2, -1, 1, -1, 0, -1, 1, -1, 2, -1, 3, -1],
     drums: "lofi", melody: 0.45, pad: 0.7, crackle: false,
   },
+  town: {
+    root: 64, bpm: 92, chords: [[0, 4, 7], [9, 12, 16], [5, 9, 12], [7, 11, 14]],
+    scale: PENTA_MAJ, keys: "pluck", arp: [0, -1, 2, 1, -1, 2, -1, 1, 0, -1, 2, 1, -1, 3, -1, 2],
+    drums: "lofi", melody: 0.35, pad: 0.3, crackle: true,
+  },
+  work: {
+    root: 67, bpm: 118, chords: [[0, 4, 7], [5, 9, 12], [7, 11, 14], [0, 4, 7]],
+    scale: PENTA_MAJ, keys: "pluck", arp: [0, 1, 2, 1, 0, 1, 2, 3, 0, 1, 2, 1, 0, 2, 1, 2],
+    drums: "machine", melody: 0.4, pad: 0.2, crackle: false,
+  },
+  cafe: {
+    root: 58, bpm: 78, chords: [[2, 5, 9, 12], [7, 11, 14, 17], [0, 4, 7, 11], [9, 12, 16, 19]],
+    scale: PENTA_MAJ, keys: "epiano", arp: [0, -1, -1, 2, -1, -1, 3, -1, 1, -1, -1, 2, -1, -1, -1, -1],
+    drums: "rim", melody: 0.22, pad: 0.45, crackle: true,
+  },
+  festival: {
+    root: 62, bpm: 112, chords: [[0, 4, 7], [7, 11, 14], [9, 12, 16], [5, 9, 12]],
+    scale: PENTA_MAJ, keys: "pluck", arp: [0, 2, 1, 2, 0, 2, 1, 3, 0, 2, 1, 2, 3, 2, 1, 0],
+    drums: "machine", melody: 0.5, pad: 0.4, crackle: false,
+  },
+  theatre: {
+    root: 55, bpm: 70, chords: [[0, 3, 7], [1, 5, 8], [0, 3, 7], [10, 14, 17]],
+    scale: [0, 1, 5, 7, 8], keys: "pluck", arp: [0, -1, -1, -1, 2, -1, -1, 1, -1, -1, -1, -1, 2, -1, -1, -1],
+    drums: "rim", melody: 0.15, pad: 0.5, crackle: false,
+  },
+  memory: {
+    root: 60, bpm: 66, chords: [[9, 12, 16], [5, 9, 12], [0, 4, 7], [7, 11, 14]],
+    scale: PENTA_MIN, keys: "epiano", arp: [0, -1, -1, -1, 1, -1, -1, -1, 2, -1, -1, -1, 1, -1, -1, -1],
+    drums: "none", melody: 0.2, pad: 0.6, crackle: false,
+  },
+  clinic: {
+    root: 65, bpm: 64, chords: [[0, 4, 7, 11], [5, 9, 12, 16], [2, 5, 9, 12], [7, 11, 14, 17]],
+    scale: PENTA_MAJ, keys: "epiano", arp: [0, -1, 2, -1, -1, -1, 3, -1, 1, -1, -1, -1, 2, -1, -1, -1],
+    drums: "none", melody: 0.12, pad: 0.65, crackle: false,
+  },
 };
 
 const hz = (n: number) => 440 * 2 ** ((n - 69) / 12);

@@ -1,0 +1,54 @@
+# Production stack: Caddy (HTTPS) in front of the game server and web app.
+#
+#   DOMAIN=play.example.com in .env, then:
+#   docker compose -f compose.prod.yml up -d --build
+#
+# Only Caddy is reachable from outside (ports 80/443). The browser talks to
+# one origin, https://$DOMAIN, for both the pages and /api.
+x-logging: &logging
+  driver: json-file
+  options: { max-size: "10m", max-file: "5" }
+
+services:
+  caddy:
+    image: caddy:2.10-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN in .env}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on: [server, web]
+    restart: unless-stopped
+    logging: *logging
+
+  server:
+    build: ./server
+    env_file: .env
+    environment:
+      CORS_ORIGINS: https://${DOMAIN}
+      PUBLIC_WEB_URL: https://${DOMAIN}
+      # Caddy appends the real client IP to X-Forwarded-For.
+      TRUST_PROXY: "true"
+    volumes:
+      - lexical-data:/data
+    restart: unless-stopped
+    logging: *logging
+
+  web:
+    build:
+      context: ./web
+      args:
+        NEXT_PUBLIC_API_URL: https://${DOMAIN}
+    depends_on: [server]
+    restart: unless-stopped
+    logging: *logging
+
+volumes:
+  lexical-data:
+  caddy-data:
+  caddy-config:

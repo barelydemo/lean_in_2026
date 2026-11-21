@@ -26,6 +26,10 @@ tagline = "ニューヨークで迷子 · JFK空港、1998年"
 currency = "$"
 locked_lesson = "まだ無理だ…もっと英語を覚えないと（レッスン {lesson}）。"
 locked_unknown = "まだ行き方がわからない。"
+locked_story = "まだだ。ここでやることを先に終わらせないと。"
+told_flags = ["knows_hostel", "job_lead"]
+# The beta demo ends at boarding the subway into Manhattan; full-access players go on.
+demo_end = "subway_car"
 set_off = "歩きだす：{label}。"
 arrive = "{place}に着いた。"
 pause = "少しの沈黙。相手はあなたがもう一度言うのを待っている。"
@@ -137,13 +141,129 @@ age = 23
 sprite = "/characters/Emily_Carter.png"
 color = "#fbbf24"
 voice = "EXAVITQu4vr4xnSDxMaL"
-english = "decent conversational Japanese from a year in Osaka — but the house rule says English only"
+english = "decent conversational Japanese from a year in Osaka"
 looks = "Wavy chestnut hair in a loose ponytail, bright green eyes, freckles, light-blue hoodie, ripped jeans and sneakers."
-personality = "Optimistic, adventurous, has been exactly where you are. Tough love: she will not let you lean on Japanese."
-speech_style = "Simple, slow English with Aussie flavour ('no worries', 'mate', 'heaps'). Enforces the hostel's 'English only' house rule with a grin."
+personality = "Optimistic, adventurous, has been exactly where you are. Kind: she remembers how lonely it is when nobody understands you, so she's happy to talk with the player in Japanese — and cheers them on to try their English."
+speech_style = "With the player: friendly Japanese from her Osaka year, dropping in the English word or phrase they need and getting them to try it. In front of Mr. Russo: simple, slow English with Aussie flavour ('no worries', 'mate'), because it's his house rule, with a wink and a whispered Japanese hint when they're stuck."
 backstory = "Australian backpacker who spent a year teaching English in Osaka, then flew to New York with $400 and a dream. Pays for her bunk by working the hostel desk. Arrived in Osaka knowing nothing — just like you are now in New York — and knows that the only way to learn is to be pushed."
-helps = "Speaks Japanese but is bound by the owner's English-only house rule: at most one whispered Japanese line, then she mimes, hints and coaches you in simple English."
-english_words = ["(understands Japanese well — but the house rule allows one whispered Japanese line per chapter)"]
+helps = "Speaks Japanese and is glad to use it. Whenever Mr. Russo isn't in earshot she talks with the player in Japanese as much as they like, explains what's going on, and teaches them the English they'll need. When Russo is in the room, his rule is English only: she switches to simple English and gestures, and whispers a quick Japanese hint whenever the player is truly stuck — she never refuses to help."
+english_words = ["(speaks Japanese freely whenever Mr. Russo isn't in earshot; in front of him, a whispered hint)"]
+speaks_player_language = true
+own_language_except_near = ["russo"]
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Townsfolk: generic passers-by. Never written into scenes; the game gives an
+# unnamed "extra" the face and voice of the first one whose alias appears in
+# its speaker_name (listed most specific first), or a stable pick otherwise.
+# ─────────────────────────────────────────────────────────────────────────────
+
+[[cast]]
+id = "russo"
+minor = true
+poses = []
+name = "ルッソさん"
+name_jp = "Mr. Russo"
+aliases = ["ルッソさん", "ルッソ", "Mr. Russo", "Russo"]
+role = "owner of the Bowery Bunkhouse"
+age = 72
+sprite = "/characters/townsfolk/ny_oldman.png"
+color = "#7a6f60"
+voice = "pqHfZKP75CvOlQylNhV4"
+looks = "Stooped, flat cap, a cardigan, an unlit cigar."
+personality = "Gruff, born on Mulberry Street, pretends not to care about anyone; runs his hostel by an English-only rule because struggling is how you learn."
+speech_style = "Short, slow, gravelly English, never any Japanese; grumbles instead of smiling."
+backstory = "Has run the Bowery Bunkhouse for forty years. In 1965 a lost young Japanese man stayed here and became his best friend; their photo still hangs in his apartment. He rarely speaks of it."
+motive = "Rent's due from three guests and the radiator in the dorm clanks all night. He'll give a broke foreigner a bed if they'll work for it — fair rules, no charity."
+
+[[cast]]
+id = "folk_transit"
+townsfolk = true
+poses = []
+name = "駅員"
+name_jp = "Transit worker"
+aliases = ["transit", "subway", "station", "conductor", "token", "booth", "mta", "attendant", "guard", "security", "駅員", "車掌", "警備", "係員", "運転手"]
+role = "subway station worker"
+age = 0
+sprite = "/characters/townsfolk/ny_transit.png"
+color = "#3f4a5c"
+voice = "onwK4e9ZLuTAKqWW03F9"
+looks = "Navy transit jacket, orange reflective vest."
+personality = "A passer-by."
+
+[[cast]]
+id = "folk_clerk"
+townsfolk = true
+poses = []
+name = "店員"
+name_jp = "Clerk"
+aliases = ["clerk", "cashier", "deli", "shop", "store", "vendor", "seller", "waiter", "waitress", "cook", "counter", "bodega", "店員", "受付", "レジ", "店", "ウェイトレス", "コック", "ルビー"]
+role = "deli or shop worker"
+age = 0
+sprite = "/characters/townsfolk/ny_clerk.png"
+color = "#8a7a5c"
+voice = "nPczCjzI2devNBz1zQrb"
+looks = "Plain apron over a T-shirt, pencil behind the ear."
+personality = "A passer-by."
+
+[[cast]]
+id = "folk_student"
+townsfolk = true
+poses = []
+name = "学生"
+name_jp = "Student"
+aliases = ["student", "kid", "teen", "boy", "girl", "skater", "young", "学生", "子ども", "少年", "少女", "若", "上の段"]
+role = "college student"
+age = 0
+sprite = "/characters/townsfolk/ny_student.png"
+color = "#5a4b3c"
+voice = "cjVigY5qzO86Huf0OWal"
+looks = "Flannel shirt, baggy jeans, backpack."
+personality = "A passer-by."
+
+[[cast]]
+id = "folk_retiree"
+townsfolk = true
+poses = []
+name = "おじいさん"
+name_jp = "Retiree"
+aliases = ["old", "elderly", "retiree", "grandpa", "grandma", "senior", "おじいさん", "おばあさん", "老人", "お年寄り", "アール"]
+role = "retiree"
+age = 0
+sprite = "/characters/townsfolk/ny_oldman.png"
+color = "#7a6f60"
+voice = "pqHfZKP75CvOlQylNhV4"
+looks = "Flat cap, cardigan, paper grocery bag."
+personality = "A passer-by."
+
+[[cast]]
+id = "folk_businesswoman"
+townsfolk = true
+poses = []
+name = "会社員の女性"
+name_jp = "Office worker"
+aliases = ["woman", "lady", "women", "女性", "女の人", "グロリア"]
+role = "office worker"
+age = 0
+sprite = "/characters/townsfolk/ny_businesswoman.png"
+color = "#2f3b55"
+voice = "Xb7hH8MSUJpSbSDYk0k2"
+looks = "Navy blazer and slacks, tote bag."
+personality = "A passer-by."
+
+[[cast]]
+id = "folk_businessman"
+townsfolk = true
+poses = []
+name = "会社員"
+name_jp = "Commuter"
+aliases = ["man", "businessman", "commuter", "driver", "cabbie", "passer", "stranger", "guy", "男性", "男の人", "先生", "オカフォー"]
+role = "commuter"
+age = 0
+sprite = "/characters/townsfolk/ny_businessman.png"
+color = "#4a4f57"
+voice = "JBFqnCBsd6RMkjVDRZzb"
+looks = "Grey suit, trench coat, folded newspaper."
+personality = "A passer-by."
 
 # ─────────────────────────────────────────────────────────────────────────────
 # The hint device: a battered English–Japanese electronic dictionary (it's
@@ -345,7 +465,7 @@ id = "diner"
 name = "ルビーズ・ダイナー"
 name_jp = "Ruby's Diner"
 description = "A classic chrome-and-vinyl New York diner: red booths, a long counter with stools, a pie case, a short-order grill, coffee pots, a jukebox."
-music = "night"
+music = "work"
 ambience = "izakaya"
 
 [[scenes]]
@@ -353,7 +473,7 @@ id = "clinic_nyc"
 name = "ベス・イスラエル病院 外来"
 name_jp = "Beth Israel — Walk-in Clinic"
 description = "A small hospital walk-in clinic waiting room: plastic chairs, a reception window, an old CRT TV on a bracket playing the news."
-music = "careful"
+music = "clinic"
 ambience = "clinic"
 
 [[scenes]]
@@ -369,7 +489,7 @@ id = "east_village_day"
 name = "昼のイーストビレッジ"
 name_jp = "East Village — Daytime"
 description = "St. Marks Place in New York's East Village on a bright late-spring morning in 1998: brownstones with zig-zag fire escapes, a record shop and a vintage clothing store with hand-painted signs, a man selling VHS tapes from a blanket on the sidewalk, punk kids with skateboards on a stoop, a payphone plastered with stickers, lampposts thick with paper flyers, and down the block a chrome diner with a cardboard HELP WANTED sign in the window."
-music = "morning"
+music = "town"
 ambience = "curbside"
 
 [[scenes]]
@@ -377,7 +497,7 @@ id = "russo_room"
 name = "ルッソさんの部屋"
 name_jp = "Mr. Russo's Apartment"
 description = "A cramped old apartment behind a hostel desk on the Bowery, warm afternoon light through lace curtains: a Formica kitchen table with a cigar box on it, a rotary telephone, a stovetop espresso pot on a hot plate, a record player with a stack of LPs, and a whole wall of black-and-white family photographs in mismatched frames, one of them showing two young men laughing on brownstone front steps."
-music = "cozy"
+music = "memory"
 ambience = "hostel"
 
 [[scenes]]
@@ -385,7 +505,7 @@ id = "coffee_shop"
 name = "カフェ・オービット"
 name_jp = "Café Orbit"
 description = "A narrow 1990s indie coffee shop near NYU on a rainy afternoon: mismatched thrift-store sofas and armchairs, a hand-lettered chalkboard menu, exposed brick covered in poetry-night and band flyers, a chunky beige Macintosh computer by the register, a hissing espresso machine, steamed-up front windows with rain streaking down, warm amber lamplight."
-music = "cozy"
+music = "cafe"
 ambience = "cafe"
 
 [[scenes]]
@@ -393,7 +513,7 @@ id = "street_fair"
 name = "アベニューAのストリートフェア"
 name_jp = "Avenue A Street Fair"
 description = "Avenue A in the East Village closed to traffic for a June street fair at dusk, 1998: striped food tents with sausage-and-pepper grills and trays of powdered zeppole, a salsa band playing on a flatbed truck, an open fire hydrant spraying laughing kids, string lights hung between fire escapes, a crowd in late-90s fashion, a pink and orange sky above the tenement rooftops."
-music = "journey"
+music = "festival"
 ambience = "festival"
 
 [[scenes]]
@@ -401,7 +521,7 @@ id = "broadway_theatre"
 name = "カロウェイ劇場（ブロードウェイ）"
 name_jp = "The Calloway Theatre — Broadway"
 description = "The gilded lobby of an old 1920s Broadway theatre during intermission: red velvet ropes and carpets, a sweeping marble staircase, crystal chandeliers, gold-leaf mouldings, framed posters of classic musicals, a small bar serving drinks in plastic cups, and through the glass doors the neon billboards of late-1990s Times Square."
-music = "night"
+music = "theatre"
 ambience = "theatre"
 
 [[scenes]]
@@ -452,6 +572,34 @@ epilogue_music = "finale"
   [[audio.music]]
   id = "finale"
   prompt = "Uplifting instrumental finale. Piano and strings swelling gently, light percussion, a sense of relief, gratitude and new friendship. 88 BPM. No vocals."
+
+  [[audio.music]]
+  id = "town"
+  prompt = "Sunny, laid-back instrumental for a late-1990s New York street on a bright morning. Boom-bap hip-hop drum groove, warm jazz guitar licks, dusty Rhodes piano, upright bass, vinyl crackle. Cheerful and streetwise. 90 BPM. No vocals."
+
+  [[audio.music]]
+  id = "work"
+  prompt = "Upbeat, retro instrumental for a busy chrome New York diner during the lunch rush. 1950s-style jukebox rock and roll and doo-wop feel with twangy electric guitar, honking saxophone, walking bass and brushed snare. Fun and energetic. 140 BPM. No vocals."
+
+  [[audio.music]]
+  id = "cafe"
+  prompt = "Cosy 1990s indie coffee-shop instrumental on a rainy afternoon. Fingerpicked acoustic guitar, soft brushed drums, mellow upright bass, a gentle Wurlitzer melody. Warm, a little romantic, unhurried. 82 BPM. No vocals."
+
+  [[audio.music]]
+  id = "festival"
+  prompt = "Joyful New York block-party instrumental at sunset. Salsa and Latin-funk groove with congas, timbales, bright brass stabs, piano montuno and a funky bass line. Celebratory and summery. 108 BPM. No vocals."
+
+  [[audio.music]]
+  id = "theatre"
+  prompt = "Grand, theatrical instrumental for the gilded lobby of an old Broadway theatre at intermission. A swinging big-band and pit-orchestra overture with lush strings, brass fanfares and a show-tune melody. Glamorous and exciting. 120 BPM. No vocals."
+
+  [[audio.music]]
+  id = "memory"
+  prompt = "Melancholic, beautiful solo piano instrumental about remembering something long forgotten. Slow, sparse, a simple tender melody with soft string pads drifting in, faint music-box echoes. Bittersweet and warm. 66 BPM. No vocals."
+
+  [[audio.music]]
+  id = "clinic"
+  prompt = "Calm, gentle instrumental for a quiet hospital waiting room. Soft ambient pads, slow celesta and harp arpeggios, a single cello line. Reassuring and hopeful, with a feeling of healing. 64 BPM. No vocals."
 
   [[audio.ambience]]
   id = "airport"
@@ -1560,7 +1708,7 @@ min_turns = 3
   text = "やりたいことを言える（want to）"
   example = "I want to see Japan again."
   example_reading = "アイ ウォント トゥ スィー ジャパン アゲイン。"
-  match_all = [["i want to", "i wanna", "i would like to", "id like to", "i really want to"], ["see", "stay", "learn", "work", "be", "live", "try", "eat", "visit", "meet", "know", "remember", "study", "find", "help", "become", "come back", "say", "thank"]]
+  match_all = [["i want to", "i wanna", "i would like to", "id like to", "i really want to"], ["see", "stay", "learn", "work", "be", "live", "try", "eat", "visit", "meet", "know", "remember", "study", "find", "help", "become", "come back", "say", "thank", "go home", "go back", "go to", "buy", "call", "sleep", "talk", "ask", "take", "make", "get"]]
 
   [[lessons.candos]]
   id = "ec11_ever"
@@ -1685,11 +1833,92 @@ title = "この空港を出て、マンハッタンに行かなきゃ。"
 title_jp = "Into the City"
 flags_any = ["reached_city"]
 
+  [[quests.steps]]
+  id = "help"
+  title = "Find out what to do"
+  why = "I hit my head, my bag is gone, and I can't read a word here. I need someone to help me."
+  done_any = ["asked_for_help", "reported_theft"]
+
+    [[quests.steps.branches]]
+    flag = "asked_for_help"
+    at = "jfk_arrivals"
+    label = "Ask the security guard"
+
+  [[quests.steps]]
+  id = "report"
+  title = "Report the theft"
+  why = "My passport and wallet were stolen. The police have to know — and maybe they can help."
+  done_any = ["reported_theft"]
+
+    [[quests.steps.branches]]
+    flag = "reported_theft"
+    at = "jfk_police"
+    label = "Report it to Officer Kim"
+
+  [[quests.steps]]
+  id = "ticket"
+  title = "Get a subway token"
+  why = "The subway into the city needs a token."
+  done_any = ["has_ticket"]
+
+    [[quests.steps.branches]]
+    flag = "has_ticket"
+    at = "howard_beach"
+    label = "Buy a token"
+
+    [[quests.steps.branches]]
+    flag = "david_paid"
+    at = "howard_beach"
+    label = "David pays"
+
+  [[quests.steps]]
+  id = "ride"
+  title = "Get to Manhattan"
+  why = "The consulate in Manhattan can make me a new passport — it opens Monday."
+  done_any = ["reached_city"]
+
+    [[quests.steps.branches]]
+    flag = "reached_city"
+    at = "east_village_night"
+    label = "Ride the A train into the city"
+
 [[quests]]
 id = "bed"
 title = "今夜寝る場所が必要だ。"
 title_jp = "A Bed for Tonight"
 flags_any = ["has_bed"]
+
+  [[quests.steps]]
+  id = "where"
+  title = "Find out where to sleep"
+  why = "It's night in the city and I have nowhere to sleep."
+  done_any = ["knows_hostel"]
+
+    [[quests.steps.branches]]
+    flag = "knows_hostel"
+    at = "bodega_night"
+    label = "Mia's hostel"
+
+    [[quests.steps.branches]]
+    flag = "knows_hostel"
+    at = "tompkins_park_night"
+    label = "Earl's tip"
+
+    [[quests.steps.branches]]
+    flag = "knows_hostel"
+    at = "east_village_night"
+    label = "Ask a passer-by"
+
+  [[quests.steps]]
+  id = "bed"
+  title = "Get a bed"
+  why = "A hostel might let me work for a bed."
+  done_any = ["has_bed"]
+
+    [[quests.steps.branches]]
+    flag = "has_bed"
+    at = "hostel_lobby_nyc"
+    label = "Work for a bed at the Bunkhouse"
 
 [[quests]]
 id = "work"
@@ -1697,11 +1926,49 @@ title = "お金もパスポートもない。仕事を見つけないと。"
 title_jp = "Finding Work"
 flags_any = ["has_job"]
 
+  [[quests.steps]]
+  id = "lead"
+  title = "Find work"
+  why = "No money and no papers: I need work to get by."
+  done_any = ["job_lead"]
+
+    [[quests.steps.branches]]
+    flag = "job_lead"
+    at = "east_village_day"
+    label = "The HELP WANTED sign at Ruby's"
+
+  [[quests.steps]]
+  id = "hired"
+  title = "Get hired"
+  why = "Someone is looking for help — I have to get the job."
+  done_any = ["has_job"]
+
+    [[quests.steps.branches]]
+    flag = "has_job"
+    at = "diner"
+    label = "A trial shift at Ruby's Diner"
+
 [[quests]]
 id = "rent"
 title = "家賃の日だ。ルッソさんに払わないと。"
 title_jp = "Rent"
 flags_any = ["paid_rent"]
+
+  [[quests.steps]]
+  id = "pay"
+  title = "Pay Mr. Russo the rent ($70)"
+  why = "Mr. Russo wants the week's rent: $70."
+  done_any = ["paid_rent"]
+
+    [[quests.steps.branches]]
+    flag = "paid_rent"
+    at = "russo_room"
+    label = "Pay him in his apartment"
+
+    [[quests.steps.branches]]
+    flag = "paid_rent"
+    at = "hostel_lobby_nyc"
+    label = "Pay him at the desk"
 
 [[quests]]
 id = "love"
@@ -1754,9 +2021,6 @@ The player reassures Danny (e.g. "I'm okay") and gets across that their bag is g
 """
 goal_flags = []
 on_enter_flags = []
-items_allowed = []
-max_yen_gain = 0
-max_yen_spend = 0
 reward_yen = 0
 reward_items = []
 recharge = 0
@@ -1797,6 +2061,12 @@ candos = ["ec0_okay", "ec0_sorry", "ec0_dont_understand"]
   jp = "over there"
   romaji = "オウヴァー ゼア"
   en = "あそこ"
+
+  [[places.events]]
+  flag = "asked_for_help"
+  when = "the player tells Danny what happened (the bag, the passport, the wallet) or asks him what to do, and he points them to the Port Authority police office"
+  label = "Danny points you to the police"
+  must_convey = ["the Port Authority police office is nearby in the terminal: that is where to report a theft"]
 
   [[places.exits]]
   to = "jfk_police"
@@ -1928,9 +2198,6 @@ The player asks where something is ("Where is…?" or similar) and Gloria draws 
 """
 goal_flags = []
 on_enter_flags = []
-items_allowed = ["terminal_map"]
-max_yen_gain = 0
-max_yen_spend = 0
 reward_yen = 0
 reward_items = ["terminal_map"]
 recharge = 0
@@ -2018,7 +2285,8 @@ clock = "8:40 AM"
 act = 1
 cast = ["rachel"]
 situation = """
-Officer Rachel Kim runs the small Port Authority Police office in the terminal. She speaks zero Japanese and communicates with a laminated picture chart (passport, wallet, bag, money, bus, train, consulate, phone icons), quick sketches on a notepad, the wall map and a desk calendar. She treats a stolen passport as serious and is patient and kind about it. What really happens here, step by step, whenever the player asks or worries:
+Officer Rachel Kim runs the small Port Authority Police office in the terminal. She speaks zero Japanese and communicates with a laminated picture chart (passport, wallet, bag, money, bus, train, consulate, phone icons), quick sketches on a notepad, the wall map and a desk calendar. She treats a stolen passport as serious and is patient and kind about it. ASK ONCE: she asks what was stolen ONE time. Whatever the player lists (bag, passport, wallet, even one thing) is enough; she never asks "anything else?" again and never re-asks something already answered. As soon as she has it, she files the report in that same reply (that's when reported_theft happens), and the game has her explain the loan and what to do next.
+What really happens here, step by step, whenever the player asks or worries:
 - She takes the theft report: what was stolen (she points at icons — "Passport? Wallet? Money?"), what the bag looked like ("Color? Black? Blue?"), and asks for a hotel or phone number — the player has none, so she writes the report number and the office's phone number on a card: "If we find it, we call. You call us. Okay?"
 - She shows bags from the lost-property shelf asking "Is this your bag?" — none are theirs.
 - Passport: she points at the consulate icon, says "Japanese Consulate" slowly, writes CONSULATE OF JAPAN — PARK AVE and circles Manhattan on the map. Today is Saturday — she taps the calendar and mimes "closed" until Monday ("Closed. Monday."). That's WHY the player must get into Manhattan and survive the weekend.
@@ -2031,11 +2299,8 @@ The player gets across what was stolen and correctly refuses at least one wrong 
 """
 goal_flags = ["reported_theft"]
 on_enter_flags = []
-items_allowed = ["theft_report"]
-max_yen_gain = 10
-max_yen_spend = 0
-reward_yen = 10
-reward_items = ["theft_report"]
+reward_yen = 0
+reward_items = []
 recharge = 20
 
 candos = ["ec2_lost", "ec2_not_mine"]
@@ -2079,6 +2344,38 @@ candos = ["ec2_lost", "ec2_not_mine"]
   jp = "Monday"
   romaji = "マンデイ"
   en = "月曜日"
+
+  [[places.events]]
+  flag = "reported_theft"
+  when = "the player has said what was stolen (one or two things is enough: bag, passport, wallet); Officer Kim files the report right then, gives them a copy and lends $10 from the emergency fund for the bus and subway"
+  label = "Officer Kim files the report and lends $10"
+  gives_yen = 10
+  gives_items = ["theft_report"]
+
+    [[places.events.says]]
+    who = "rachel"
+    jp = "Here's your report. If we find the bag, we call you."
+    romaji = "ヒアズ ユア リポート。イフ ウィ ファインド ザ バッグ、ウィ コール ユー。"
+    en = "これが届出です。かばんが見つかったら電話します。"
+
+    [[places.events.says]]
+    who = "rachel"
+    jp = "A new passport: the Japanese Consulate, in Manhattan. But it's closed until Monday."
+    romaji = "ア ニュー パスポート：ザ ジャパニーズ コンスレート、イン マンハッタン。バット イッツ クローズド アンティル マンデー。"
+    en = "新しいパスポートはマンハッタンの日本領事館です。でも月曜まで閉まっています。"
+
+    [[places.events.says]]
+    who = "rachel"
+    jp = "Here's ten dollars for the bus and the subway. It's a loan. Pay it back later."
+    romaji = "ヒアズ テン ダラーズ フォー ザ バス アンド ザ サブウェイ。イッツ ア ローン。ペイ イット バック レイター。"
+    en = "バスと地下鉄の分、10ドル貸します。あとで返してください。"
+
+    [[places.events.says]]
+    who = "rachel"
+    jp = "The free shuttle bus outside, to Howard Beach. Then the A train to Manhattan."
+    romaji = "ザ フリー シャトル バス アウトサイド、トゥ ハワード ビーチ。ゼン ジ エー トレイン トゥ マンハッタン。"
+    en = "外の無料シャトルバスでハワードビーチ駅へ。そこからA線でマンハッタンへ。"
+
 
   [[places.exits]]
   to = "jfk_curb"
@@ -2147,9 +2444,6 @@ The player tells Mia their name ("My name is…" / "I'm…") and answers at leas
 """
 goal_flags = ["met_mia"]
 on_enter_flags = []
-items_allowed = []
-max_yen_gain = 0
-max_yen_spend = 0
 reward_yen = 0
 reward_items = []
 recharge = 0
@@ -2262,11 +2556,8 @@ The player asks a price or says where they're going ("How much…?" / "I want to
 """
 goal_flags = ["has_ticket", "met_david"]
 on_enter_flags = []
-items_allowed = ["train_ticket", "david_card"]
-max_yen_gain = 2
-max_yen_spend = 2
 reward_yen = 0
-reward_items = ["train_ticket"]
+reward_items = []
 recharge = 0
 
 candos = ["ec3_price", "ec3_going", "ec3_request"]
@@ -2304,6 +2595,22 @@ candos = ["ec3_price", "ec3_going", "ec3_request"]
   [[places.events]]
   flag = "has_ticket"
   when = "the player ends up holding a subway token (bought, or paid for by David)"
+  must_convey = ["take the A train toward Manhattan from this platform"]
+  label = "Bought a subway token"
+  cost = 2
+  gives_items = ["train_ticket"]
+
+    [places.events.ask]
+    jp = "One token, please."
+    romaji = "ワン トークン、プリーズ。"
+    en = "トークンを1枚ください。"
+
+  [[places.events]]
+  flag = "david_paid"
+  when = "David pays for the player's token at the booth"
+  label = "David paid for your token"
+  gives_items = ["train_ticket"]
+  sets_flags = ["has_ticket"]
 
   [[places.exits]]
   to = "subway_car"
@@ -2351,9 +2658,9 @@ candos = ["ec3_price", "ec3_going", "ec3_request"]
   en = "マンハッタンに行きたいです。"
 
   [[places.choices]]
-  jp = "Sorry, I don't have enough money."
-  romaji = "ソーリー、アイ ドウント ハヴ イナフ マニー。"
-  en = "すみません、お金が足りません。"
+  jp = "Where do I buy a token?"
+  romaji = "ウェア ドゥー アイ バイ ア トウクン？"
+  en = "トークンはどこで買いますか？"
 
 
 [[places]]
@@ -2374,9 +2681,6 @@ The player tells David at least one thing they will do or where they'll go ("I w
 """
 goal_flags = []
 on_enter_flags = []
-items_allowed = ["david_card"]
-max_yen_gain = 0
-max_yen_spend = 0
 reward_yen = 0
 reward_items = ["david_card"]
 recharge = 0
@@ -2467,9 +2771,6 @@ The player asks a passer-by something useful (where, how much) and gets pointed 
 """
 goal_flags = []
 on_enter_flags = ["reached_city"]
-items_allowed = []
-max_yen_gain = 0
-max_yen_spend = 0
 reward_yen = 0
 reward_items = []
 recharge = 0
@@ -2504,6 +2805,8 @@ candos = ["ec2_where"]
   [[places.events]]
   flag = "knows_hostel"
   when = "someone tells the player where to find a cheap hostel on the Bowery"
+  must_convey = ["there is a cheap hostel on the Bowery, close by; they might let you work for a bed"]
+  label = "Told about the hostel on the Bowery"
 
   [[places.exits]]
   to = "bodega_night"
@@ -2580,9 +2883,6 @@ The player asks where something is or whether something exists ("Is there…?"),
 """
 goal_flags = ["mia_friend", "knows_hostel"]
 on_enter_flags = []
-items_allowed = ["sandwich", "phone_card", "batteries", "hostel_address"]
-max_yen_gain = 0
-max_yen_spend = 5
 reward_yen = 0
 reward_items = ["hostel_address", "batteries"]
 recharge = 100
@@ -2627,6 +2927,21 @@ candos = ["ec4_is_there", "ec4_past", "ec4_location"]
   [[places.events]]
   flag = "love_mia"
   when = "a genuinely warm, romantic moment with Mia happens and she clearly returns the feeling (only after several visits and high trust)"
+
+  [[places.events]]
+  flag = "bought_sandwich"
+  when = "the player buys a sandwich"
+  label = "Bought a sandwich"
+  cost = 3
+  gives_items = ["sandwich"]
+  repeatable = true
+
+  [[places.events]]
+  flag = "bought_phone_card"
+  when = "the player buys a phone card"
+  label = "Bought a phone card"
+  cost = 5
+  gives_items = ["phone_card"]
 
   [[places.exits]]
   to = "hostel_lobby_nyc"
@@ -2696,9 +3011,6 @@ The player talks with Earl long enough to learn about the Bowery hostels, or dec
 """
 goal_flags = ["knows_hostel"]
 on_enter_flags = []
-items_allowed = []
-max_yen_gain = 0
-max_yen_spend = 0
 reward_yen = 0
 reward_items = []
 recharge = 0
@@ -2784,7 +3096,7 @@ clock = "10:40 PM"
 act = 2
 cast = ["emily"]
 situation = """
-The Bowery Bunkhouse: up a steep staircase, a narrow lobby with a scuffed desk and a hand-written "ENGLISH ONLY!" sign. Emily, an Australian who spent a year in Osaka, works the desk. She may whisper one Japanese line, then sticks to the owner's English-only rule. Mr. Russo (speaker "extra", speaker_name "ルッソさん"), the gruff old Italian-American owner, listens from the back office with a cigar he never lights. With no money, the player must ask permission ("Can I stay here?") and offer to work for a bed ("I can clean", "I can help"). On later visits this is home base: Emily chats and teaches, and once the player has a job Russo grunts at them to bring the rent ($70 a week) to his apartment behind the desk.
+The Bowery Bunkhouse: up a steep staircase, a narrow lobby with a scuffed desk and a hand-written "ENGLISH ONLY!" sign. Emily, an Australian who spent a year in Osaka, works the desk and speaks Japanese with the player whenever Mr. Russo is out of earshot. While he's listening, his English-only rule holds: she switches to simple English and gestures, with a quick whispered Japanese hint whenever the player is stuck — never a refusal. Mr. Russo (speaker "extra", speaker_name "ルッソさん"), the gruff old Italian-American owner, listens from the back office with a cigar he never lights. With no money, the player must ask permission ("Can I stay here?") and offer to work for a bed ("I can clean", "I can help"). On later visits this is home base: Emily chats and teaches, and once the player has a job Russo grunts at them to bring the rent ($70 a week) to his apartment behind the desk.
 """
 goal = "お金がない。なんとかここで泊めてもらえないかな。"
 success = """
@@ -2792,9 +3104,6 @@ The player asks permission to stay ("Can I stay here?" or a polite request) and 
 """
 goal_flags = ["has_bed"]
 on_enter_flags = []
-items_allowed = ["hostel_key"]
-max_yen_gain = 0
-max_yen_spend = 70
 reward_yen = 0
 reward_items = ["hostel_key"]
 recharge = 100
@@ -2834,6 +3143,9 @@ candos = ["ec4_is_there", "ec3_request"]
   [[places.events]]
   flag = "paid_rent"
   when = "the player pays Mr. Russo the week's rent"
+  label = "Paid the week's rent"
+  cost = 70
+  requires_flags = ["has_job"]
 
   [[places.events]]
   flag = "love_emily"
@@ -2904,6 +3216,8 @@ candos = ["ec4_is_there", "ec3_request"]
 
 [[places]]
 id = "hostel_room_nyc"
+# Everyone else is asleep behind bunk curtains: voices, not people on stage.
+unseen_extras = true
 name = "ドミトリー"
 name_jp = "Dorm Room"
 aliases = ["room", "bed", "bunk", "dorm", "sleep", "へや", "部屋", "ベッド", "寝る"]
@@ -2920,9 +3234,6 @@ After the player says anything at all (even "good night" to Jonas, or a few word
 """
 goal_flags = ["memory_letter"]
 on_enter_flags = []
-items_allowed = []
-max_yen_gain = 0
-max_yen_spend = 0
 reward_yen = 0
 reward_items = []
 recharge = 0
@@ -3032,9 +3343,6 @@ The player describes something around them or says what they like (any lesson 5 
 """
 goal_flags = ["job_lead"]
 on_enter_flags = []
-items_allowed = []
-max_yen_gain = 0
-max_yen_spend = 3
 reward_yen = 0
 reward_items = []
 recharge = 0
@@ -3193,9 +3501,6 @@ The player handles the interview: asks permission or makes a request ("Can I…?
 """
 goal_flags = ["has_job"]
 on_enter_flags = []
-items_allowed = ["sandwich"]
-max_yen_gain = 80
-max_yen_spend = 0
 reward_yen = 0
 reward_items = []
 recharge = 20
@@ -3245,6 +3550,15 @@ candos = ["ec6_can_i", "ec6_please_do", "ec6_dont", "ec6_and_then"]
   [[places.events]]
   flag = "love_david"
   when = "a genuinely romantic moment with David happens and he clearly returns the feeling (only after several visits and high trust)"
+
+  [[places.events]]
+  flag = "worked_shift"
+  when = "the player works a shift at Ruby's and gets paid $40 cash plus a free sandwich"
+  label = "A shift at Ruby's Diner"
+  gives_yen = 40
+  gives_items = ["sandwich"]
+  requires_flags = ["has_job"]
+  repeatable = true
 
   [[places.exits]]
   to = "east_village_day"
@@ -3330,9 +3644,6 @@ The player pays the rent and talks with Russo about at least one person in his p
 """
 goal_flags = ["paid_rent", "memory_photo"]
 on_enter_flags = []
-items_allowed = ["photo"]
-max_yen_gain = 0
-max_yen_spend = 70
 reward_yen = 0
 reward_items = []
 recharge = 20
@@ -3377,10 +3688,19 @@ candos = ["ec7_family", "ec7_looks", "ec7_doing", "ec11_ever"]
   [[places.events]]
   flag = "paid_rent"
   when = "the player pays Mr. Russo the week's rent"
+  label = "Paid the week's rent"
+  cost = 70
+  requires_flags = ["has_job"]
 
   [[places.events]]
   flag = "russo_revealed"
   when = "the player has the old letter and remembers their past, shows Russo the letter, and Russo realises who their grandfather was"
+
+  [[places.events]]
+  flag = "memory_photo"
+  when = "the player asks about the photographs and Mr. Russo describes them, and the old photo of two young men sparks something in the player; he lets them hold it"
+  label = "The old photo"
+  gives_items = ["photo"]
 
   [[places.exits]]
   to = "hostel_lobby_nyc"
@@ -3454,9 +3774,6 @@ The player shares at least one opinion (I think… / I don't…), or agrees or d
 """
 goal_flags = []
 on_enter_flags = []
-items_allowed = []
-max_yen_gain = 0
-max_yen_spend = 6
 reward_yen = 0
 reward_items = []
 recharge = 20
@@ -3501,6 +3818,13 @@ candos = ["ec8_think", "ec8_dont_like", "ec8_agree", "ec7_doing"]
   [[places.events]]
   flag = "love_mia"
   when = "a genuinely warm, romantic moment with Mia happens and she clearly returns the feeling"
+
+  [[places.events]]
+  flag = "bought_coffee"
+  when = "the player pays for coffee"
+  label = "Bought coffee"
+  cost = 2
+  repeatable = true
 
   [[places.exits]]
   to = "east_village_day"
@@ -3568,9 +3892,6 @@ The player asks or answers a question about the past (Did you…? / Yesterday I�
 """
 goal_flags = []
 on_enter_flags = []
-items_allowed = []
-max_yen_gain = 0
-max_yen_spend = 10
 reward_yen = 0
 reward_items = []
 recharge = 0
@@ -3619,6 +3940,13 @@ candos = ["ec8_please_dont", "ec9_yesterday", "ec9_did_you", "ec10_compare"]
   [[places.events]]
   flag = "love_mia"
   when = "a genuinely romantic moment with Mia happens and she clearly returns the feeling"
+
+  [[places.events]]
+  flag = "fair_food"
+  when = "the player buys street-fair food"
+  label = "Street-fair food"
+  cost = 3
+  repeatable = true
 
   [[places.exits]]
   to = "east_village_day"
@@ -3690,9 +4018,6 @@ The player talks about the show with a past-tense or because sentence (or a comp
 """
 goal_flags = []
 on_enter_flags = []
-items_allowed = []
-max_yen_gain = 0
-max_yen_spend = 0
 reward_yen = 0
 reward_items = []
 recharge = 0
@@ -3810,9 +4135,6 @@ The player describes the thief with at least one sentence that matches (grey cap
 """
 goal_flags = ["got_backpack"]
 on_enter_flags = []
-items_allowed = ["backpack", "passport", "cheques", "letter"]
-max_yen_gain = 0
-max_yen_spend = 0
 reward_yen = 0
 reward_items = ["backpack", "passport", "cheques", "letter"]
 recharge = 30
@@ -3933,9 +4255,6 @@ The player explains how they feel or what happened (I feel… / My head hurts / 
 """
 goal_flags = ["remembered"]
 on_enter_flags = []
-items_allowed = []
-max_yen_gain = 0
-max_yen_spend = 0
 reward_yen = 0
 reward_items = []
 recharge = 30
@@ -4050,9 +4369,6 @@ The player clearly states their decision in English (going home or staying) and 
 """
 goal_flags = []
 on_enter_flags = []
-items_allowed = ["photo"]
-max_yen_gain = 0
-max_yen_spend = 0
 reward_yen = 0
 reward_items = []
 recharge = 0

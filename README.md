@@ -2,28 +2,24 @@
 
 A voice-driven visual novel that teaches beginner Japanese. You land at Narita, slip, hit your head, and wake up with your passport, wallet and phone stolen. You talk your way out — out loud, in Japanese — and every line you say moves the story.
 
-- **Talk to play.** Hold the mic (or Space) and speak. Bolna Voice AI transcribes your Japanese speech in real time; characters answer in expressive voice via ElevenLabs. Three suggested replies are always available as a fallback.
+- **Talk to play.** Hold the mic (or Space) and speak. ElevenLabs transcribes you; characters answer in voice. Three suggested replies are always available as a fallback.
 - **An open world.** Places connected by exits, not a fixed script: when Kenji points you to the police box, you can go to the police box. Several routes; a big arc from getting out of Narita to finding work, love, and who you are.
 - **A curriculum hiding in a story.** Your own Genki I track (lessons 0–12). A lesson only completes when you've used enough of its grammar yourself, and some places stay locked until you're ready — the server enforces this, not the model.
 - **What you say changes the scene.** The director directs the stage with a fixed vocabulary of animation presets (scene cuts, transitions, camera, character actions, manga emotes, weather, sound cues). The client animates and sounds them; the server rejects anything outside the vocabulary.
 - **Sound everywhere, nothing to license.** Music, ambience and effects are synthesised in the browser (generative per-scene score, ambience beds, UI and story sounds). With ElevenLabs, a one-time `generate-audio` renders real instrumental tracks, ambience loops and effects from prompts in the story file, and the client prefers those.
-- **Pick your providers.** DeepSeek (e.g. `deepseek-flash`), Claude or Groq as the story director; Bolna Voice AI as the primary speech-to-text engine (with Groq Whisper and ElevenLabs as fallbacks); ElevenLabs for character voice synthesis.
+- **Pick your providers.** Claude or Groq as the story director (with optional fallback), ElevenLabs or Groq Whisper for speech-to-text, ElevenLabs for character voices.
 
 ## Architecture
-
-<p align="center">
-  <img src="docs/lexical-flow.svg" alt="Animated flowfig diagram showing how Lexical works: 1. Speak & transcribe (Bolna Voice AI), 2. Direct & validate (DeepSeek LLM + Rust rules engine + SQLite), 3. Voice & stage (ElevenLabs TTS + Next.js stage)" width="100%"/>
-</p>
 
 ```
 web/  (Next.js 16 · React 19 · Motion · Tailwind 4)      server/  (Rust · Axum · SQLite · Tokio)
 ┌──────────────────────────────┐   JSON over HTTPS    ┌─────────────────────────────────────────┐
 │ Stage: backdrop, sprites,     │ ───────────────────▶ │ api.rs     routes, guest auth, limits    │
 │   camera, transitions, ambient│                      │ game.rs    rules: validate + clamp what  │
-│ Dialogue (typewriter + voice) │ ◀─────────────────── │            director proposes; exits, gates│
-│ Reply dock (push-to-talk)     │   beats + state      │ director.rs DeepSeek/Groq/Claude prompt   │
-│ HUD · CompanionHub · Coach    │                      │ voice.rs   Bolna STT + ElevenLabs TTS     │
-└──────────────────────────────┘                      │ bolna.rs   Voice AI speech pipeline      │
+│ Dialogue (typewriter + voice) │ ◀─────────────────── │            Claude proposes; exits, gates │
+│ Reply dock (push-to-talk)     │   beats + state      │ claude.rs  director prompt, JSON schema  │
+│ HUD · Notebook · Coach        │                      │ voice.rs   ElevenLabs TTS (disk cache)   │
+└──────────────────────────────┘                      │            + STT                          │
                                                       │ content/story.toml  cast, scenes, Genki  │
                                                       │            places, Genki lessons, quests │
                                                       └─────────────────────────────────────────┘
@@ -63,22 +59,20 @@ With Docker: `cp .env.example .env && docker compose up --build`.
 
 | Variable | Default | |
 |---|---|---|
-| `LLM_PROVIDER` / `LLM_FALLBACK` | `deepseek` / — | `deepseek`, `groq`, `claude` or `mock` |
-| `DEEPSEEK_API_KEY` | — | For `deepseek` (`deepseek-flash`) |
-| `DEEPSEEK_MODEL` | `deepseek-flash` | DeepSeek-V4.1-Flash with 1M context |
-| `STT_PROVIDER` | `bolna` | `bolna`, `groq`, `elevenlabs` or `none` |
-| `BOLNA_API_KEY` | — | Bolna Voice AI primary speech-to-text pipeline |
-| `BOLNA_STT_MODEL` | `deepgram-nova-3` | Default speech transcriber on Bolna |
-| `GROQ_API_KEY` | — | For Groq director or Groq Whisper STT fallback |
+| `LLM_PROVIDER` / `LLM_FALLBACK` | `claude` / — | `claude`, `groq` or `mock` (`CLAUDE_MOCK=1` still works) |
+| `ANTHROPIC_API_KEY` | — | For `claude` |
+| `CLAUDE_MODEL` / `CLAUDE_EFFORT` | `claude-haiku-5-5` / `low` | Haiku for fast turns; `claude-opus-5-5` for richer characters |
+| `CLAUDE_THINKING` | `off` on Haiku, else `adaptive` | Measured on Haiku: ~5 s/turn off vs ~13 s adaptive |
+| `GROQ_API_KEY` | — | For `groq` director or Groq STT |
 | `GROQ_MODEL` / `GROQ_REASONING_EFFORT` | `openai/gpt-oss-120b` / `low` | |
-| `GROQ_STT_MODEL` | `whisper-large-v3-turbo` | Fast Whisper STT fallback |
+| `STT_PROVIDER` / `GROQ_STT_MODEL` | auto / `whisper-large-v3-turbo` | `elevenlabs`, `groq` or `none` |
 | `ELEVENLABS_API_KEY` | — | Character voices and generated audio disabled when unset |
 | `AUDIO_AUTOGENERATE` | `0` | Render missing audio in the background at startup |
-| `ELEVENLABS_TTS_MODEL` / `ELEVENLABS_STT_MODEL` | `eleven_multilingual_v2` / `scribe_v2` | |
+| `ELEVENLABS_TTS_MODEL` / `ELEVENLABS_STT_MODEL` | `eleven_multilingual_v2` / `scribe_v1` | |
 | `ELEVENLABS_VOICE_<CAST_ID>` | story defaults | e.g. `ELEVENLABS_VOICE_KENJI` |
 | `DATA_DIR` / `DATABASE_URL` | `data` / `sqlite://data/lexical.db` | TTS cache lives in `DATA_DIR/tts` |
 | `CORS_ORIGINS` | `http://localhost:3000` | Comma-separated |
-| `MAX_TURNS_PER_DAY` | `400` | Per-player LLM turn quota |
+| `MAX_TURNS_PER_DAY` | `400` | Per-player Claude call quota |
 | `NEXT_PUBLIC_API_URL` (web, build time) | `http://localhost:8080` | |
 
 ## Writing content

@@ -1,7 +1,7 @@
 //! Generated audio assets (music, ambience loops, sound effects).
 //!
-//! Assets are rendered once from the prompts in story.toml with
-//! `lexical-server generate-audio` and served from DATA_DIR/audio. Players
+//! Assets are rendered once from the prompts in each course's story.toml
+//! with `lexical-server generate-audio` and served from DATA_DIR/audio/<course>. Players
 //! never trigger generation, so cost is fixed and bounded. Anything not yet
 //! rendered is simply absent from the manifest and the client plays its
 //! synthesised fallback.
@@ -51,8 +51,8 @@ pub struct AudioStore {
 }
 
 impl AudioStore {
-    pub fn new(data_dir: &Path, catalog: AudioCatalog) -> anyhow::Result<Self> {
-        let dir = data_dir.join("audio");
+    pub fn new(dir: &Path, catalog: AudioCatalog) -> anyhow::Result<Self> {
+        let dir = dir.to_path_buf();
         for k in Kind::ALL {
             std::fs::create_dir_all(dir.join(k.as_str()))?;
         }

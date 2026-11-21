@@ -12,7 +12,6 @@ use serde::Deserialize;
 use serde_json::json;
 use sha2::{Digest, Sha256};
 
-use crate::bolna::Bolna;
 use crate::groq::Groq;
 
 /// ElevenLabs runs separate data-residency stacks; a key minted on one is
@@ -44,15 +43,11 @@ pub struct ElevenLabs {
 #[derive(Deserialize)]
 struct SttResponse {
     text: String,
-    #[serde(default)]
-    language_code: Option<String>,
 }
 
-/// A transcription and the language the recogniser heard.
-#[allow(dead_code)]
+/// A transcription of the player's recording.
 pub struct Heard {
     pub text: String,
-    pub language: Option<String>,
 }
 
 impl ElevenLabs {
@@ -177,7 +172,7 @@ impl ElevenLabs {
             bail!("ElevenLabs STT {status}: {}", resp.text().await.unwrap_or_default());
         }
         let r = resp.json::<SttResponse>().await?;
-        Ok(Heard { text: r.text.trim().to_string(), language: r.language_code })
+        Ok(Heard { text: r.text.trim().to_string() })
     }
 }
 
@@ -190,7 +185,6 @@ pub async fn write_atomic(path: &std::path::Path, bytes: &[u8]) {
 }
 
 pub enum SttBackend {
-    Bolna(Bolna),
     ElevenLabs(ElevenLabs),
     Groq(Groq),
 }
@@ -198,7 +192,6 @@ pub enum SttBackend {
 impl SttBackend {
     fn name(&self) -> &'static str {
         match self {
-            SttBackend::Bolna(_) => "bolna",
             SttBackend::ElevenLabs(_) => "elevenlabs",
             SttBackend::Groq(_) => "groq",
         }
@@ -206,45 +199,32 @@ impl SttBackend {
 
     async fn transcribe(&self, audio: Bytes, filename: String, mime: String, language: Option<&str>, prompt_hint: Option<&str>) -> anyhow::Result<Heard> {
         match self {
-            SttBackend::Bolna(b) => b.transcribe(audio, filename, mime, language, prompt_hint).await,
             SttBackend::ElevenLabs(e) => e.transcribe(audio, filename, mime, language).await,
             SttBackend::Groq(g) => g.transcribe(audio, filename, mime, language, prompt_hint).await,
         }
     }
 
-    /// The player speaks English or Japanese. When candidate Japanese choices
-    /// are available (`reference`), prioritize Japanese directly with candidate
-    /// prompt context biasing so short phrases like "daijoubu desu" are never
-    /// misheard as English. Falls back to English if Japanese produces nothing.
-    async fn transcribe_en_ja(&self, audio: Bytes, filename: String, mime: String, reference: Option<&str>) -> anyhow::Result<String> {
-        let has_ref = reference.map(|r| !r.trim().is_empty()).unwrap_or(false);
+    /// The player speaks English or Japanese. Recognition is forced to the
+    /// language being learned (`target`) first, biased by the candidate
+    /// replies on screen (`reference`), so short phrases like "daijoubu desu"
+    /// or "I'm okay" aren't misheard; if that doesn't come out in the target's
+    /// script, it's re-run in the other language (the player asking in their
+    /// own language, e.g. to the dictionary).
+    async fn transcribe_en_ja(&self, audio: Bytes, filename: String, mime: String, reference: Option<&str>, target: &str) -> anyhow::Result<String> {
+        let has_ref = reference.is_some_and(|r| !r.trim().is_empty());
+        let (first, second) = if target == "en" { ("en", "ja") } else { ("ja", "en") };
 
-        // Prioritize Japanese with context biasing
-        let ja = self.transcribe(audio.clone(), filename.clone(), mime.clone(), Some("ja"), reference).await;
-        if let Ok(heard) = ja {
+        if let Ok(heard) = self.transcribe(audio.clone(), filename.clone(), mime.clone(), Some(first), reference).await {
             let t = heard.text.trim();
-            // If reference was explicitly set (in-game choices) or contains Japanese characters, accept it
-            if (!t.is_empty() && has_ref) || t.chars().any(is_japanese) || japanese_share(t) >= 0.2 {
+            let japanese = t.chars().any(is_japanese) || japanese_share(t) >= 0.2;
+            let in_target = if first == "ja" { japanese || (has_ref && !t.is_empty()) } else { !t.is_empty() && !japanese };
+            if in_target {
                 return Ok(keep_en_ja(t));
             }
         }
 
-        // Fall back to English (e.g. phrase translator dictionary lookup where the player speaks English)
-        let en = self.transcribe(audio, filename, mime, Some("en"), None, ).await?;
-        Ok(keep_en_ja(&en.text))
-    }
-}
-
-/// "jpn", "japanese", "ja-JP" → "ja"; likewise for English.
-#[allow(dead_code)]
-fn normalize_language(code: &str) -> &'static str {
-    let c = code.to_ascii_lowercase();
-    if c.starts_with("ja") || c.starts_with("jpn") {
-        "ja"
-    } else if c.starts_with("en") {
-        "en"
-    } else {
-        "other"
+        let other = self.transcribe(audio, filename, mime, Some(second), None).await?;
+        Ok(keep_en_ja(&other.text))
     }
 }
 
@@ -283,13 +263,13 @@ pub struct Transcriber {
 }
 
 impl Transcriber {
-    pub async fn transcribe(&self, audio: Bytes, filename: String, mime: String, reference: Option<&str>) -> anyhow::Result<String> {
-        match self.primary.transcribe_en_ja(audio.clone(), filename.clone(), mime.clone(), reference).await {
+    pub async fn transcribe(&self, audio: Bytes, filename: String, mime: String, reference: Option<&str>, target: &str) -> anyhow::Result<String> {
+        match self.primary.transcribe_en_ja(audio.clone(), filename.clone(), mime.clone(), reference, target).await {
             Ok(text) => Ok(text),
             Err(e) => match &self.fallback {
                 Some(fb) => {
                     tracing::warn!(error = %e, primary = self.primary.name(), fallback = fb.name(), "stt falling back");
-                    fb.transcribe_en_ja(audio, filename, mime, reference).await
+                    fb.transcribe_en_ja(audio, filename, mime, reference, target).await
                 }
                 None => Err(e),
             },
@@ -323,6 +303,7 @@ pub trait PronunciationScorer: Send + Sync {
         mime: &'a str,
         reference_text: &'a str,
         recognized_text: &'a str,
+        lang: &'a str,
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = anyhow::Result<PronunciationAssessment>> + Send + 'a>>;
 }
 
@@ -376,6 +357,7 @@ impl PronunciationScorer for AzurePronunciationScorer {
         mime: &'a str,
         reference_text: &'a str,
         _recognized_text: &'a str,
+        lang: &'a str,
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = anyhow::Result<PronunciationAssessment>> + Send + 'a>> {
         Box::pin(async move {
             let params = json!({
@@ -387,8 +369,9 @@ impl PronunciationScorer for AzurePronunciationScorer {
             });
             let header_val = base64_encode(params.to_string().as_bytes());
             let url = format!(
-                "https://{}.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1?language=ja-JP&format=detailed",
-                self.region
+                "https://{}.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1?language={}&format=detailed",
+                self.region,
+                if lang == "en" { "en-US" } else { "ja-JP" }
             );
 
             let resp = self
@@ -613,6 +596,7 @@ impl PronunciationScorer for ProxyPronunciationScorer {
         _mime: &'a str,
         reference_text: &'a str,
         recognized_text: &'a str,
+        _lang: &'a str,
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = anyhow::Result<PronunciationAssessment>> + Send + 'a>> {
         let res = Self::compute(reference_text, recognized_text);
         Box::pin(async move { Ok(res) })
@@ -644,14 +628,15 @@ impl PronunciationService {
         Self { azure, fallback: ProxyPronunciationScorer }
     }
 
-    pub async fn assess(&self, audio: &[u8], mime: &str, reference_text: &str, recognized_text: &str) -> PronunciationAssessment {
+    /// `lang` is the language being learned ("ja", "en").
+    pub async fn assess(&self, audio: &[u8], mime: &str, reference_text: &str, recognized_text: &str, lang: &str) -> PronunciationAssessment {
         if let Some(azure) = &self.azure {
-            match azure.score(audio, mime, reference_text, recognized_text).await {
+            match azure.score(audio, mime, reference_text, recognized_text, lang).await {
                 Ok(score) => return score,
                 Err(e) => tracing::warn!(error = %e, "Azure pronunciation assessment failed, falling back to proxy"),
             }
         }
-        self.fallback.score(audio, mime, reference_text, recognized_text).await.unwrap_or_else(|_| {
+        self.fallback.score(audio, mime, reference_text, recognized_text, lang).await.unwrap_or_else(|_| {
             ProxyPronunciationScorer::compute(reference_text, recognized_text)
         })
     }
@@ -664,10 +649,7 @@ mod tests {
 
     #[test]
     fn only_english_and_japanese_survive() {
-        use super::{japanese_share, keep_en_ja, normalize_language};
-        assert_eq!(normalize_language("jpn"), "ja");
-        assert_eq!(normalize_language("en-US"), "en");
-        assert_eq!(normalize_language("kor"), "other");
+        use super::{japanese_share, keep_en_ja};
         assert!(japanese_share("すみません、カバンがありません") > 0.9);
         assert!(japanese_share("sorry, my bag") < 0.1);
         assert_eq!(keep_en_ja("かばん 가방 bag сумка"), "かばん bag");

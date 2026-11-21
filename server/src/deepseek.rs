@@ -12,6 +12,8 @@ pub struct DeepSeek {
     api_key: String,
     base_url: String,
     model: String,
+    /// "off", or a reasoning effort ("low", "high", "max").
+    thinking: String,
 }
 
 impl DeepSeek {
@@ -21,7 +23,7 @@ impl DeepSeek {
             .clone()
             .ok_or_else(|| anyhow!("DEEPSEEK_API_KEY must be set to use DeepSeek"))?;
         let http = reqwest::Client::builder()
-            .timeout(Duration::from_secs(90))
+            .timeout(Duration::from_secs(60))
             .connect_timeout(Duration::from_secs(10))
             .build()?;
         Ok(DeepSeek {
@@ -29,6 +31,7 @@ impl DeepSeek {
             api_key,
             base_url: cfg.deepseek_base_url.trim_end_matches('/').to_string(),
             model: cfg.deepseek_model.clone(),
+            thinking: cfg.deepseek_thinking.clone(),
         })
     }
 
@@ -39,7 +42,9 @@ impl DeepSeek {
             "\n\nCRITICAL INSTRUCTION: Respond with a single valid JSON object strictly matching this JSON schema:\n{schema_str}"
         ));
 
-        let body = json!({
+        // The system prompt (world, lesson, schema) is identical across turns,
+        // so DeepSeek's automatic prefix cache serves it; only `user` is new.
+        let mut body = json!({
             "model": self.model,
             "messages": [
                 { "role": "system", "content": system },
@@ -48,32 +53,41 @@ impl DeepSeek {
             "response_format": { "type": "json_object" },
             "max_tokens": 4096,
         });
+        if self.thinking == "off" {
+            body["thinking"] = json!({ "type": "disabled" });
+        } else {
+            body["thinking"] = json!({ "type": "enabled" });
+            body["reasoning_effort"] = json!(self.thinking);
+        }
 
-        let resp = self.send(&body).await?;
-        if let Some(usage) = resp.get("usage") {
-            tracing::info!(
-                input = usage["prompt_tokens"].as_i64(),
-                output = usage["completion_tokens"].as_i64(),
-                model = resp["model"].as_str(),
-                "deepseek turn"
-            );
+        // JSON mode occasionally returns empty content; one retry clears it.
+        for attempt in 1..=2 {
+            let started = std::time::Instant::now();
+            let resp = self.send(&body).await?;
+            if let Some(usage) = resp.get("usage") {
+                tracing::info!(
+                    input = usage["prompt_tokens"].as_i64(),
+                    cached = usage["prompt_cache_hit_tokens"].as_i64(),
+                    output = usage["completion_tokens"].as_i64(),
+                    ms = started.elapsed().as_millis() as u64,
+                    model = resp["model"].as_str(),
+                    "deepseek turn"
+                );
+            }
+            let choice = &resp["choices"][0];
+            if choice["finish_reason"] == "length" {
+                bail!("director output hit max_tokens");
+            }
+            match choice["message"]["content"].as_str().map(str::trim) {
+                Some(text) if !text.is_empty() => return Ok(text.to_string()),
+                _ => tracing::warn!(attempt, "DeepSeek returned empty content"),
+            }
         }
-        let choice = &resp["choices"][0];
-        if choice["finish_reason"] == "length" {
-            bail!("director output hit max_tokens");
-        }
-        choice["message"]["content"]
-            .as_str()
-            .map(str::to_string)
-            .ok_or_else(|| anyhow!("no content in DeepSeek response"))
+        Err(anyhow!("no content in DeepSeek response"))
     }
 
     async fn send(&self, body: &Value) -> anyhow::Result<Value> {
-        let url = if self.base_url.ends_with('/') {
-            format!("{}chat/completions", self.base_url)
-        } else {
-            format!("{}/chat/completions", self.base_url)
-        };
+        let url = format!("{}/chat/completions", self.base_url);
 
         let mut attempt = 0;
         loop {

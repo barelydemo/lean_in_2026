@@ -1,6 +1,6 @@
+mod accounts;
 mod api;
 mod audio;
-mod bolna;
 mod claude;
 mod config;
 mod db;
@@ -20,7 +20,7 @@ use tracing_subscriber::EnvFilter;
 
 use crate::config::SttProvider;
 
-const USAGE: &str = "usage: lexical-server [serve | generate-audio [--force]]";
+const USAGE: &str = "usage: lexical-server [serve | generate-audio [--force] | backup <file>]";
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -41,6 +41,10 @@ async fn main() -> anyhow::Result<()> {
         let path = entry?.path().join("story.toml");
         if path.exists() {
             let story = story::Story::load(&path).with_context(|| format!("loading {}", path.display()))?;
+            if !cfg.courses.contains(&story.course.id) {
+                tracing::info!(course = %story.course.id, "course not enabled in COURSES, skipping");
+                continue;
+            }
             tracing::info!(course = %story.course.id, places = story.places.len(), lessons = story.lessons.len(), "course loaded");
             stories.insert(story.course.id.clone(), story);
         }
@@ -48,7 +52,11 @@ async fn main() -> anyhow::Result<()> {
     anyhow::ensure!(!stories.is_empty(), "no courses found in {}", cfg.courses_dir.display());
     let default_course = if stories.contains_key("ja") { "ja".to_string() } else { stories.keys().next().unwrap().clone() };
     std::fs::create_dir_all(&cfg.data_dir).context("creating data dir")?;
-    let audio = audio::AudioStore::new(&cfg.data_dir, stories[&default_course].audio.clone())?;
+    // Each course renders its own music and sounds into DATA_DIR/audio/<course>.
+    let mut audio = std::collections::BTreeMap::new();
+    for (id, story) in &stories {
+        audio.insert(id.clone(), audio::AudioStore::new(&cfg.data_dir.join("audio").join(id), story.audio.clone())?);
+    }
 
     let elevenlabs = cfg
         .elevenlabs_api_key
@@ -71,9 +79,21 @@ async fn main() -> anyhow::Result<()> {
         Some("generate-audio") => {
             let el = elevenlabs.context("generate-audio needs ELEVENLABS_API_KEY")?;
             let force = args.iter().any(|a| a == "--force");
-            let (made, failed) = audio.generate_missing(&el, force).await;
+            let (mut made, mut failed) = (0, 0);
+            for (id, store) in &audio {
+                let (m, f) = store.generate_missing(&el, force).await;
+                tracing::info!(course = %id, made = m, failed = f, "course audio generated");
+                (made, failed) = (made + m, failed + f);
+            }
             tracing::info!(made, failed, "audio generation finished");
             return if failed == 0 { Ok(()) } else { anyhow::bail!("{failed} assets failed") };
+        }
+        Some("backup") => {
+            let out = args.get(1).context(USAGE)?;
+            let db = db::connect(&cfg.database_url).await?;
+            db::backup(&db, out).await?;
+            tracing::info!(%out, "database backed up");
+            return Ok(());
         }
         Some(_) => anyhow::bail!(USAGE),
     }
@@ -82,35 +102,13 @@ async fn main() -> anyhow::Result<()> {
     let mut courses = std::collections::BTreeMap::new();
     for (id, story) in stories {
         let director = director::Director::new(&cfg, &story)?;
-        courses.insert(id, api::CourseRt { story, director });
+        let audio = audio.remove(&id).expect("an audio store per course");
+        courses.insert(id, api::CourseRt { story, director, audio });
     }
     // The other configured provider backs up the chosen one.
-    let bolna_stt = cfg.bolna_api_key.is_some().then(|| bolna::Bolna::new(&cfg)).transpose()?;
     let groq_stt = cfg.groq_api_key.is_some().then(|| groq::Groq::new(&cfg)).transpose()?;
     let el_stt = elevenlabs.clone();
     let stt = match cfg.stt_provider {
-        SttProvider::Bolna => {
-            if let Some(b) = bolna_stt {
-                Some(voice::Transcriber {
-                    primary: voice::SttBackend::Bolna(b),
-                    fallback: groq_stt.map(voice::SttBackend::Groq).or_else(|| el_stt.map(voice::SttBackend::ElevenLabs)),
-                })
-            } else if let Some(g) = groq_stt {
-                tracing::warn!("BOLNA_API_KEY not set — using Groq STT fallback");
-                Some(voice::Transcriber {
-                    primary: voice::SttBackend::Groq(g),
-                    fallback: el_stt.map(voice::SttBackend::ElevenLabs),
-                })
-            } else if let Some(e) = el_stt {
-                tracing::warn!("BOLNA_API_KEY not set — using ElevenLabs STT fallback");
-                Some(voice::Transcriber {
-                    primary: voice::SttBackend::ElevenLabs(e),
-                    fallback: None,
-                })
-            } else {
-                None
-            }
-        }
         SttProvider::ElevenLabs => el_stt.map(|e| voice::Transcriber {
             primary: voice::SttBackend::ElevenLabs(e),
             fallback: groq_stt.map(voice::SttBackend::Groq),
@@ -130,13 +128,15 @@ async fn main() -> anyhow::Result<()> {
 
     let bind = cfg.bind.clone();
     let autogen = cfg.audio_autogenerate;
-    let state = Arc::new(api::AppState::new(cfg, courses, default_course, db, elevenlabs, stt, audio));
+    let state = Arc::new(api::AppState::new(cfg, courses, default_course, db, elevenlabs, stt));
 
     if autogen && let Some(el) = state.tts.clone() {
         let state = state.clone();
         tokio::spawn(async move {
-            let (made, failed) = state.audio.generate_missing(&el, false).await;
-            tracing::info!(made, failed, "background audio generation finished");
+            for (id, course) in &state.courses {
+                let (made, failed) = course.audio.generate_missing(&el, false).await;
+                tracing::info!(course = %id, made, failed, "background audio generation finished");
+            }
         });
     }
 

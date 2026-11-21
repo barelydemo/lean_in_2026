@@ -9,11 +9,16 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use serde::{Deserialize, Serialize};
 
-use crate::director::DirectorTurn;
-use crate::story::{Action, Ambient, Beat, EXTRA, Exit, Lesson, NARRATOR, PLAYER, Phrase, Place, Quest, Story};
+use crate::director::{Difficulty, DirectorTurn};
+use crate::story::{Action, Ambient, Beat, EXTRA, Exit, Lesson, NARRATOR, PLAYER, Phrase, Place, Quest, Story, THOUGHT, TOWNSFOLK_PREFIX, is_inner};
 
 pub const MAX_BEATS_PER_TURN: usize = 5;
-pub const TRANSCRIPT_LINES: usize = 14;
+pub const TRANSCRIPT_LINES: usize = 40;
+/// Turns in one place after which a story scene lets the player leave anyway,
+/// so an unfinished goal never traps anyone.
+pub const ROAM_AFTER: u32 = 10;
+/// Lines remembered per visit for the no-repeats rule.
+const SAID_HERE_MAX: usize = 60;
 const TRUST_STEP: i64 = 2;
 const TRUST_RANGE: i64 = 10;
 /// Lesson turns without enough grammar before characters model phrases.
@@ -100,8 +105,173 @@ pub struct RunState {
     /// Detailed history of completed scenes for the player's Diary.
     #[serde(default)]
     pub diary: Vec<DiaryEntry>,
+    /// Patience left for each character in this scene (see CastMember::patience).
+    #[serde(default)]
+    pub patience: BTreeMap<String, i64>,
+    /// Turns until this scene's timer fires, if it has one.
+    #[serde(default)]
+    pub timer_left: Option<u32>,
+    /// Why this scene ran its course: "patience" or "timer".
+    #[serde(default)]
+    pub scene_over: Option<String>,
+    /// The level the player last played a turn at.
+    #[serde(default)]
+    pub difficulty: Difficulty,
+    /// The player's latest thought about what to try next (from the director).
+    #[serde(default)]
+    pub lead: String,
+    /// Scene visits (segments) that already paid a scorecard reward.
+    #[serde(default)]
+    pub rewarded_segments: BTreeSet<usize>,
+    /// People here who have talked with the player this visit. Only their
+    /// patience runs down: someone you haven't approached isn't waiting on you.
+    #[serde(default)]
+    pub engaged: BTreeSet<String>,
+    /// Who the player is talking with right now ("" when nobody).
+    #[serde(default)]
+    pub talking_to: String,
+    /// Lines said in this visit (characters' words, narration, thoughts), to
+    /// keep anyone from saying the same thing twice.
+    #[serde(default)]
+    pub said_here: Vec<String>,
+    /// Exits the conversation here has pointed the player to (a suggested
+    /// reply heads there): their "Go →" opens even mid-scene.
+    #[serde(default)]
+    pub pointed: BTreeSet<String>,
+    /// What has happened to the player, written by the game (never the
+    /// director) whenever the world changes: the episodic memory.
+    #[serde(default)]
+    pub episodes: Vec<Episode>,
+    /// Repeatable events already done during this visit.
+    #[serde(default)]
+    pub done_this_visit: BTreeSet<String>,
+    /// Story-graph steps done, as "quest/step" (once done, they stay done).
+    #[serde(default)]
+    pub steps_done: BTreeSet<String>,
+    /// Places characters have told the player about, anywhere, ever: once
+    /// told, the way there opens wherever it can (Aiko named the guesthouse
+    /// at the konbini; the street can take you there later).
+    #[serde(default)]
+    pub heard_of: BTreeSet<String>,
+    /// The player has been to this place before this visit.
+    #[serde(default)]
+    pub revisit: bool,
+    /// What each person remembers about the player, oldest first.
+    #[serde(default)]
+    pub memories: BTreeMap<String, Vec<String>>,
     pub ending: Option<String>,
 }
+
+/// The current objective from the story graph, for the HUD and popups.
+#[derive(Debug, Clone, Serialize)]
+pub struct ObjectiveView {
+    pub quest: String,
+    /// "quest/step": changes when a step is done.
+    pub step_id: String,
+    pub step: String,
+    /// Why it matters, in the player's words.
+    pub why: String,
+    /// How far along, when it can be counted ("¥1,000 of ¥1,270 — ¥270 short").
+    pub progress: String,
+    /// Ways open where the player is now.
+    pub here: Vec<String>,
+    /// Ways open elsewhere: (way, place name).
+    pub elsewhere: Vec<(String, String)>,
+}
+
+/// The story graph as the player has lived it, for the flowchart screen.
+#[derive(Debug, Clone, Serialize)]
+pub struct FlowQuest {
+    pub title: String,
+    /// "done", "active" or "locked" (not reached yet: its title stays hidden).
+    pub status: &'static str,
+    pub steps: Vec<FlowStep>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct FlowStep {
+    pub title: String,
+    /// "done" or "todo".
+    pub status: &'static str,
+    pub branches: Vec<FlowBranch>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct FlowBranch {
+    pub label: String,
+    /// The place's name once visited, otherwise "".
+    pub at: String,
+    /// "taken", "open" (possible now), "closed" (the step was done another
+    /// way) or "locked" (not possible yet).
+    pub status: &'static str,
+}
+
+/// A place's goal is done: its rewards (shown as the game's own line), the
+/// log, the story graph, and the journal page.
+pub fn finish_goal(story: &Story, state: &mut RunState, place: &Place, journal: &str, next_steps: &[String], beats: &mut Vec<Beat>) -> GoalComplete {
+    state.goals_done.insert(place.id.clone());
+    state.yen += place.reward_yen;
+    state.place_yen_gained += place.reward_yen;
+    let new_items: Vec<String> = place.reward_items.iter().filter(|i| !state.items.contains(*i)).cloned().collect();
+    state.items.extend(new_items.iter().cloned());
+    if let Some(line) = change_line(story, place.reward_yen, &new_items) {
+        beats.push(Beat::narration(&line));
+    }
+    state.log(&place.name, format!("Scene goal done: {}", place.goal));
+    state.update_steps(story);
+    state.battery = (state.battery + place.recharge).min(100);
+    let journal = if journal.trim().is_empty() { format!("{} — I did it, one word at a time.", place.name) } else { journal.to_string() };
+    let next_steps = next_steps.iter().map(|s| s.trim().chars().take(100).collect::<String>()).filter(|s| !s.is_empty()).take(3).collect();
+    GoalComplete { place: place.id.clone(), journal, next_steps }
+}
+
+/// Walking out of a scene whose goal is only described in words, after
+/// talking with someone, finishes it: they got what they came for (Kenji
+/// pointed the way and they went). Goals made of facts never finish this way.
+pub fn finish_on_leaving(story: &Story, state: &mut RunState, beats: &mut Vec<Beat>) -> Option<GoalComplete> {
+    let place = state.place(story).clone();
+    if place.goal_flags.is_empty() && !place.success.trim().is_empty() && !state.engaged.is_empty() && !state.goals_done.contains(&place.id) {
+        return Some(finish_goal(story, state, &place, "", &[], beats));
+    }
+    None
+}
+
+/// The game's own line for a change it made: "+¥1,000 · Theft report".
+pub fn change_line(story: &Story, money: i64, items: &[String]) -> Option<String> {
+    let cur = &story.course.currency;
+    let mut parts = Vec::new();
+    if money > 0 {
+        parts.push(format!("+{cur}{}", group(money)));
+    } else if money < 0 {
+        parts.push(format!("−{cur}{}", group(-money)));
+    }
+    parts.extend(items.iter().filter_map(|i| story.items.iter().find(|x| &x.id == i)).map(|x| format!("{} {}", x.icon, x.name)));
+    (!parts.is_empty()).then(|| parts.join(" · "))
+}
+
+fn group(n: i64) -> String {
+    let s = n.to_string();
+    let mut out = String::new();
+    for (i, c) in s.chars().enumerate() {
+        if i > 0 && (s.len() - i) % 3 == 0 {
+            out.push(',');
+        }
+        out.push(c);
+    }
+    out
+}
+
+/// One thing that happened to the player, in plain words.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Episode {
+    pub place: String,
+    pub text: String,
+}
+
+/// Episodes the director sees each turn.
+const STORY_SO_FAR: usize = 20;
+/// Episodes kept: the director sees the latest; old ones are a long way back.
+const EPISODES_MAX: usize = 80;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UnlockedSkill {
@@ -216,6 +386,22 @@ impl RunState {
             candos_done: BTreeSet::new(),
             unlocked_skills: BTreeMap::new(),
             diary: Vec::new(),
+            rewarded_segments: BTreeSet::new(),
+            lead: String::new(),
+            difficulty: Difficulty::default(),
+            patience: BTreeMap::new(),
+            timer_left: None,
+            scene_over: None,
+            engaged: BTreeSet::new(),
+            talking_to: String::new(),
+            memories: BTreeMap::new(),
+            revisit: false,
+            said_here: Vec::new(),
+            pointed: BTreeSet::new(),
+            heard_of: BTreeSet::new(),
+            episodes: Vec::new(),
+            done_this_visit: BTreeSet::new(),
+            steps_done: BTreeSet::new(),
             ending: None,
         };
         let intro = s.enter_place(story, &story.start_place.clone());
@@ -235,6 +421,7 @@ impl RunState {
     pub fn enter_place(&mut self, story: &Story, id: &str) -> Vec<Beat> {
         let Some(place) = story.place(id) else { return Vec::new() };
         let first_visit = self.visited.insert(place.id.clone());
+        self.revisit = !first_visit;
         self.place = place.id.clone();
         self.segment += 1;
         self.place_turns = 0;
@@ -244,14 +431,419 @@ impl RunState {
         self.on_stage.clear();
         self.choices = place.choices.clone();
         self.choices_unlocked = false;
+        self.patience = if place.unhurried {
+            BTreeMap::new()
+        } else {
+            place.cast.iter().filter_map(|id| story.cast_member(id)).map(|c| (c.id.clone(), c.patience)).collect()
+        };
+        self.timer_left = place.timer.as_ref().map(|t| t.turns);
+        self.scene_over = None;
+        self.lead.clear();
+        self.engaged.clear();
+        self.talking_to.clear();
+        self.said_here.clear();
+        self.pointed.clear();
+        self.done_this_visit.clear();
+        if first_visit {
+            self.log(&place.name, format!("Arrived at {} for the first time.", place.name));
+        }
+        self.open_heard_ways(story);
         for f in &place.on_enter_flags {
             self.flags.insert(f.clone());
         }
-        let intro = if first_visit { place.intro.clone() } else { Vec::new() };
+        self.update_steps(story);
+        let mut intro = if first_visit { place.intro.clone() } else { Vec::new() };
+        // Everyone who lives here is visible by the end of the intro, even if
+        // the script never brings them on: the player can walk up to them.
+        if let Some(last) = intro.last_mut() {
+            let mentioned = |id: &String| place.intro.iter().any(|b| &b.speaker == id || b.enter.contains(id));
+            last.enter.extend(place.cast.iter().filter(|c| !mentioned(c)).cloned());
+        }
         for b in &intro {
             self.track_stage(b);
         }
         intro
+    }
+
+    fn said_text(b: &Beat) -> &str {
+        if is_inner(&b.speaker) { &b.en } else { &b.jp }
+    }
+
+    /// Is this beat a near-copy of something already said in this visit?
+    /// Short lines (はい, a nod) may come round again.
+    fn repeats(&self, b: &Beat) -> bool {
+        let text = Self::said_text(b);
+        squash(text).chars().count() >= 8 && self.said_here.iter().any(|s| echoes(s, text))
+    }
+
+    fn note_said(&mut self, b: &Beat) {
+        let text = Self::said_text(b);
+        if !text.is_empty() {
+            self.said_here.push(text.to_string());
+            if self.said_here.len() > SAID_HERE_MAX {
+                self.said_here.remove(0);
+            }
+        }
+    }
+
+    /// Below Advanced, every reply ends with the player working out what's
+    /// going on, so they always know what they could do next: the director's
+    /// own thought if it wrote one, otherwise its `lead`.
+    pub fn think(&mut self, story: &Story, beats: &mut Vec<Beat>, lead: &str) {
+        // "I'm ¥270 short" once the player has the money (or before anyone
+        // has told them a price) is out of date: it isn't thought or narrated.
+        let stale = |t: &str| claims_short(t) && !self.really_short(story);
+        beats.retain(|b| !(matches!(b.speaker.as_str(), THOUGHT | NARRATOR) && stale(&b.en)));
+        let lead = if stale(lead) { "" } else { lead };
+        if self.difficulty == Difficulty::Advanced || beats.iter().any(|b| b.speaker == THOUGHT) {
+            return;
+        }
+        let thought = Beat { speaker: THOUGHT.into(), ..Beat::narration(lead.trim()) };
+        if thought.en.is_empty() || self.repeats(&thought) {
+            return;
+        }
+        self.note_said(&thought);
+        beats.push(thought);
+    }
+
+    /// The current objective is a sum the player doesn't have yet.
+    fn really_short(&self, story: &Story) -> bool {
+        self.current_quest(story)
+            .and_then(|q| q.steps.iter().find(|st| !self.steps_done.contains(&Self::step_key(q, st))))
+            .is_some_and(|st| st.done_min_yen > self.yen)
+    }
+
+    /// Exits to places the player has been told about: their button shows,
+    /// and a story flag that only stood for "knows the way" — one this place
+    /// can give — is set.
+    pub fn open_heard_ways(&mut self, story: &Story) {
+        let place = self.place(story).clone();
+        let told = &story.course.told_flags;
+        let settable = |f: &String| told.contains(f) && (place.goal_flags.contains(f) || place.events.iter().any(|ev| &ev.flag == f));
+        for e in place.exits.iter().filter(|e| self.heard_of.contains(&e.to)) {
+            self.pointed.insert(e.to.clone());
+            if e.requires_flags.iter().all(settable) {
+                self.flags.extend(e.requires_flags.iter().cloned());
+            }
+        }
+    }
+
+    pub fn log(&mut self, place: &str, text: String) {
+        self.episodes.push(Episode { place: place.to_string(), text });
+        if self.episodes.len() > EPISODES_MAX {
+            self.episodes.remove(0);
+        }
+    }
+
+    fn step_key(q: &Quest, st: &crate::story::QuestStep) -> String {
+        format!("{}/{}", q.id, st.id)
+    }
+
+    fn step_met(&self, st: &crate::story::QuestStep) -> bool {
+        st.done_any.iter().any(|f| self.flags.contains(f)) || (st.done_min_yen > 0 && self.yen >= st.done_min_yen)
+    }
+
+    /// Marks newly finished story-graph steps (they stay done) and logs them.
+    pub fn update_steps(&mut self, story: &Story) {
+        for q in &story.quests {
+            for st in &q.steps {
+                let key = Self::step_key(q, st);
+                if !self.steps_done.contains(&key) && self.step_met(st) {
+                    self.steps_done.insert(key);
+                    let how = st.branches.iter().find(|b| self.flags.contains(&b.flag)).map(|b| format!(" ({})", b.label)).unwrap_or_default();
+                    let place = self.place.clone();
+                    self.log(&place, format!("Done: {}{how}.", st.title));
+                }
+            }
+        }
+    }
+
+    /// A way of doing a step that's already done another way: closed.
+    pub fn closed_way(&self, story: &Story, flag: &str) -> bool {
+        !self.flags.contains(flag)
+            && story.quests.iter().any(|q| {
+                q.steps.iter().any(|st| self.steps_done.contains(&Self::step_key(q, st)) && st.branches.iter().any(|b| b.flag == flag))
+            })
+    }
+
+    /// Why this event can't happen right now, or `None` if it can.
+    pub fn event_blocked(&self, story: &Story, e: &crate::story::PlaceEvent) -> Option<String> {
+        if e.repeatable {
+            if self.done_this_visit.contains(&e.flag) {
+                return Some("already done this visit".into());
+            }
+        } else if self.flags.contains(&e.flag) {
+            return Some("already happened".into());
+        }
+        if self.closed_way(story, &e.flag) {
+            return Some("no longer needed: that step is already done another way".into());
+        }
+        if let Some(f) = e.requires_flags.iter().find(|f| !self.flags.contains(*f)) {
+            return Some(format!("needs `{f}` first"));
+        }
+        if let Some(i) = e.requires_items.iter().find(|i| !self.items.contains(*i)) {
+            let name = story.items.iter().find(|x| x.id == **i).map(|x| x.name.as_str()).unwrap_or(i.as_str());
+            return Some(format!("the player needs {name}"));
+        }
+        if e.min_yen > 0 && self.yen < e.min_yen {
+            return Some(format!("only if the player already has most of it ({}{} or more; they have {}{})", story.course.currency, e.min_yen, story.course.currency, self.yen));
+        }
+        if e.tops_up_to > 0 && self.yen >= e.tops_up_to {
+            return Some("not needed: they already have enough".into());
+        }
+        if e.cost > 0 && self.yen < e.cost {
+            return Some(format!("can't afford it: costs {c}{}, they have {c}{} (short {c}{})", e.cost, self.yen, e.cost - self.yen, c = story.course.currency));
+        }
+        None
+    }
+
+    /// Applies an event the code has allowed: money, items, facts, the log.
+    fn apply_event(&mut self, story: &Story, place: &Place, e: &crate::story::PlaceEvent) -> Option<String> {
+        let before = self.yen;
+        self.yen -= e.cost;
+        self.place_yen_spent += e.cost;
+        let mut gain = e.gives_yen;
+        if e.tops_up_to > 0 {
+            gain = gain.min((e.tops_up_to - self.yen).max(0));
+        }
+        self.yen += gain;
+        self.place_yen_gained += gain;
+        for i in &e.takes_items {
+            self.items.retain(|x| x != i);
+        }
+        for i in &e.gives_items {
+            if !self.items.contains(i) {
+                self.items.push(i.clone());
+            }
+        }
+        self.flags.insert(e.flag.clone());
+        self.flags.extend(e.sets_flags.iter().cloned());
+        self.done_this_visit.insert(e.flag.clone());
+        let what = if e.label.is_empty() { e.flag.replace('_', " ") } else { e.label.clone() };
+        let money = if self.yen != before { format!(" Money: {}{} → {}{}.", story.course.currency, before, story.course.currency, self.yen) } else { String::new() };
+        let got: Vec<&str> = e.gives_items.iter().filter_map(|i| story.items.iter().find(|x| &x.id == i)).map(|x| x.name.as_str()).collect();
+        let got = if got.is_empty() { String::new() } else { format!(" Got: {}.", got.join(", ")) };
+        self.log(&place.name, format!("{what}.{money}{got}"));
+        change_line(story, self.yen - before, &e.gives_items)
+    }
+
+    /// Runs the events the director says happened this turn: each only if
+    /// the rules allow it now. Goal facts that aren't events are set as is.
+    /// Returns true if something was refused for lack of money.
+    pub fn run_events(&mut self, story: &Story, place: &Place, flags: &[String], beats: &mut Vec<Beat>) -> bool {
+        let mut short = false;
+        // In the order the place declares them (half the rent, then the rest).
+        // Nobody hands over money while they're still asking how much.
+        let asking = beats
+            .iter()
+            .rev()
+            .find(|b| !is_inner(&b.speaker) && b.speaker != PLAYER && b.speaker != NARRATOR)
+            .is_some_and(|b| [&b.jp, &b.en].iter().any(|t| t.trim_end().ends_with(['?', '？'])));
+        for e in place.events.iter().filter(|e| flags.contains(&e.flag)) {
+            let only_money = e.gives_yen > 0 && e.gives_items.is_empty() && e.cost == 0 && e.heard.is_empty();
+            if asking && only_money {
+                continue;
+            }
+            match self.event_blocked(story, e) {
+                None => {
+                    // The game says what this means, so the director's own
+                    // (longer) version of it from this character goes.
+                    if let Some(who) = e.says.first().map(|l| l.who.clone()) {
+                        beats.retain(|b| b.speaker != who || b.jp.chars().count() <= 16);
+                    }
+                    for l in &e.says {
+                        beats.push(Beat { speaker: l.who.clone(), jp: l.jp.clone(), romaji: l.romaji.clone(), en: l.en.clone(), ..Beat::narration("") });
+                    }
+                    if let Some(line) = self.apply_event(story, place, e) {
+                        beats.push(Beat::narration(&line));
+                    }
+                }
+                Some(_) if e.cost > 0 && self.yen < e.cost => short = true,
+                Some(_) => {}
+            }
+        }
+        for f in flags.iter().filter(|f| place.goal_flags.contains(*f) && !place.events.iter().any(|e| &e.flag == *f)) {
+            if !self.flags.contains(f) && !self.closed_way(story, f) {
+                self.flags.insert(f.clone());
+                self.log(&place.name, format!("{}.", f.replace('_', " ")));
+            }
+        }
+        self.update_steps(story);
+        short
+    }
+
+    /// The flowchart: done and current objectives in full, later ones hidden.
+    pub fn flow(&self, story: &Story) -> Vec<FlowQuest> {
+        let current = self.current_quest(story).map(|q| q.id.clone());
+        let mut reached = true;
+        story
+            .quests
+            .iter()
+            .map(|q| {
+                let done = q.flags_any.iter().any(|f| self.flags.contains(f));
+                let status = if done { "done" } else if Some(&q.id) == current.as_ref() { "active" } else { "locked" };
+                if status == "locked" {
+                    reached = false;
+                }
+                let steps = if !reached && status == "locked" {
+                    Vec::new()
+                } else {
+                    q.steps
+                        .iter()
+                        .map(|st| {
+                            let step_done = self.steps_done.contains(&Self::step_key(q, st));
+                            let branches = st
+                                .branches
+                                .iter()
+                                .map(|b| {
+                                    let event = story.place(&b.at).and_then(|p| p.events.iter().find(|e| e.flag == b.flag));
+                                    let status = if self.flags.contains(&b.flag) {
+                                        "taken"
+                                    } else if step_done {
+                                        "closed"
+                                    } else if event.is_none_or(|e| self.event_blocked(story, e).is_none()) {
+                                        "open"
+                                    } else {
+                                        "locked"
+                                    };
+                                    let at = if self.visited.contains(&b.at) { story.place(&b.at).map(|p| p.name.clone()).unwrap_or_default() } else { String::new() };
+                                    FlowBranch { label: b.label.clone(), at, status }
+                                })
+                                .collect();
+                            FlowStep { title: st.title.clone(), status: if step_done { "done" } else { "todo" }, branches }
+                        })
+                        .collect()
+                };
+                FlowQuest { title: if status == "locked" { String::new() } else { q.title.clone() }, status, steps }
+            })
+            .collect()
+    }
+
+    /// The episodic memory, latest last, for the director.
+    pub fn story_so_far(&self, _story: &Story) -> String {
+        let start = self.episodes.len().saturating_sub(STORY_SO_FAR);
+        let lines: Vec<String> = self.episodes[start..].iter().map(|e| format!("- [{}] {}", e.place, e.text)).collect();
+        if lines.is_empty() { "Nothing yet: the story is just beginning.".into() } else { lines.join("\n") }
+    }
+
+    /// Facts worked out by the game, so nobody has to do arithmetic: money,
+    /// what the player carries, and what they can or can't afford nearby.
+    pub fn facts(&self, story: &Story) -> String {
+        let cur = &story.course.currency;
+        let mut out = vec![format!("Money: {cur}{}.", self.yen)];
+        let items: Vec<&str> = self.items.iter().filter_map(|i| story.items.iter().find(|x| &x.id == i)).map(|x| x.name.as_str()).collect();
+        out.push(format!("Carrying: {}.", if items.is_empty() { "nothing".to_string() } else { items.join(", ") }));
+        let here = self.place(story);
+        let near: Vec<&Place> = std::iter::once(here).chain(here.exits.iter().filter_map(|e| story.place(&e.to))).collect();
+        for p in near {
+            for e in p.events.iter().filter(|e| e.cost > 0 && !e.repeatable && !self.flags.contains(&e.flag)) {
+                if e.requires_flags.iter().any(|f| !self.flags.contains(f)) || self.closed_way(story, &e.flag) {
+                    continue;
+                }
+                let what = if e.label.is_empty() { e.flag.replace('_', " ") } else { e.label.clone() };
+                if !e.price_known_by.is_empty() && !self.flags.contains(&e.price_known_by) {
+                    out.push(format!("{what} at {}: the PLAYER DOESN'T KNOW the price yet, so they can't know whether their money is enough (suggested replies ask, they don't assume).", p.name));
+                    continue;
+                }
+                let verdict = if self.yen >= e.cost {
+                    format!("CAN afford it (has {cur}{})", self.yen)
+                } else {
+                    format!("can't afford it yet: short {cur}{}", e.cost - self.yen)
+                };
+                out.push(format!("{what} costs {cur}{} at {}: {verdict}.", e.cost, p.name));
+            }
+        }
+        out.join("\n")
+    }
+
+    /// The current objective from the story graph: the next step and the
+    /// ways open to the player, here and elsewhere.
+    pub fn objective(&self, story: &Story) -> Option<ObjectiveView> {
+        let q = self.current_quest(story)?;
+        let open = |b: &crate::story::Branch| -> bool {
+            if self.flags.contains(&b.flag) {
+                return false;
+            }
+            match story.place(&b.at).and_then(|p| p.events.iter().find(|e| e.flag == b.flag)) {
+                Some(e) => self.event_blocked(story, e).is_none(),
+                None => true,
+            }
+        };
+        // Steps come in order: the next one is the first not yet done (one
+        // done early, like a loan before knowing the fare, still counts), so
+        // nothing is shown before the player could know it.
+        let step = q.steps.iter().find(|st| !self.steps_done.contains(&Self::step_key(q, st)))?;
+        let cur = &story.course.currency;
+        let progress = if step.done_min_yen > self.yen {
+            format!("{cur}{} of {cur}{} — {cur}{} short", group(self.yen), group(step.done_min_yen), group(step.done_min_yen - self.yen))
+        } else {
+            String::new()
+        };
+        Some(ObjectiveView {
+            quest: q.title.clone(),
+            step_id: Self::step_key(q, step),
+            step: step.title.clone(),
+            why: step.why.clone(),
+            progress,
+            here: step.branches.iter().filter(|b| b.at == self.place && open(b)).map(|b| b.label.clone()).collect(),
+            elsewhere: step
+                .branches
+                .iter()
+                .filter(|b| b.at != self.place && open(b))
+                .filter_map(|b| story.place(&b.at).map(|p| (b.label.clone(), p.name.clone())))
+                .collect(),
+        })
+    }
+
+    /// The objective as the director reads it.
+    pub fn objective_now(&self, story: &Story) -> String {
+        let Some(q) = self.current_quest(story) else { return "The story's big goals are done: free roaming.".into() };
+        let mut out = vec![format!("Big goal: {}", q.title)];
+        let done: Vec<&str> = q.steps.iter().filter(|st| self.steps_done.contains(&Self::step_key(q, st))).map(|st| st.title.as_str()).collect();
+        if !done.is_empty() {
+            out.push(format!("Already done: {}.", done.join("; ")));
+        }
+        let Some(o) = self.objective(story) else { return out.join("\n") };
+        out.push(format!("Next step: {}.{}", o.step, if o.why.is_empty() { String::new() } else { format!(" ({})", o.why) }));
+        out.push(format!("Ways open HERE: {}.", if o.here.is_empty() { "none".to_string() } else { o.here.join("; ") }));
+        if !o.elsewhere.is_empty() {
+            let away: Vec<String> = o.elsewhere.iter().map(|(w, at)| format!("{w} — at {at}")).collect();
+            out.push(format!("Ways open elsewhere: {}.", away.join("; ")));
+        }
+        out.push("Choice #1 moves this step forward: a line the player would say to do one of the ways open HERE, or, if none is here, to head toward one elsewhere. No choice may contradict the facts (e.g. claiming they can't afford something they can).".into());
+        out.join("\n")
+    }
+
+    /// Does this character speak the player's own language right now?
+    pub fn in_own_language(&self, story: &Story, id: &str) -> bool {
+        story.cast_member(id).is_some_and(|c| {
+            c.speaks_player_language && !c.own_language_except_near.iter().any(|o| self.on_stage.contains(o))
+        })
+    }
+
+    /// People here who haven't left: the ones the player can walk up to.
+    pub fn present(&self, story: &Story) -> Vec<String> {
+        self.place(story)
+            .cast
+            .iter()
+            .filter(|c| self.patience.get(*c).is_none_or(|left| *left > 0))
+            .cloned()
+            .collect()
+    }
+
+    /// Brings anyone here who isn't on stage yet into view with the first beat.
+    pub fn stage_everyone(&mut self, story: &Story, beats: &mut [Beat]) {
+        let missing: Vec<String> = self.present(story).into_iter().filter(|c| !self.on_stage.contains(c)).collect();
+        if let Some(first) = beats.first_mut()
+            && !missing.is_empty()
+        {
+            for c in missing {
+                if !first.enter.contains(&c) {
+                    first.enter.push(c.clone());
+                }
+                self.on_stage.push(c);
+            }
+        }
     }
 
     /// Keeps `scene`, `ambient` and `on_stage` in sync with a beat, exactly
@@ -264,9 +856,21 @@ impl RunState {
         if !b.ambient.is_default() {
             self.ambient = b.ambient;
         }
-        let is_cast = b.speaker != NARRATOR && b.speaker != EXTRA && b.speaker != PLAYER;
+        for c in &b.enter {
+            if !self.on_stage.contains(c) {
+                self.on_stage.push(c.clone());
+            }
+        }
+        let is_cast = !is_inner(&b.speaker) && b.speaker != EXTRA && b.speaker != PLAYER;
         if !is_cast {
             return;
+        }
+        // One passer-by on stage at a time: the next stranger replaces the last.
+        if b.speaker.starts_with(TOWNSFOLK_PREFIX) {
+            self.on_stage.retain(|c| !c.starts_with(TOWNSFOLK_PREFIX) || c == &b.speaker);
+        } else if !b.jp.is_empty() {
+            self.engaged.insert(b.speaker.clone());
+            self.talking_to = b.speaker.clone();
         }
         match b.action {
             Action::ExitLeft | Action::ExitRight => self.on_stage.retain(|c| c != &b.speaker),
@@ -275,9 +879,39 @@ impl RunState {
         }
     }
 
+    /// A story scene: this place's goal isn't done yet, so the way on stays
+    /// closed until it is. Places without a goal, finished ones, scenes that
+    /// ran their course and long stays are free roaming.
+    pub fn in_story_scene(&self, story: &Story) -> bool {
+        let place = self.place(story);
+        // Only once a conversation is under way: walking in and looking
+        // around never holds anyone.
+        self.status == RunStatus::Playing
+            && !self.engaged.is_empty()
+            && !place.success.trim().is_empty()
+            && !(!place.goal_flags.is_empty() && place.goal_flags.iter().all(|f| self.closed_way(story, f)))
+            && !self.goals_done.contains(&place.id)
+            && self.scene_over.is_none()
+            && self.place_turns < ROAM_AFTER
+    }
+
     /// Why an exit is closed, or `None` if it's open.
     pub fn exit_locked_reason(&self, story: &Story, e: &Exit) -> Option<String> {
-        if self.lesson_idx < e.min_lesson && self.unlocked_skills.len() < e.min_lesson {
+        // A story scene keeps its shortcuts (buttons, map) closed, except
+        // where someone has pointed the player, or a door that's right there.
+        if self.in_story_scene(story) && !e.open_in_scene && !self.pointed.contains(&e.to) {
+            return Some(story.course.locked_story.clone());
+        }
+        self.world_locked_reason(story, e)
+    }
+
+    /// What the world itself says about an exit: lessons and story flags.
+    /// Saying where you're going in the conversation only has to pass this.
+    fn world_locked_reason(&self, story: &Story, e: &Exit) -> Option<String> {
+        // Reached in the curriculum, or already shown by speaking that lesson's
+        // grammar out loud (the skill tree awakens nodes ahead of the lesson).
+        let shown = self.unlocked_skills.contains_key(&lesson_node_id(e.min_lesson));
+        if self.lesson_idx < e.min_lesson && !shown {
             let l = &story.lessons[e.min_lesson];
             return Some(story.course.locked_lesson.replace("{lesson}", &format!("{}: {}", l.index, l.title)));
         }
@@ -309,6 +943,12 @@ impl RunState {
 
     pub fn can_go(&self, story: &Story, to: &str) -> bool {
         self.place(story).exits.iter().any(|e| e.to == to && self.exit_locked_reason(story, e).is_none())
+    }
+
+    /// Walking off in the story itself ("I'm going to the police box"):
+    /// a story scene never stops a player who says where they're going.
+    pub fn can_walk(&self, story: &Story, to: &str) -> bool {
+        self.place(story).exits.iter().any(|e| e.to == to && self.world_locked_reason(story, e).is_none())
     }
 
     /// The first step of the big arc not yet achieved.
@@ -368,6 +1008,8 @@ pub struct CoachView {
 pub struct GoalComplete {
     pub place: String,
     pub journal: String,
+    /// What the player could do next toward their big goal.
+    pub next_steps: Vec<String>,
 }
 
 pub struct TurnOutcome {
@@ -383,6 +1025,12 @@ pub struct TurnOutcome {
     pub lesson_complete: Option<usize>,
     /// An open exit the director moved the player through.
     pub go_to: Option<String>,
+    /// Characters whose patience ran out this turn.
+    pub departed: Vec<String>,
+    /// Story-graph steps finished this turn: a scene ends on each.
+    pub steps_done: Vec<String>,
+    /// Set when the scene ran its course this turn ("patience" / "timer").
+    pub scene_over: Option<String>,
 }
 
 /// The mode of a director call.
@@ -390,6 +1038,10 @@ pub enum Prompt<'a> {
     Turn { input: &'a str, via: InputVia },
     /// The player just walked in from `from` (None on the very first scene).
     Arrival { from: Option<&'a str> },
+    /// The player walks up to someone here to start talking.
+    Approach { who: &'a str },
+    /// The player takes a moment to look around and think.
+    Look,
 }
 
 /// Stable per lesson, so it is cached as its own prefix segment.
@@ -427,8 +1079,10 @@ pub fn director_message(story: &Story, state: &RunState, transcript: &[Beat], pr
     for b in &transcript[start..] {
         let who = match b.speaker.as_str() {
             NARRATOR => "Narrator".to_string(),
+            THOUGHT => format!("{} (thinking)", state.player_name),
             PLAYER => format!("{} (player)", state.player_name),
             EXTRA => b.speaker_name.clone(),
+            _ if !b.speaker_name.is_empty() => b.speaker_name.clone(),
             id => name(id),
         };
         if b.jp.is_empty() {
@@ -454,35 +1108,93 @@ pub fn director_message(story: &Story, state: &RunState, transcript: &[Beat], pr
     } else {
         ""
     };
-    let cast: Vec<String> = place.cast.iter().map(|c| format!("`{c}` ({})", name(c))).collect();
-    let next_open_exit = state
-        .exits(story)
-        .into_iter()
-        .find(|e| e.open)
+    // Who's here, what they're after today, and what they remember of the player.
+    let cast: Vec<String> = place
+        .cast
+        .iter()
+        .filter(|c| state.patience.get(*c).is_none_or(|left| *left > 0))
+        .map(|c| {
+            let member = story.cast_member(c);
+            let wants = member.map(|m| m.motive.trim()).filter(|m| !m.is_empty()).unwrap_or("their own business");
+            let tongue = match member {
+                Some(m) if m.speaks_player_language => {
+                    if state.in_own_language(story, c) {
+                        format!(" — speaks {} with the player right now", story.course.learner_name)
+                    } else {
+                        format!(" — {} only right now (house rule, the owner is here), with whispered {} hints", story.course.target_name, story.course.learner_name)
+                    }
+                }
+                _ => String::new(),
+            };
+            let memories = match state.memories.get(c) {
+                Some(list) if !list.is_empty() => format!("remembers the player: {}", list.join(" ")),
+                _ => "has never met the player".to_string(),
+            };
+            format!("\n  - `{c}` ({}) — wants today: {wants}{tongue} — {memories}", name(c))
+        })
+        .collect();
+    let next_open_exit = place
+        .exits
+        .iter()
+        .find(|e| state.world_locked_reason(story, e).is_none())
         .and_then(|e| story.place(&e.to))
         .map(|p| format!("`{}` ({} / {})", p.id, p.name_jp, p.name));
     let goal_state = if state.goals_done.contains(&place.id) {
         format!(
-            "ALREADY ACHIEVED — this is free conversation and practice now; keep objective_complete false. Have the character naturally wrap up and guide the player toward {}; Choice #3 MUST be a departure phrase heading there.",
+            "ALREADY ACHIEVED — this is free conversation now; keep objective_complete false. Keep talking about whatever the player is talking about. Only when the conversation winds down naturally might someone mention {}; Choice #3 is a departure phrase heading there.",
             next_open_exit.unwrap_or_else(|| "an open exit".into())
         )
     } else {
         format!(
-            "NOT YET — success condition: {} (Once met, set objective_complete: true and make Choice #3 a departure phrase toward {}).",
+            "NOT YET — what would count: {} This is the player's own aim, not the characters': they don't know it. Let it come up from the conversation in its own time; don't steer every line toward it. (Once met, set objective_complete: true and make Choice #3 a departure phrase toward {}.)",
             place.success.trim(),
             next_open_exit.unwrap_or_else(|| "an open exit".into())
         )
     };
+    // Everything that can change the world here, and whether it can now.
+    let cur = &story.course.currency;
     let events: Vec<String> = place
         .events
         .iter()
-        .filter(|e| !state.flags.contains(&e.flag))
-        .map(|e| format!("- `{}` when {}", e.flag, e.when))
+        .filter(|e| e.repeatable || !state.flags.contains(&e.flag))
+        .map(|e| {
+            let mut fx = Vec::new();
+            if e.cost > 0 {
+                fx.push(format!("player pays {cur}{}", e.cost));
+            }
+            if e.tops_up_to > 0 {
+                fx.push(format!("player receives the difference up to {cur}{} (at most {cur}{})", e.tops_up_to, e.gives_yen));
+            } else if e.gives_yen > 0 {
+                fx.push(format!("player receives {cur}{}", e.gives_yen));
+            }
+            let items: Vec<&str> = e.gives_items.iter().filter_map(|i| story.items.iter().find(|x| &x.id == i)).map(|x| x.name.as_str()).collect();
+            if !items.is_empty() {
+                fx.push(format!("gives {}", items.join(", ")));
+            }
+            let fx = if fx.is_empty() { String::new() } else { format!(" → {}", fx.join("; ")) };
+            let convey = if !e.says.is_empty() {
+                format!(" — IF IT HAPPENS, the game itself then has {} say what it means (don't explain it yourself, just lead up to it): {}", e.says[0].who, e.says.iter().map(|l| l.en.as_str()).collect::<Vec<_>>().join(" "))
+            } else if e.must_convey.is_empty() {
+                String::new()
+            } else {
+                format!(" — IF IT HAPPENS, that same reply MUST make clear (through words, gestures, drawings): {}", e.must_convey.join("; "))
+            };
+            match state.event_blocked(story, e) {
+                None => format!("- `{}` [POSSIBLE] when {}{fx}{convey}", e.flag, e.when),
+                Some(why) => format!("- `{}` [NOT POSSIBLE NOW: {why}] {}", e.flag, e.when),
+            }
+        })
         .collect();
-    let exits: Vec<String> = state
-        .exits(story)
+    let story_so_far = state.story_so_far(story);
+    let facts = state.facts(story);
+    let objective = state.objective_now(story);
+    // The director sees the world's own locks; a story scene only holds back
+    // the buttons, never a player who says where they're going.
+    let exits: Vec<String> = place
+        .exits
         .iter()
-        .map(|e| match &e.locked_reason {
+        .filter(|e| story.place(&e.to).is_some())
+        .map(|e| match state.world_locked_reason(story, e) {
             None => format!("- `{}` — {} [OPEN]", e.to, e.label),
             Some(r) => format!("- `{}` — {} [LOCKED: {r}]", e.to, e.label),
         })
@@ -513,7 +1225,7 @@ pub fn director_message(story: &Story, state: &RunState, transcript: &[Beat], pr
          KEY WORDS for this place (seed unmet ones early, two or three times, with gestures): {pack}\n\
          \"I can…\" goals of the current lesson ([x] = done): {candos}\n\
          This place is designed for: {featured}\n\
-         Create a natural moment where the player needs to say one of the open goals; never tell them to say it.\n\
+         When the conversation gives an opening, let a moment arise where the player needs one of the open goals — never at the cost of answering what was actually said, and never by telling them to say it.\n\
          </teaching>",
         pack = if pack.is_empty() { "none".into() } else { pack.join("; ") },
         candos = if lesson_candos.is_empty() { "none".into() } else { lesson_candos.join(" | ") },
@@ -525,6 +1237,7 @@ pub fn director_message(story: &Story, state: &RunState, transcript: &[Beat], pr
         "<game_state>\n\
          player name: {pname}\n\
          place: {place} ({place_id}), {clock}; on stage: {stage}\n\
+         talking with: {talking}\n\
          money: ¥{yen}; items: {items}; trust: {trust}\n\
          the player's big goal right now: {quest}\n\
          lesson progress: turn {lt} of lesson {li}; target grammar shown: {shown}; not yet: {missing}{hint}\n\
@@ -537,6 +1250,7 @@ pub fn director_message(story: &Story, state: &RunState, transcript: &[Beat], pr
         place_id = place.id,
         clock = place.clock,
         stage = if state.on_stage.is_empty() { "nobody".into() } else { state.on_stage.join(", ") },
+        talking = if state.talking_to.is_empty() { "nobody yet — the player hasn't approached anyone".to_string() } else { name(&state.talking_to) },
         yen = state.yen,
         items = if state.items.is_empty() { "nothing".into() } else { state.items.join(", ") },
         trust = if trust.is_empty() { "neutral".into() } else { trust.join(", ") },
@@ -549,28 +1263,67 @@ pub fn director_message(story: &Story, state: &RunState, transcript: &[Beat], pr
         flags = if state.flags.is_empty() { "none".to_string() } else { state.flags.iter().cloned().collect::<Vec<_>>().join(", ") },
         prev_choices = if prev_choices.is_empty() { "none".to_string() } else { prev_choices.join(" | ") },
     );
+    let memory_block = format!(
+        "<story_so_far>\n{story_so_far}\n</story_so_far>\n\n<facts_now>\n{facts}\n</facts_now>\n\n<objective>\n{objective}\n</objective>"
+    );
     let place_block = format!(
         "<place>\n\
          {name} ({name_jp}) — scene `{scene}`\n\
          Situation: {situation}\n\
          People here: {cast}\n\
+         Visit: {visit}{versions}\n\
          The player's goal here (their own thought): {goal}\n\
          Goal status: {goal_state}\n\
-         Story events you may trigger here (set the flag in flags_set only when it happens on screen):\n{events}\n\
+         Story events here — the ONLY way money, items and story facts change. Put an event's flag in flags_set in the reply where it happens on screen, and only if it's POSSIBLE; the game applies its effects (you never change money or items yourself). Never act out a NOT POSSIBLE one: the people here can't do it right now, so they react to why.\n{events}\n\
          Exits (set go_to only to an OPEN one):\n{exits}\n\
          </place>",
         name = place.name,
         name_jp = place.name_jp,
         scene = place.scene,
         situation = place.situation.trim(),
-        cast = if cast.is_empty() { "only minor characters (use speaker \"extra\")".into() } else { cast.join(", ") },
+        cast = if cast.is_empty() { "only passers-by (use speaker \"extra\" with a speaker_name)".into() } else { cast.concat() },
         goal = place.goal,
+        versions = {
+            let v = story.scene_versions(&place.scene);
+            if v.is_empty() {
+                String::new()
+            } else {
+                let list: Vec<String> = std::iter::once(format!("`{}` ({})", place.scene, place.clock))
+                    .chain(v.iter().map(|s| format!("`{}` ({}{})", s.id, s.name, if s.clock.is_empty() { String::new() } else { format!(", {}", s.clock) })))
+                    .collect();
+                format!(
+                    "\nTimes of day here: {}. On screen now: `{}`. When the time of day changes (the player wakes at dawn, or arrives in the daytime), set `scene` on that beat to the matching one, with transition \"wake\" or \"fade\".",
+                    list.join(", "),
+                    state.scene
+                )
+            }
+        },
+        visit = if state.revisit {
+            let done: Vec<&str> = place
+                .goal_flags
+                .iter()
+                .chain(place.events.iter().map(|e| &e.flag))
+                .filter(|f| state.flags.contains(*f))
+                .map(String::as_str)
+                .collect();
+            format!(
+                "RETURN VISIT — the player has been here before. Everything that already happened here stays done{}{}: \
+                 the people here remember it, and never redo it — no filling the same form again, no re-asking questions already answered, \
+                 no handing over again what they already gave. Any FIRST VISIT parts of the situation are over; follow its RETURN VISIT parts. \
+                 Greet the player as someone they've met and ask what brings them back.",
+                if state.goals_done.contains(&place.id) { " (the player's goal here was achieved)" } else { "" },
+                if done.is_empty() { String::new() } else { format!("; story events already done: {}", done.join(", ")) },
+            )
+        } else {
+            "first visit — the player has never been here".to_string()
+        },
         events = if events.is_empty() { "none".into() } else { events.join("\n") },
         exits = if exits.is_empty() { "none — this is the end of the line".into() } else { exits.join("\n") },
     );
     let ask = match prompt {
         Prompt::Turn { input, via } => format!(
-            "<player_said via=\"{via}\">{input}</player_said>",
+            "<player_said via=\"{via}\">{input}</player_said>\n\
+             Reply to this line first, as the next moment of the conversation in the transcript: pick up what was just said and anything left hanging earlier.",
             via = match via {
                 InputVia::Voice => "voice",
                 InputVia::Text => "text",
@@ -579,13 +1332,59 @@ pub fn director_message(story: &Story, state: &RunState, transcript: &[Beat], pr
         ),
         Prompt::Arrival { from } => format!(
             "<arrival from=\"{from}\"/>\n\
-             The player has just arrived here. Write 1–4 beats that set the scene through the player's eyes and have whoever is here notice them (use enter_left / enter_right). \
-             There is no player line to judge: coach.verdict \"none\", grammar_used [], objective_complete false, go_to \"stay\", flags_set []. Still give 3 fitting choices.",
+             The player has just arrived here. Write 2–4 beats: what they see (narration) and their own inner monologue (\"{THOUGHT}\") — what this place is, what they need here and who might help. \
+             Bring everyone who is here into view with `enter` on a narration beat, busy with their own lives. Nobody walks up to the player or starts talking to them UNLESS this place's situation says they come to the player; otherwise the player decides whom to approach. \
+             There is no player line to judge: coach.verdict \"none\", grammar_used [], objective_complete false, go_to \"stay\", flags_set []. \
+             Choices: 3 openers the player could say to someone here (\"excuse me…\", a question about what they need).",
             from = from.and_then(|f| story.place(f)).map(|p| p.name.as_str()).unwrap_or("nowhere — the story begins"),
         ),
+        Prompt::Approach { who } => format!(
+            "<approach who=\"{who}\"/>\n\
+             The player walks up to {name} to talk. Write 2–4 beats: a short narration of them approaching, then {name} reacting in character — what they are in the middle of, their mood, what they want today — and speaking first, the way someone would to a stranger who comes up to them. \
+             There is no player line to judge: coach.verdict \"none\", grammar_used [], objective_complete false, go_to \"stay\", flags_set []. Choices: 3 things the player could say to {name} now.",
+            name = name(who),
+        ),
+        Prompt::Look => "<look_around/>\n\
+             The player stops to look around and think. Write 2–4 beats, mostly their inner monologue (\"thought\") with a little narration: what they notice here, \
+             what they understand of what has happened so far, what they still need and which person or exit could help. Nobody new talks to them. \
+             There is no player line to judge: coach.verdict \"none\", grammar_used [], objective_complete false, go_to \"stay\", flags_set []. Choices: 3 things they could say next to someone here."
+            .to_string(),
     };
 
-    format!("{state_block}\n\n{place_block}\n\n{teaching_block}\n\n<transcript>\n{lines}</transcript>\n\n{ask}")
+    let pressure_block = pressure_message(story, state, place);
+    format!("{state_block}\n\n{memory_block}\n\n{place_block}\n\n{teaching_block}\n\n{pressure_block}\n\n<transcript>\n{lines}</transcript>\n\n{ask}")
+}
+
+/// How much time the people here have left, so the director can let it show.
+fn pressure_message(story: &Story, state: &RunState, place: &Place) -> String {
+    let people: Vec<String> = state
+        .patience
+        .iter()
+        .filter_map(|(id, left)| {
+            let c = story.cast_member(id)?;
+            if !state.engaged.contains(id) {
+                return Some(format!("{} — hasn't talked with the player yet; going about their own business", c.name));
+            }
+            let mood = match *left {
+                l if l <= 0 => "has left",
+                1 => "MUST make clear this turn that they're about to leave (\"I have to go soon…\", picking up their bag)",
+                2..=3 => "impatient — show it in this turn's beats: a glance at a watch or the clock, a shorter answer, a sigh",
+                _ => "has time",
+            };
+            Some(format!("{} — {left}/{} turns: {mood}", c.name, c.patience))
+        })
+        .collect();
+    let timer = match (state.timer_left, &place.timer) {
+        (Some(left), Some(t)) if left > 0 => format!("\nClock: \"{}\" in {left} turn(s). Let the world remind the player as it gets close (announcements, a glance at the board).", t.label),
+        _ => String::new(),
+    };
+    format!(
+        "<pressure>\n\
+         Patience: {people}{timer}\n\
+         Show impatience in character, never as a number. Don't end the conversation or walk anyone off yourself — the game does that when time runs out.\n\
+         </pressure>",
+        people = if people.is_empty() { "nobody here is waiting on the player".to_string() } else { people.join("; ") },
+    )
 }
 
 fn join_or(v: &[&str], empty: &str) -> String {
@@ -602,21 +1401,76 @@ fn squash(s: &str) -> String {
 /// already shows what the player said, and a character parroting it reads
 /// as a glitch.
 fn echoes(line: &str, said: &str) -> bool {
-    let (l, s) = (squash(line), squash(said));
-    let (short, long) = if l.chars().count() <= s.chars().count() { (&l, &s) } else { (&s, &l) };
-    !short.is_empty() && long.contains(short.as_str()) && short.chars().count() * 5 >= long.chars().count() * 4
+    let (l, s): (Vec<char>, Vec<char>) = (squash(line).chars().collect(), squash(said).chars().collect());
+    if l.is_empty() || s.is_empty() {
+        return false;
+    }
+    let (short, long) = if l.len() <= s.len() { (&l, &s) } else { (&s, &l) };
+    // Too different in length to be the same sentence (e.g. one word echoed back).
+    if short.len() * 5 < long.len() * 4 {
+        return false;
+    }
+    // A cut-off copy of the player's sentence.
+    let (short_s, long_s): (String, String) = (short.iter().collect(), long.iter().collect());
+    if long_s.contains(&short_s) {
+        return true;
+    }
+    // Longest common subsequence: tolerates a dropped particle or "o"/"wo".
+    let mut row = vec![0usize; short.len() + 1];
+    for &c in long.iter() {
+        let mut prev = 0;
+        for j in 1..=short.len() {
+            let keep = row[j];
+            row[j] = if short[j - 1] == c { prev + 1 } else { row[j].max(row[j - 1]) };
+            prev = keep;
+        }
+    }
+    row[short.len()] * 10 >= long.len() * 9
 }
 
 fn accept_beats(story: &Story, state: &mut RunState, raw: Vec<Beat>, said: &str) -> Vec<Beat> {
     let place = state.place(story).clone();
     let mut beats = Vec::new();
+    // Entrances from beats that turn out empty ride on the next one.
+    let mut entering: Vec<String> = Vec::new();
     for mut b in raw.into_iter().take(MAX_BEATS_PER_TURN) {
-        if !said.is_empty() && b.speaker != NARRATOR && echoes(&b.jp, said) {
+        b.enter.retain(|c| place.cast.contains(c) && state.patience.get(c).is_none_or(|left| *left > 0));
+        entering.append(&mut b.enter);
+        if !said.is_empty() && !is_inner(&b.speaker) && (echoes(&b.jp, said) || echoes(&b.romaji, said)) {
             continue;
         }
-        // Scene changes happen by moving between places, not mid-scene.
-        b.scene.clear();
-        let speaker_ok = b.speaker == NARRATOR || b.speaker == EXTRA || place.cast.contains(&b.speaker);
+        // A character line with no words is really a stage direction (or the
+        // player's own line handed back): narrate it, or drop the echo.
+        if !is_inner(&b.speaker) && b.jp.trim().is_empty() {
+            if !said.is_empty() && echoes(&b.en, said) {
+                continue;
+            }
+            b.speaker = NARRATOR.into();
+            b.speaker_name.clear();
+        }
+        // Scene changes happen by moving between places, not mid-scene —
+        // except to another time of day of this place (the dorm at dawn).
+        let version = b.scene == place.scene || story.scene_versions(&place.scene).iter().any(|v| v.id == b.scene);
+        if !version {
+            b.scene.clear();
+        }
+        // A named side character spoken as an "extra" is that character.
+        if b.speaker == EXTRA
+            && let Some(m) = story.minor_by_name(&b.speaker_name)
+        {
+            b.speaker = m.id.clone();
+            b.speaker_name.clear();
+        }
+        // Any other stranger gets a passer-by's face and voice — by their
+        // name or role, or, if the director gave none, any passer-by.
+        if b.speaker == EXTRA && !place.unseen_extras {
+            let face = if b.speaker_name.trim().is_empty() { story.any_townsfolk(&b.jp) } else { story.townsfolk_for(&b.speaker_name) };
+            if let Some(id) = face {
+                b.speaker = id;
+            }
+        }
+        let minor = story.cast_member(&b.speaker).is_some_and(|c| c.minor || c.townsfolk);
+        let speaker_ok = is_inner(&b.speaker) || b.speaker == EXTRA || minor || place.cast.contains(&b.speaker);
         if !speaker_ok {
             // Keep the line but voice it as a named extra.
             b.speaker_name = story.cast_member(&b.speaker).map(|c| c.name.clone()).unwrap_or_default();
@@ -625,25 +1479,221 @@ fn accept_beats(story: &Story, state: &mut RunState, raw: Vec<Beat>, said: &str)
         if b.speaker == EXTRA && b.speaker_name.is_empty() {
             b.speaker_name = "???".into();
         }
-        if b.speaker == NARRATOR {
+        if is_inner(&b.speaker) {
             b.jp.clear();
+            b.romaji.clear();
+        }
+        // A fellow foreigner talks with the player in their own language:
+        // what they say is the sentence the director wrote as its meaning.
+        if state.in_own_language(story, &b.speaker) && !b.en.trim().is_empty() {
+            b.jp = b.en.clone();
             b.romaji.clear();
         }
         if b.jp.is_empty() && b.en.is_empty() {
             continue;
         }
+        // Nobody says the same thing twice in a scene.
+        if state.repeats(&b) {
+            continue;
+        }
+        entering.retain(|c| !state.on_stage.contains(c) && c != &b.speaker);
+        b.enter = std::mem::take(&mut entering);
+        state.note_said(&b);
         state.track_stage(&b);
         beats.push(b);
     }
     beats
 }
 
-fn take_choices(state: &mut RunState, choices: Vec<Phrase>) {
-    let choices: Vec<Phrase> = choices.into_iter().filter(|c| !c.jp.trim().is_empty()).take(3).collect();
-    if !choices.is_empty() {
-        state.choices = choices;
+/// Memories kept per person: enough for a life, small enough for the prompt.
+const MEMORIES_PER_PERSON: usize = 10;
+
+/// Records what people will remember about the player. Anyone who just
+/// talked with the player for the first time remembers where they met.
+fn remember(story: &Story, state: &mut RunState, notes: &[crate::director::Memory]) {
+    let place = state.place(story).name.clone();
+    for id in state.engaged.clone() {
+        if story.cast_member(&id).is_some_and(|c| !c.townsfolk) && !state.memories.contains_key(&id) {
+            state.memories.entry(id).or_default().push(format!("First met the player at {place}."));
+        }
+    }
+    for m in notes.iter().take(2) {
+        let known = story.cast_member(&m.character).is_some_and(|c| !c.townsfolk);
+        let note: String = m.note.trim().chars().take(160).collect();
+        if !known || note.is_empty() {
+            continue;
+        }
+        let list = state.memories.entry(m.character.clone()).or_default();
+        if !list.contains(&note) {
+            list.push(note);
+        }
+        // Keep the first meeting; let the oldest of the rest fade.
+        while list.len() > MEMORIES_PER_PERSON {
+            list.remove(1);
+        }
+    }
+}
+
+fn take_lead(state: &mut RunState, lead: &str) {
+    let lead: String = lead.trim().chars().take(140).collect();
+    if !lead.is_empty() {
+        state.lead = lead;
+    }
+}
+
+fn take_choices(story: &Story, state: &mut RunState, choices: Vec<Phrase>) {
+    // Three different moves the player could make from here. Dropped: copies
+    // of one another, a second "I'm going…", and "I'm going to X" where X
+    // isn't somewhere they can walk to from this place.
+    let mut kept: Vec<Phrase> = Vec::new();
+    let mut departing = false;
+    for c in choices.into_iter().filter(|c| !c.jp.trim().is_empty()) {
+        let both = format!("{} {}", c.jp, c.en);
+        let to = intended_exit(story, state, &both);
+        if to.is_none() && is_going(&both) && names_a_place(story, &both) {
+            continue;
+        }
+        if to.is_some() && std::mem::replace(&mut departing, true) {
+            continue;
+        }
+        if kept.iter().any(|k| echoes(&k.jp, &c.jp) || echoes(&k.en, &c.en)) {
+            continue;
+        }
+        if claims_wrong_money(&c.en, state.yen) || claims_wrong_money(&c.jp, state.yen) {
+            continue;
+        }
+        // A suggested "I'm going to …" means the conversation has sent them there.
+        if let Some(to) = to {
+            state.pointed.insert(to);
+        }
+        kept.push(c);
+        if kept.len() == 3 {
+            break;
+        }
+    }
+    // Whatever can actually be done here now (buy the ticket you can afford)
+    // is always the first option, in the game's own words.
+    if let Some(place) = story.place(&state.place) {
+        for e in place.events.iter().rev() {
+            let Some(ask) = &e.ask else { continue };
+            let known = e.price_known_by.is_empty() || state.flags.contains(&e.price_known_by);
+            if known && state.event_blocked(story, e).is_none() && !kept.iter().any(|k| echoes(&k.jp, &ask.jp)) {
+                kept.insert(0, ask.clone());
+                kept.truncate(3);
+            }
+        }
+    }
+    if !kept.is_empty() {
+        state.choices = kept;
     }
     state.choices_unlocked = false;
+}
+
+/// A line saying the player hasn't got enough money ("I'm ¥270 short").
+fn claims_short(en: &str) -> bool {
+    let low = en.to_lowercase();
+    ["short", "still need", "not enough", "don't have enough", "need the last", "need another"].iter().any(|w| low.contains(w))
+        && (low.chars().any(|c| c.is_ascii_digit()) || low.contains("enough") || low.contains("money"))
+}
+
+/// "I have 1,000 yen" when the player has ¥1,500: a reply written from an
+/// out-of-date idea of their money.
+fn claims_wrong_money(en: &str, yen: i64) -> bool {
+    let low = en.to_lowercase();
+    if !(low.contains("i have") || low.contains("i've got") || low.contains("i only have")) {
+        return false;
+    }
+    let mut amounts = Vec::new();
+    let mut digits = String::new();
+    for ch in low.chars().chain(std::iter::once(' ')) {
+        if ch.is_ascii_digit() {
+            digits.push(ch);
+        } else if ch != ',' || digits.is_empty() {
+            if let Ok(n) = digits.parse::<i64>() {
+                amounts.push(n);
+            }
+            digits.clear();
+        }
+    }
+    !amounts.is_empty() && !amounts.contains(&yen)
+}
+
+/// Exits this turn talked about — in the player's thought, the narration or
+/// what someone said — open their "Go →" even mid-scene: if the game tells
+/// the player the police box is upstairs, they can go up. And when someone
+/// here names a place whose way is only waiting on a story flag this scene
+/// can give ("someone tells the player where the guesthouse is"), being told
+/// is enough: the flag is set.
+fn note_pointed(story: &Story, state: &mut RunState, beats: &[Beat], lead: &str, said: &str) {
+    let squashed = |texts: Vec<String>| to_hiragana(&texts.join(" ").to_lowercase());
+    let all = squashed(beats.iter().map(|b| format!("{} {}", b.jp, b.en)).chain(std::iter::once(lead.to_string())).collect());
+    // Told by someone here — or the player says they're heading there, so
+    // they clearly know the way (someone told them somewhere else).
+    let told = squashed(
+        beats
+            .iter()
+            .filter(|b| !is_inner(&b.speaker) && b.speaker != PLAYER)
+            .map(|b| format!("{} {}", b.jp, b.en))
+            .chain(is_going(said).then(|| said.to_string()))
+            .collect(),
+    );
+    for p in &story.places {
+        if place_names(p).iter().any(|n| told.contains(n.as_str())) {
+            state.heard_of.insert(p.id.clone());
+        }
+    }
+    let place = state.place(story).clone();
+    for e in &place.exits {
+        if story.place(&e.to).is_some_and(|to| place_names(to).iter().any(|n| all.contains(n.as_str()))) {
+            state.pointed.insert(e.to.clone());
+        }
+    }
+    state.open_heard_ways(story);
+}
+
+/// Every name a place goes by, in the form `squash`-free matching uses.
+fn place_names(p: &Place) -> Vec<String> {
+    std::iter::once(p.name.to_lowercase())
+        .chain(std::iter::once(p.name_jp.clone()))
+        .chain(p.aliases.iter().map(|a| to_hiragana(&a.to_lowercase())))
+        .filter(|n| n.chars().count() >= 2)
+        .collect()
+}
+
+/// Learns which places characters have told the player about from earlier
+/// lines (for saves from before `heard_of` was kept), then opens those ways.
+pub fn hear_from(story: &Story, state: &mut RunState, lines: &[Beat]) {
+    let told = to_hiragana(
+        &lines
+            .iter()
+            .filter(|b| !is_inner(&b.speaker) && b.speaker != PLAYER)
+            .map(|b| format!("{} {}", b.jp, b.en))
+            .collect::<Vec<_>>()
+            .join(" ")
+            .to_lowercase(),
+    );
+    for p in &story.places {
+        if place_names(p).iter().any(|n| told.contains(n.as_str())) {
+            state.heard_of.insert(p.id.clone());
+        }
+    }
+    state.open_heard_ways(story);
+}
+
+fn is_going(text: &str) -> bool {
+    let said = to_hiragana(&text.to_lowercase());
+    GOING.iter().any(|g| said.contains(g)) || ["行きます", "行く", "向かいます", "帰ります", "戻ります"].iter().any(|g| text.contains(g))
+}
+
+/// Does this mention any place in the story by name?
+fn names_a_place(story: &Story, text: &str) -> bool {
+    let said = to_hiragana(&text.to_lowercase());
+    story.places.iter().any(|p| {
+        std::iter::once(p.name.to_lowercase())
+            .chain(std::iter::once(p.name_jp.clone()))
+            .chain(p.aliases.iter().map(|a| to_hiragana(&a.to_lowercase())))
+            .any(|n| n.chars().count() >= 2 && said.contains(n.as_str()))
+    })
 }
 
 /// Words that mean "I'm going (there)", in Japanese and English.
@@ -665,9 +1715,10 @@ pub fn intended_exit(story: &Story, state: &RunState, input: &str) -> Option<Str
     // Each open exit scores by its longest name found in what was said, so
     // "Mr. Russo's room" means Russo's place, not the dorm "room".
     let mut hits: Vec<(usize, &str)> = state
-        .exits(story)
-        .into_iter()
-        .filter(|e| e.open)
+        .place(story)
+        .exits
+        .iter()
+        .filter(|e| state.can_walk(story, &e.to))
         .filter_map(|e| {
             let p = story.place(&e.to)?;
             let best = std::iter::once(p.name.to_lowercase())
@@ -689,7 +1740,7 @@ pub fn intended_exit(story: &Story, state: &RunState, input: &str) -> Option<Str
 }
 
 /// Validates a director turn and applies it to the run.
-#[allow(dead_code)]
+#[cfg(test)]
 pub fn apply_turn(story: &Story, state: &mut RunState, turn: DirectorTurn, via: InputVia, input: &str) -> TurnOutcome {
     apply_turn_with_pron(story, state, turn, via, input, None)
 }
@@ -704,6 +1755,7 @@ pub fn apply_turn_with_pron(
     pron_score: Option<u32>,
 ) -> TurnOutcome {
     let place = state.place(story).clone();
+    let steps_before = state.steps_done.clone();
     state.place_turns += 1;
     state.lesson_turns += 1;
     if via != InputVia::Choice {
@@ -750,26 +1802,23 @@ pub fn apply_turn_with_pron(
         beats.push(Beat::narration(if understood { &story.course.nod } else { &story.course.pause }));
     }
 
-    // Money: clamp to this place's budget and never below zero.
-    let delta = turn.state.yen_delta;
-    if delta > 0 {
-        let gain = delta.min((place.max_yen_gain - state.place_yen_gained).max(0));
-        state.place_yen_gained += gain;
-        state.yen += gain;
-    } else if delta < 0 {
-        let spend = (-delta).min((place.max_yen_spend - state.place_yen_spent).max(0)).min(state.yen);
-        state.place_yen_spent += spend;
-        state.yen -= spend;
-    }
-    for item in turn.state.items_gained {
-        if place.items_allowed.contains(&item) && !state.items.contains(&item) {
-            state.items.push(item);
+    // The world changes only through this place's declared events, each
+    // allowed (or not) by the rules and applied by the game.
+    // Knowledge that comes from hearing it ("¥1,270") happens when someone
+    // actually says it, whether or not the director remembered the event.
+    let mut happened = turn.flags_set.clone();
+    for e in place.events.iter().filter(|e| !e.heard.is_empty()) {
+        let said = beats
+            .iter()
+            .filter(|b| !is_inner(&b.speaker) && b.speaker != PLAYER)
+            .any(|b| e.heard.iter().any(|h| b.jp.replace(',', "").contains(&h.replace(',', "")) || b.en.replace(',', "").contains(&h.replace(',', ""))));
+        if said && !happened.contains(&e.flag) {
+            happened.push(e.flag.clone());
         }
     }
-    for item in turn.state.items_lost {
-        if place.items_allowed.contains(&item) {
-            state.items.retain(|i| i != &item);
-        }
+    let short = state.run_events(story, &place, &happened, &mut beats);
+    if short {
+        beats.push(Beat::narration(&story.course.short_of_money));
     }
     for t in turn.state.trust {
         if place.cast.contains(&t.character) || state.on_stage.contains(&t.character) {
@@ -777,42 +1826,21 @@ pub fn apply_turn_with_pron(
             *v = (*v + t.delta.clamp(-TRUST_STEP, TRUST_STEP)).clamp(-TRUST_RANGE, TRUST_RANGE);
         }
     }
+    let goal_flags_set = !place.goal_flags.is_empty() && place.goal_flags.iter().all(|gf| state.flags.contains(gf));
 
-    // Story events: only this place's, only once.
-    let goal_flags_set = !place.goal_flags.is_empty() && place.goal_flags.iter().all(|gf| turn.flags_set.contains(gf));
-    for f in turn.flags_set {
-        if place.events.iter().any(|e| e.flag == f) || place.goal_flags.contains(&f) {
-            state.flags.insert(f);
-        }
-    }
-
-    take_choices(state, turn.choices);
+    take_choices(story, state, turn.choices);
+    note_pointed(story, state, &beats, &turn.lead, input);
+    take_lead(state, &turn.lead);
+    remember(story, state, &turn.remember);
     let new_phrases: Vec<Phrase> = turn.new_phrases.into_iter().filter(|p| !p.jp.trim().is_empty()).take(2).collect();
 
-    // The place's goal: once, after the player has actually engaged.
-    // Also auto-completes if the director triggered all goal_flags or granted the full scene reward_yen.
-    let reward_granted = place.reward_yen > 0 && state.place_yen_gained >= place.reward_yen;
+    // The place's goal: once, after the player has actually engaged. Where
+    // the goal is made of facts, the game decides; only goals described in
+    // words alone are the director's call.
     let mut goal_complete = None;
-    if (turn.objective_complete || goal_flags_set || reward_granted) && state.place_turns >= 1 && !state.goals_done.contains(&place.id) {
-        state.goals_done.insert(place.id.clone());
-        for f in &place.goal_flags {
-            state.flags.insert(f.clone());
-        }
-        let owed = (place.reward_yen - state.place_yen_gained).max(0);
-        state.yen += owed;
-        state.place_yen_gained += owed;
-        for item in &place.reward_items {
-            if !state.items.contains(item) {
-                state.items.push(item.clone());
-            }
-        }
-        state.battery = (state.battery + place.recharge).min(100);
-        let journal = if turn.journal.trim().is_empty() {
-            format!("{} — I did it, one word at a time.", place.name)
-        } else {
-            turn.journal
-        };
-        goal_complete = Some(GoalComplete { place: place.id.clone(), journal });
+    let met = if place.goal_flags.is_empty() { turn.objective_complete } else { goal_flags_set };
+    if met && state.place_turns >= 1 && !state.goals_done.contains(&place.id) {
+        goal_complete = Some(finish_goal(story, state, &place, &turn.journal, &turn.next_steps, &mut beats));
     }
 
     // Once the current place's goal is achieved, ensure at least one suggested choice
@@ -822,34 +1850,37 @@ pub fn apply_turn_with_pron(
             .choices
             .iter()
             .any(|c| intended_exit(story, state, &c.jp).is_some() || intended_exit(story, state, &c.en).is_some());
-        #[allow(clippy::collapsible_if)]
-        if !has_exit_choice {
-            if let Some(next_place) = state.exits(story).into_iter().find(|e| e.open).and_then(|e| story.place(&e.to)) {
-                let exit_phrase = if story.course.target_lang == "ja" {
-                    let (jp, romaji) = if next_place.id == "airport_station" {
-                        ("駅に行きます。ありがとうございました。".to_string(), "Eki ni ikimasu. Arigatou gozaimashita.".to_string())
-                    } else if next_place.id == "koban" {
-                        ("交番に行きます。ありがとうございます。".to_string(), "Kouban ni ikimasu. Arigatou gozaimasu.".to_string())
-                    } else {
-                        (format!("{}に行きます。ありがとうございました。", next_place.name_jp), String::new())
-                    };
-                    Phrase {
-                        jp,
-                        romaji,
-                        en: format!("I'll head to {}. Thank you!", next_place.name),
-                    }
+        if !has_exit_choice
+            && let Some(next_place) = {
+                // Somewhere new before somewhere already seen.
+                let open: Vec<ExitView> = state.exits(story).into_iter().filter(|e| e.open).collect();
+                open.iter().find(|e| !e.visited).or(open.first()).and_then(|e| story.place(&e.to))
+            }
+        {
+            let exit_phrase = if story.course.target_lang == "ja" {
+                let (jp, romaji) = if next_place.id == "airport_station" {
+                    ("駅に行きます。ありがとうございました。".to_string(), "Eki ni ikimasu. Arigatou gozaimashita.".to_string())
+                } else if next_place.id == "koban" {
+                    ("交番に行きます。ありがとうございます。".to_string(), "Kouban ni ikimasu. Arigatou gozaimasu.".to_string())
                 } else {
-                    Phrase {
-                        jp: format!("I'm going to {} now. Thank you!", next_place.name),
-                        romaji: String::new(),
-                        en: format!("{}へ行きます。ありがとう！", next_place.name_jp),
-                    }
+                    (format!("{}に行きます。ありがとうございました。", next_place.name_jp), String::new())
                 };
-                if state.choices.len() >= 3 {
-                    state.choices[2] = exit_phrase;
-                } else {
-                    state.choices.push(exit_phrase);
+                Phrase {
+                    jp,
+                    romaji,
+                    en: format!("I'll head to {}. Thank you!", next_place.name),
                 }
+            } else {
+                Phrase {
+                    jp: format!("I'm going to {} now. Thank you!", next_place.name),
+                    romaji: String::new(),
+                    en: format!("{}へ行きます。ありがとう！", next_place.name_jp),
+                }
+            };
+            if state.choices.len() >= 3 {
+                state.choices[2] = exit_phrase;
+            } else {
+                state.choices.push(exit_phrase);
             }
         }
     }
@@ -875,9 +1906,30 @@ pub fn apply_turn_with_pron(
         state.lesson_grammar.clear();
     }
 
-    let go_to = (turn.go_to != "stay" && turn.go_to != place.id && state.can_go(story, &turn.go_to)).then_some(turn.go_to);
+    let mut go_to = (turn.go_to != "stay" && turn.go_to != place.id && state.can_walk(story, &turn.go_to)).then_some(turn.go_to);
 
+    if go_to.is_none() {
+        state.think(story, &mut beats, &turn.lead);
+    }
+
+    // Pressure: people's patience and the scene's clock.
+    let (departed, scene_over, forced) = apply_pressure(story, state, &place, turn.coach.verdict, &mut beats);
+    if go_to.is_none() {
+        go_to = forced;
+    }
+
+    let steps_done = story
+        .quests
+        .iter()
+        .flat_map(|q| q.steps.iter().filter(|st| {
+            let key = RunState::step_key(q, st);
+            state.steps_done.contains(&key) && !steps_before.contains(&key)
+        }).map(|st| st.title.clone()))
+        .collect();
     TurnOutcome {
+        steps_done,
+        departed,
+        scene_over,
         candos_done,
         skill_unlocked,
         coach: CoachView {
@@ -896,11 +1948,117 @@ pub fn apply_turn_with_pron(
     }
 }
 
+/// Patience drains a turn at a time, faster when the player isn't understood
+/// and slower when it goes well; trust buys a little grace. A character who
+/// runs out leaves; a scene whose people have all left, or whose timer fires,
+/// has run its course. Returns (departed, scene_over, forced move).
+fn apply_pressure(
+    story: &Story,
+    state: &mut RunState,
+    place: &Place,
+    verdict: crate::story::Verdict,
+    beats: &mut Vec<Beat>,
+) -> (Vec<String>, Option<String>, Option<String>) {
+    use crate::story::Verdict;
+    if state.scene_over.is_some() {
+        return (Vec::new(), None, None);
+    }
+    // Beginners get twice the time: a good line costs nothing, a miss costs one.
+    let cost = match (verdict, state.difficulty) {
+        (Verdict::Great, _) => 0,
+        (Verdict::Good, Difficulty::Beginner) => 0,
+        (Verdict::NotUnderstood | Verdict::English, Difficulty::Beginner) => 1,
+        (Verdict::Good | Verdict::Understood | Verdict::none, _) => 1,
+        (Verdict::NotUnderstood | Verdict::English, _) => 2,
+    };
+    let mut departed = Vec::new();
+    for (id, left) in state.patience.iter_mut() {
+        if *left <= 0 || !state.engaged.contains(id) {
+            continue;
+        }
+        // Someone who trusts you lets every third slip go.
+        let grace = state.trust.get(id).copied().unwrap_or(0) >= 3 && state.place_turns.is_multiple_of(3);
+        *left -= if grace { 0 } else { cost };
+        if *left <= 0 {
+            departed.push(id.clone());
+        }
+    }
+    for id in &departed {
+        state.on_stage.retain(|c| c != id);
+        if &state.talking_to == id {
+            state.talking_to.clear();
+        }
+        if let Some(c) = story.cast_member(id) {
+            let line = if c.leaves.is_empty() { story.course.leaves.replace("{name}", &c.name) } else { c.leaves.clone() };
+            beats.push(Beat::narration(&line));
+        }
+    }
+
+    let mut scene_over = None;
+    let mut forced = None;
+    if let (Some(left), Some(timer)) = (state.timer_left.as_mut(), place.timer.as_ref()) {
+        *left = left.saturating_sub(1);
+        if *left == 0 {
+            beats.push(Beat::narration(&timer.expires));
+            state.flags.extend(timer.flags.iter().cloned());
+            if !timer.go_to.is_empty() {
+                forced = Some(timer.go_to.clone());
+            }
+            scene_over = Some("timer".to_string());
+        }
+    }
+    if scene_over.is_none() && !state.patience.is_empty() && state.patience.values().all(|v| *v <= 0) {
+        scene_over = Some("patience".to_string());
+    }
+    state.scene_over = scene_over.clone();
+    (departed, scene_over, forced)
+}
+
 /// Applies an improvised arrival: only beats and choices count.
 pub fn apply_arrival(story: &Story, state: &mut RunState, turn: DirectorTurn) -> Vec<Beat> {
-    let beats = accept_beats(story, state, turn.beats, "");
-    take_choices(state, turn.choices);
+    let mut beats = accept_beats(story, state, turn.beats, "");
+    take_lead(state, &turn.lead);
+    remember(story, state, &turn.remember);
+    take_choices(story, state, turn.choices);
+    note_pointed(story, state, &beats, &turn.lead, "");
+    state.stage_everyone(story, &mut beats);
+    state.think(story, &mut beats, &turn.lead);
     beats
+}
+
+/// What happens when the player approaches someone or looks around: no line
+/// to judge and no patience spent, but the scene's clock still runs.
+pub struct ActOutcome {
+    pub beats: Vec<Beat>,
+    pub departed: Vec<String>,
+    pub scene_over: Option<String>,
+    pub go_to: Option<String>,
+}
+
+pub fn apply_act(story: &Story, state: &mut RunState, turn: DirectorTurn, approached: Option<&str>) -> ActOutcome {
+    let place = state.place(story).clone();
+    if let Some(who) = approached {
+        state.engaged.insert(who.to_string());
+        state.talking_to = who.to_string();
+    }
+    let mut beats = accept_beats(story, state, turn.beats, "");
+    take_lead(state, &turn.lead);
+    remember(story, state, &turn.remember);
+    take_choices(story, state, turn.choices);
+    note_pointed(story, state, &beats, &turn.lead, "");
+    state.think(story, &mut beats, &turn.lead);
+    // Whoever you walked up to is on stage, whether or not the director said so.
+    if let Some(who) = approached
+        && !state.on_stage.iter().any(|c| c == who)
+    {
+        match beats.first_mut() {
+            Some(first) => first.enter.push(who.to_string()),
+            None => beats.push(Beat { enter: vec![who.to_string()], ..Beat::narration(&story.course.nod) }),
+        }
+        state.on_stage.push(who.to_string());
+    }
+    let (departed, scene_over, go_to) = apply_pressure(story, state, &place, crate::story::Verdict::Great, &mut beats);
+    ActOutcome { beats, departed, scene_over, go_to }
 }
 
 /// World triggers whose conditions now hold: sets their flags and returns
@@ -913,9 +2071,12 @@ pub fn run_triggers(story: &Story, state: &mut RunState) -> Vec<Beat> {
             && t.requires_flags.iter().all(|f| state.flags.contains(f))
         {
             state.flags.insert(t.flag.clone());
+            let place = state.place(story).name.clone();
+            state.log(&place, t.narration.clone());
             out.push(Beat::narration(&t.narration));
         }
     }
+    state.update_steps(story);
     out
 }
 
@@ -1097,153 +2258,15 @@ pub fn check_candos(story: &Story, state: &mut RunState, input: &str, understood
     done
 }
 
-struct SkillSpec {
-    node_id: &'static str,
-    branch: &'static str,
-    title: &'static str,
-    title_jp: &'static str,
-    icon: &'static str,
-    grammar_ids: &'static [&'static str],
-    cando_ids: &'static [&'static str],
+/// The skill-tree node for a lesson. Each lesson of the course is a node, so
+/// the tree follows whichever curriculum the course teaches.
+pub fn lesson_node_id(index: usize) -> String {
+    format!("lesson_{index}")
 }
 
-const SKILL_SPECS: &[SkillSpec] = &[
-    // Branch 1: Social & Connection (🤝)
-    SkillSpec {
-        node_id: "social_greetings",
-        branch: "social",
-        title: "Greetings & Well-being",
-        title_jp: "あいさつ",
-        icon: "🌿",
-        grammar_ids: &["g0_daijoubu", "g0_sumimasen", "g0_hai_iie", "g0_wakarimasen", "g0_arigatou"],
-        cando_ids: &["l0_okay", "l0_sorry", "l0_thanks", "l0_dont_understand"],
-    },
-    SkillSpec {
-        node_id: "social_intro",
-        branch: "social",
-        title: "Introductions & Identity",
-        title_jp: "自己紹介",
-        icon: "🪪",
-        grammar_ids: &["g1_x_wa_y_desu", "g1_ka_question", "g1_no_modifier", "g1_nationality"],
-        cando_ids: &["l1_name", "l1_from", "l1_ask"],
-    },
-    SkillSpec {
-        node_id: "social_likes",
-        branch: "social",
-        title: "Small Talk & Likes",
-        title_jp: "すきです",
-        icon: "💬",
-        grammar_ids: &["g5_adjectives", "g5_suki", "g5_mashou", "g8_no_ga_suki"],
-        cando_ids: &["c5_describe", "c5_like", "c5_lets", "c5_ask_opinion", "c8_like_doing"],
-    },
-    SkillSpec {
-        node_id: "social_casual",
-        branch: "social",
-        title: "Casual Plain Form",
-        title_jp: "タメ口",
-        icon: "🍻",
-        grammar_ids: &["g8_short_present", "g8_to_omoimasu", "g8_to_itte_imashita", "g9_short_past", "g9_kara_reason"],
-        cando_ids: &["c8_think", "c8_said", "c9_past_opinion", "c9_because"],
-    },
-    // Branch 2: Survival & Navigation (🧭)
-    SkillSpec {
-        node_id: "survival_existence",
-        branch: "survival",
-        title: "Existence & Missing Items",
-        title_jp: "あります/います",
-        icon: "🔍",
-        grammar_ids: &["g4_arimasu_imasu"],
-        cando_ids: &["l2_lost", "l4_is_there"],
-    },
-    SkillSpec {
-        node_id: "survival_locations",
-        branch: "survival",
-        title: "Locations & Spatial Words",
-        title_jp: "うえ/した/となり",
-        icon: "📍",
-        grammar_ids: &["g2_doko", "g4_location_words"],
-        cando_ids: &["l2_where", "l4_location"],
-    },
-    SkillSpec {
-        node_id: "survival_transit",
-        branch: "survival",
-        title: "Directions & Transit",
-        title_jp: "駅に行きます",
-        icon: "🚆",
-        grammar_ids: &["g3_ni_e_destination", "g3_de_means_place"],
-        cando_ids: &["l3_going"],
-    },
-    // Branch 3: Commerce & Dining (🛒)
-    SkillSpec {
-        node_id: "commerce_demo",
-        branch: "commerce",
-        title: "Demonstratives & Items",
-        title_jp: "これ/それ/あれ",
-        icon: "👉",
-        grammar_ids: &["g2_kore_sore_are", "g2_dare_no", "g2_ja_arimasen", "g2_mo"],
-        cando_ids: &["l2_not_mine"],
-    },
-    SkillSpec {
-        node_id: "commerce_prices",
-        branch: "commerce",
-        title: "Prices & Comparisons",
-        title_jp: "いくら",
-        icon: "💴",
-        grammar_ids: &["g3_ikura", "g10_yori", "g10_ichiban"],
-        cando_ids: &["l3_price", "c10_compare", "c10_most"],
-    },
-    SkillSpec {
-        node_id: "commerce_requests",
-        branch: "commerce",
-        title: "Ordering & Requests",
-        title_jp: "〜をください / 〜てください",
-        icon: "🍱",
-        grammar_ids: &["g3_o_object", "g6_te_kudasai", "g6_te_mo_ii", "g6_te_wa_ikemasen", "g8_naide_kudasai"],
-        cando_ids: &["l3_request", "c6_please_do", "c6_may_i", "c6_rule", "c8_dont"],
-    },
-    // Branch 4: Daily Life & Desires (⏱️)
-    SkillSpec {
-        node_id: "daily_routine",
-        branch: "daily",
-        title: "Time & Daily Routine",
-        title_jp: "時/日/〜ます",
-        icon: "🕰️",
-        grammar_ids: &[
-            "g3_masu_verbs",
-            "g4_mashita_past",
-            "g4_deshita_past",
-            "g6_te_sequence",
-            "g7_te_iru_wearing",
-            "g7_describing_people",
-            "g7_te_iru_ongoing",
-            "g7_counting_people",
-            "g9_mada_te_imasen",
-            "g9_verb_modify",
-        ],
-        cando_ids: &["l4_past", "c6_then", "c7_wearing", "c7_looks", "c7_doing", "c7_family", "c9_not_yet", "c9_verb_noun"],
-    },
-    SkillSpec {
-        node_id: "daily_desires",
-        branch: "daily",
-        title: "Desires & Experiences",
-        title_jp: "〜たいです",
-        icon: "✨",
-        grammar_ids: &["g11_tai", "g11_tari", "g11_koto_ga_aru", "g11_ya"],
-        cando_ids: &["c11_want", "c11_tari", "c11_ever"],
-    },
-    SkillSpec {
-        node_id: "daily_plans",
-        branch: "daily",
-        title: "Plans & Intentions",
-        title_jp: "〜つもりです",
-        icon: "🎯",
-        grammar_ids: &["g10_tsumori", "g10_naru", "g12_n_desu", "g12_sugiru", "g12_hou_ga_ii", "g12_node", "g12_nakereba"],
-        cando_ids: &["c10_plan", "c10_become", "c12_explain", "c12_too_much", "c12_advice", "c12_probably"],
-    },
-];
-
-/// Passively checks the player's spoken line against ALL curriculum lessons and grammar
-/// to unlock or level up nodes on the Genki RPG Skill Tree, regardless of current lesson_idx.
+/// Passively checks the player's spoken line against every lesson's grammar
+/// and can-dos, awakening or levelling up that lesson's node on the skill
+/// tree regardless of the current lesson.
 #[allow(clippy::too_many_arguments)]
 pub fn update_skill_tree(
     story: &Story,
@@ -1281,14 +2304,15 @@ pub fn update_skill_tree(
     let mut newly_unlocked: Option<UnlockedSkill> = None;
     let mut leveled_up: Option<UnlockedSkill> = None;
 
-    for spec in SKILL_SPECS {
-        let hit_grammar = grammar_used.iter().any(|g| spec.grammar_ids.contains(&g.as_str()));
-        let hit_cando = matched_candos.iter().any(|c| spec.cando_ids.contains(&c.as_str()));
+    for lesson in &story.lessons {
+        let hit_grammar = grammar_used.iter().any(|g| lesson.grammar.iter().any(|lg| &lg.id == g));
+        let hit_cando = matched_candos.iter().any(|c| lesson.candos.iter().any(|lc| &lc.id == c));
         if !hit_grammar && !hit_cando {
             continue;
         }
+        let node_id = lesson_node_id(lesson.index);
 
-        if let Some(existing) = state.unlocked_skills.get_mut(spec.node_id) {
+        if let Some(existing) = state.unlocked_skills.get_mut(&node_id) {
             existing.uses += 1;
             existing.segments_used.insert(state.segment);
             let new_level = (existing.segments_used.len() as u8).clamp(1, 3);
@@ -1318,11 +2342,11 @@ pub fn update_skill_tree(
             let mut segments_used = BTreeSet::new();
             segments_used.insert(state.segment);
             let skill = UnlockedSkill {
-                node_id: spec.node_id.to_string(),
-                branch: spec.branch.to_string(),
-                title: spec.title.to_string(),
-                title_jp: spec.title_jp.to_string(),
-                icon: spec.icon.to_string(),
+                node_id: node_id.clone(),
+                branch: "lesson".into(),
+                title: lesson.title.clone(),
+                title_jp: lesson.title_jp.clone(),
+                icon: String::new(),
                 sentence: input.to_string(),
                 pron_score,
                 verdict: verdict.to_string(),
@@ -1333,7 +2357,7 @@ pub fn update_skill_tree(
                 uses: 1,
                 segments_used,
             };
-            state.unlocked_skills.insert(spec.node_id.to_string(), skill.clone());
+            state.unlocked_skills.insert(node_id, skill.clone());
             if newly_unlocked.is_none() {
                 newly_unlocked = Some(skill);
             }
@@ -1375,6 +2399,13 @@ mod tests {
     use crate::director::{Coach, StateChange, TrustChange};
     use crate::story::Verdict;
 
+    /// Enters a place with its goal already done, for tests about where the
+    /// player can go rather than about finishing the scene.
+    fn roam(story: &Story, s: &mut RunState, id: &str) {
+        s.enter_place(story, id);
+        s.goals_done.insert(id.into());
+    }
+
     fn story() -> Story {
         Story::load(std::path::Path::new("content/courses/ja/story.toml")).expect("story.toml is valid")
     }
@@ -1391,12 +2422,15 @@ mod tests {
             grammar_used: grammar.iter().map(|s| s.to_string()).collect(),
             beats: vec![Beat { jp: "はい".into(), ..Beat::player("") }.with_speaker("kenji")],
             choices: vec![],
-            state: StateChange { yen_delta: 0, items_gained: vec![], items_lost: vec![], trust: vec![] },
+            state: StateChange { trust: vec![] },
             new_phrases: vec![],
             objective_complete: complete,
             go_to: go_to.into(),
             flags_set: vec![],
             journal: String::new(),
+            lead: String::new(),
+            remember: vec![],
+            next_steps: vec![],
         }
     }
 
@@ -1439,7 +2473,7 @@ mod tests {
         assert!(out.go_to.is_none());
         // An exit, but the job interview waits for Genki 6.
         s.flags.insert("job_lead".into());
-        s.enter_place(&story, "asakusa_street");
+        roam(&story, &mut s, "asakusa_street");
         let out = apply_turn(&story, &mut s, turn(false, &[], "izakaya"), InputVia::Voice, "");
         assert!(out.go_to.is_none());
         let izakaya = s.exits(&story).into_iter().find(|e| e.to == "izakaya").unwrap();
@@ -1451,16 +2485,26 @@ mod tests {
     fn where_people_send_you_on_the_main_route_is_always_open() {
         let story = story();
         let (mut s, _) = RunState::new(&story, "Ren".into());
-        s.enter_place(&story, "koban");
+        roam(&story, &mut s, "koban");
         assert!(s.can_go(&story, "airport_station"), "Officer Sato points to the station");
         let out = apply_turn(&story, &mut s, turn(false, &[], "airport_station"), InputVia::Voice, "");
         assert_eq!(out.go_to.as_deref(), Some("airport_station"));
-        // Getting a ticket as an on-screen event opens the gates.
-        s.enter_place(&story, "airport_station");
-        let mut t = turn(false, &[], "stay");
-        t.flags_set = vec!["has_ticket".into()];
-        apply_turn(&story, &mut s, t, InputVia::Voice, "");
+        // Tickets are sold at the window, and only for the full fare.
+        roam(&story, &mut s, "ticket_window");
+        let buy = || {
+            let mut t = turn(false, &[], "stay");
+            t.flags_set = vec!["has_ticket".into()];
+            t
+        };
+        s.yen = 1000;
+        let short = apply_turn(&story, &mut s, buy(), InputVia::Voice, "");
+        assert!(!s.can_go(&story, "train_to_ueno"), "¥1,000 doesn't buy a ¥1,270 ticket");
+        assert_eq!(s.yen, 1000);
+        assert!(short.beats.iter().any(|b| b.en == story.course.short_of_money));
+        s.yen = 1300;
+        apply_turn(&story, &mut s, buy(), InputVia::Voice, "");
         assert!(s.can_go(&story, "train_to_ueno"));
+        assert_eq!(s.yen, 30);
     }
 
     #[test]
@@ -1470,13 +2514,537 @@ mod tests {
         // Repeating one word back to check it is natural.
         assert!(!echoes("Bag?", "My bag is gone"));
         assert!(!echoes("かばん？", "かばんがありません"));
+        // Romaji typed, kana handed back with a particle added.
+        assert!(echoes("Hai! Osara o araimasu. Ganbarimasu.", "hai! sara o araimasu. ganbarimasu"));
+        assert!(!echoes("Hai, osara o aratte kudasai.", "hai! sara o araimasu. ganbarimasu"));
+    }
+
+    #[test]
+    fn wordless_character_lines_become_narration() {
+        let story = story();
+        let (mut s, _) = RunState::new(&story, "Ren".into());
+        let said = "I'm okay, my bag isn't here";
+        let beats = vec![
+            Beat { en: "I'm okay... my bag isn't here.".into(), ..Beat::player("") }.with_speaker("kenji"),
+            Beat { en: "Kenji points toward the police box.".into(), ..Beat::player("") }.with_speaker("kenji"),
+        ];
+        let out = accept_beats(&story, &mut s, beats, said);
+        assert_eq!(out.len(), 1);
+        assert_eq!(out[0].speaker, NARRATOR);
+    }
+
+    #[test]
+    fn the_skill_tree_follows_each_courses_lessons() {
+        for (course, said, lesson) in [("ja", "かえりたいです", 11), ("en", "I want to go home", 11)] {
+            let story = Story::load(std::path::Path::new(&format!("content/courses/{course}/story.toml"))).unwrap();
+            let (mut s, _) = RunState::new(&story, "Ren".into());
+            s.goals_done.insert(s.place.clone());
+            assert!(update_skill_tree(&story, &mut s, said, &[], &[], true, "good", None).is_some(), "{course}");
+            assert!(s.unlocked_skills.contains_key(&lesson_node_id(lesson)), "{course}");
+            // Speaking a later lesson's grammar opens exits locked behind that lesson.
+            let locked = Exit { to: "x".into(), label: String::new(), requires_flags: vec![], min_lesson: lesson, open_in_scene: false };
+            assert!(s.exit_locked_reason(&story, &locked).is_none(), "{course}");
+            let other = Exit { min_lesson: lesson - 1, ..locked };
+            assert!(s.exit_locked_reason(&story, &other).is_some(), "{course}");
+        }
+    }
+
+    #[test]
+    fn patience_runs_out_and_people_leave() {
+        let story = story();
+        let (mut s, _) = RunState::new(&story, "Ren".into());
+        s.enter_place(&story, "airport_station");
+        s.engaged.insert("hiroshi".into()); // the player walked up to him
+        s.difficulty = Difficulty::Intermediate;
+        let start = s.patience["hiroshi"];
+        // Not being understood costs double.
+        let mut t = turn(false, &[], "stay");
+        t.coach.verdict = Verdict::NotUnderstood;
+        apply_turn(&story, &mut s, t, InputVia::Voice, "");
+        assert_eq!(s.patience["hiroshi"], start - 2);
+        let mut out = None;
+        for _ in 0..start {
+            let o = apply_turn(&story, &mut s, turn(false, &[], "stay"), InputVia::Voice, "");
+            if !o.departed.is_empty() {
+                out = Some(o);
+                break;
+            }
+        }
+        let out = out.expect("hiroshi runs out of patience");
+        assert_eq!(out.departed, vec!["hiroshi".to_string()]);
+        assert_eq!(out.scene_over.as_deref(), Some("patience"));
+        assert!(!s.on_stage.contains(&"hiroshi".to_string()));
+        // Once over, nothing more drains or ends.
+        let again = apply_turn(&story, &mut s, turn(false, &[], "stay"), InputVia::Voice, "");
+        assert!(again.departed.is_empty() && again.scene_over.is_none());
+    }
+
+    #[test]
+    fn only_people_you_talk_to_lose_patience() {
+        let story = story();
+        let (mut s, _) = RunState::new(&story, "Ren".into());
+        // A return visit: no scripted intro where Gen-san speaks first.
+        s.enter_place(&story, "ueno_park");
+        s.enter_place(&story, "ueno_park");
+        s.difficulty = Difficulty::Intermediate;
+        // Gen-san lives here: he's in view, but not waiting on the player.
+        assert_eq!(s.present(&story), vec!["gensan".to_string()]);
+        s.on_stage.clear();
+        let mut arrival = turn(false, &[], "stay");
+        arrival.beats = vec![Beat { speaker: THOUGHT.into(), jp: "え".into(), ..Beat::narration("A park. Someone is packing up a guitar.") }];
+        let beats = apply_arrival(&story, &mut s, arrival);
+        assert!(beats[0].jp.is_empty(), "thoughts carry no target-language text");
+        assert_eq!(beats[0].enter, vec!["gensan".to_string()]);
+        assert!(s.on_stage.contains(&"gensan".to_string()));
+        let start = s.patience["gensan"];
+        let mut t = turn(false, &[], "stay");
+        t.beats = vec![Beat::narration("You watch the pond.")];
+        t.coach.verdict = Verdict::NotUnderstood;
+        apply_turn(&story, &mut s, t, InputVia::Voice, "");
+        assert_eq!(s.patience["gensan"], start, "not approached, not waiting");
+
+        // Walking up to him starts the conversation, and only talking costs time.
+        let mut hello = turn(false, &[], "stay");
+        hello.beats = vec![Beat { jp: "おや".into(), ..Beat::player("") }.with_speaker("gensan")];
+        let out = apply_act(&story, &mut s, hello, Some("gensan"));
+        assert_eq!(s.talking_to, "gensan");
+        assert!(out.departed.is_empty());
+        assert_eq!(s.patience["gensan"], start, "approaching is free");
+        let mut t = turn(false, &[], "stay");
+        t.coach.verdict = Verdict::NotUnderstood;
+        apply_turn(&story, &mut s, t, InputVia::Voice, "");
+        assert_eq!(s.patience["gensan"], start - 2);
+    }
+
+    #[test]
+    fn people_remember_the_player_across_places() {
+        let story = story();
+        let (mut s, _) = RunState::new(&story, "Ren".into());
+        s.enter_place(&story, "airport_station");
+        let mut t = turn(false, &[], "stay");
+        t.beats = vec![Beat { jp: "そうですか。".into(), ..Beat::player("") }.with_speaker("hiroshi")];
+        t.remember = vec![
+            crate::director::Memory { character: "hiroshi".into(), note: "Told me they lost their passport.".into() },
+            crate::director::Memory { character: "folk_station".into(), note: "Passers-by don't keep memories.".into() },
+        ];
+        apply_turn(&story, &mut s, t, InputVia::Voice, "");
+        let hiroshi = &s.memories["hiroshi"];
+        assert!(hiroshi[0].starts_with("First met the player at"));
+        assert!(hiroshi.contains(&"Told me they lost their passport.".to_string()));
+        assert!(!s.memories.contains_key("folk_station"));
+        // Two places later, he still knows.
+        s.enter_place(&story, "train_to_ueno");
+        let msg = director_message(&story, &s, &[], Prompt::Look);
+        assert!(msg.contains("Told me they lost their passport."));
+    }
+
+    #[test]
+    fn return_visits_are_announced() {
+        let story = story();
+        let (mut s, _) = RunState::new(&story, "Ren".into());
+        s.enter_place(&story, "koban");
+        assert!(director_message(&story, &s, &[], Prompt::Look).contains("first visit"));
+        s.flags.insert("reported_theft".into());
+        s.goals_done.insert("koban".into());
+        s.enter_place(&story, "airport_station");
+        s.enter_place(&story, "koban");
+        let msg = director_message(&story, &s, &[], Prompt::Look);
+        assert!(msg.contains("RETURN VISIT") && msg.contains("reported_theft") && msg.contains("goal here was achieved"));
+    }
+
+    #[test]
+    fn no_repeats_and_the_player_always_knows_what_to_do() {
+        let story = story();
+        let (mut s, _) = RunState::new(&story, "Ren".into());
+        s.enter_place(&story, "koban");
+        let ask = || Beat { jp: "なにを とられましたか。".into(), ..Beat::player("") }.with_speaker("yumi");
+        let mut t = turn(false, &[], "stay");
+        t.beats = vec![ask(), Beat::narration("She taps the passport icon on her notepad, then the wallet.")];
+        t.lead = "I think she's asking what was stolen.".into();
+        let out = apply_turn(&story, &mut s, t, InputVia::Voice, "");
+        let last = out.beats.last().unwrap();
+        assert_eq!((last.speaker.as_str(), last.en.as_str()), (THOUGHT, "I think she's asking what was stolen."));
+        // The same question and the same thought again are dropped.
+        let mut t = turn(false, &[], "stay");
+        t.beats = vec![ask(), Beat { jp: "パスポートですね。".into(), ..Beat::player("") }.with_speaker("yumi")];
+        t.lead = "I think she's asking what was stolen.".into();
+        let out = apply_turn(&story, &mut s, t, InputVia::Voice, "");
+        assert_eq!(out.beats.iter().map(|b| b.jp.as_str()).collect::<Vec<_>>(), vec!["パスポートですね。"]);
+        // Advanced players work it out themselves.
+        s.difficulty = Difficulty::Advanced;
+        let mut t = turn(false, &[], "stay");
+        t.lead = "Something new to think about.".into();
+        let out = apply_turn(&story, &mut s, t, InputVia::Voice, "");
+        assert!(!out.beats.iter().any(|b| b.speaker == THOUGHT));
+    }
+
+    #[test]
+    fn story_scenes_open_their_exits_once_the_goal_is_done() {
+        let story = story();
+        let (mut s, _) = RunState::new(&story, "Ren".into());
+        s.enter_place(&story, "koban");
+        assert!(!s.can_go(&story, "airport_station"), "a story scene holds the player");
+        s.goals_done.insert("koban".into());
+        assert!(s.can_go(&story, "airport_station"), "done: free to go");
+        // A scene that runs its course, or a long stay, never traps anyone.
+        s.enter_place(&story, "ticket_window");
+        s.scene_over = Some("patience".into());
+        assert!(!s.in_story_scene(&story));
+        s.enter_place(&story, "soba_stand");
+        s.place_turns = ROAM_AFTER;
+        assert!(!s.in_story_scene(&story));
+    }
+
+    #[test]
+    fn where_the_conversation_points_you_can_go() {
+        let story = story();
+        let (mut s, _) = RunState::new(&story, "Ren".into());
+        // Kenji points to the police box but the goal isn't marked done.
+        assert!(!s.can_go(&story, "koban"));
+        let mut t = turn(false, &[], "stay");
+        t.choices = vec![Phrase { jp: "わかりました。こうばんに行きます。".into(), romaji: String::new(), en: "Okay. I'm going to the police box now.".into() }];
+        let out = apply_turn(&story, &mut s, t, InputVia::Voice, "はい、わかりました。");
+        assert!(out.go_to.is_none());
+        assert!(s.can_go(&story, "koban"), "the suggested reply points there, so its button opens");
+        // And saying it is always enough.
+        let (mut s, _) = RunState::new(&story, "Ren".into());
+        assert_eq!(intended_exit(&story, &s, "こうばんに行きます").as_deref(), Some("koban"));
+        let out = apply_turn(&story, &mut s, turn(false, &[], "koban"), InputVia::Voice, "こうばんに行きます");
+        assert_eq!(out.go_to.as_deref(), Some("koban"));
+    }
+
+    #[test]
+    fn suggested_replies_are_three_different_moves_you_can_make() {
+        let story = story();
+        let (mut s, _) = RunState::new(&story, "Ren".into());
+        s.enter_place(&story, "ticket_window");
+        let say = |jp: &str, en: &str| Phrase { jp: jp.into(), romaji: String::new(), en: en.into() };
+        // The police box isn't an exit from the ticket window: neither
+        // "I'm going to the kōban" survives; the real way back does.
+        take_choices(&story, &mut s, vec![
+            say("ありがとうございます。こうばんにいきます。", "Thank you. I will go back to the police box."),
+            say("いくらですか。", "How much is it?"),
+            say("うえの こうばんに いきます。", "I am going to the kōban upstairs."),
+            say("えきに もどります。", "I'll go back to the station."),
+            say("えきに いきます。", "I'm going to the station."),
+        ]);
+        let kept: Vec<&str> = s.choices.iter().map(|c| c.jp.as_str()).collect();
+        assert_eq!(kept, vec!["いくらですか。", "えきに もどります。"]);
+    }
+
+    #[test]
+    fn a_place_the_game_mentions_gets_its_button() {
+        let story = story();
+        let (mut s, _) = RunState::new(&story, "Ren".into());
+        s.enter_place(&story, "airport_station");
+        s.engaged.insert("hiroshi".into()); // talking with him: a story scene
+        assert!(!s.can_go(&story, "koban"));
+        let mut t = turn(false, &[], "stay");
+        t.lead = "I'm 270 yen short. The kōban is upstairs — Officer Sato's loan should cover it.".into();
+        apply_turn(&story, &mut s, t, InputVia::Voice, "");
+        assert!(s.can_go(&story, "koban"), "the thought names the police box, so its button opens");
+        assert!(!s.can_go(&story, "soba_stand"), "nobody mentioned the soba stand");
+    }
+
+    #[test]
+    fn nobody_is_held_before_a_conversation_and_being_told_the_way_is_enough() {
+        let story = story();
+        let (mut s, _) = RunState::new(&story, "Ren".into());
+        // Ueno Park, a return visit: Gen-san is there but nobody's talked.
+        s.enter_place(&story, "ueno_park");
+        s.enter_place(&story, "ueno_park");
+        assert!(s.can_go(&story, "ueno_street"), "walking in and looking around never holds anyone");
+        // Aiko says where the guesthouse is: the way to Asakusa opens.
+        s.enter_place(&story, "konbini");
+        assert!(!s.can_walk(&story, "hostel_lobby"));
+        let mut t = turn(false, &[], "stay");
+        t.beats = vec![Beat { jp: "あさくさに やすい ホステルが あります。".into(), en: "There's a cheap hostel in Asakusa.".into(), ..Beat::player("") }.with_speaker("aiko")];
+        apply_turn(&story, &mut s, t, InputVia::Voice, "");
+        assert!(s.flags.contains("knows_hostel"));
+        assert!(s.can_go(&story, "hostel_lobby"));
+
+        // Told at the konbini, the street can take you there later too.
+        let (mut s, _) = RunState::new(&story, "Ren".into());
+        s.enter_place(&story, "konbini");
+        let mut t = turn(false, &[], "stay");
+        t.beats = vec![Beat { jp: "あさくさの ホステル さくら。".into(), ..Beat::player("") }.with_speaker("aiko")];
+        apply_turn(&story, &mut s, t, InputVia::Voice, "");
+        s.flags.remove("knows_hostel");
+        s.enter_place(&story, "ueno_street");
+        assert!(s.can_go(&story, "hostel_lobby"), "heard of it earlier: open on arrival");
+
+        // An old save learns it from its past lines.
+        let (mut s, _) = RunState::new(&story, "Ren".into());
+        s.enter_place(&story, "ueno_street");
+        assert!(!s.can_walk(&story, "hostel_lobby"));
+        let past = vec![Beat { jp: "あさくさに やすい やどが あるよ。".into(), ..Beat::player("") }.with_speaker("gensan")];
+        hear_from(&story, &mut s, &past);
+        assert!(s.can_walk(&story, "hostel_lobby"));
+    }
+
+    #[test]
+    fn emily_speaks_english_unless_the_owner_is_listening() {
+        let story = story();
+        let (mut s, _) = RunState::new(&story, "Ren".into());
+        s.enter_place(&story, "hostel_lobby");
+        s.enter_place(&story, "hostel_lobby");
+        let line = || Beat { jp: "はい、ブリスベンです。".into(), romaji: "hai".into(), en: "Yeah, Brisbane! Hot, sunny, lots of parks.".into(), ..Beat::player("") }.with_speaker("emily");
+        let out = accept_beats(&story, &mut s, vec![line()], "");
+        assert_eq!(out[0].jp, "Yeah, Brisbane! Hot, sunny, lots of parks.");
+        assert!(out[0].romaji.is_empty());
+        // Mori comes out of his office: his house rule, Japanese.
+        let mori = Beat { jp: "うむ。".into(), ..Beat::player("") }.with_speaker("mori");
+        let out = accept_beats(&story, &mut s, vec![mori, line()], "");
+        assert_eq!(out[1].jp, "はい、ブリスベンです。");
+    }
+
+    #[test]
+    fn sleepers_in_the_dorm_stay_behind_their_curtains() {
+        let story = story();
+        let (mut s, _) = RunState::new(&story, "Ren".into());
+        s.enter_place(&story, "hostel_room");
+        let mumble = Beat { jp: "…おやすみ。".into(), speaker_name: "となりのひと".into(), ..Beat::player("") }.with_speaker(EXTRA);
+        let out = accept_beats(&story, &mut s, vec![mumble], "");
+        assert_eq!(out[0].speaker, EXTRA, "a voice from the next bunk, not a person on stage");
+        assert!(s.on_stage.is_empty());
+    }
+
+    #[test]
+    fn being_told_about_a_place_never_buys_the_ticket() {
+        let story = story();
+        let (mut s, _) = RunState::new(&story, "Ren".into());
+        s.enter_place(&story, "ticket_window");
+        let mut t = turn(false, &[], "stay");
+        t.beats = vec![Beat { jp: "うえのいきの でんしゃは 1ばんせんです。".into(), en: "The train to Ueno is on platform 1.".into(), ..Beat::player("") }.with_speaker("nakajima")];
+        apply_turn(&story, &mut s, t, InputVia::Voice, "でんしゃで うえのに いきます");
+        assert!(!s.flags.contains("has_ticket"));
+        assert!(!s.can_walk(&story, "train_to_ueno"), "no ticket, no train");
+    }
+
+    #[test]
+    fn what_happens_is_said_and_nobody_gives_before_hearing_how_much() {
+        let story = story();
+        let (mut s, _) = RunState::new(&story, "Ren".into());
+        // The officer always explains the loan and what to do next.
+        s.enter_place(&story, "koban");
+        let mut t = turn(false, &[], "stay");
+        t.flags_set = vec!["reported_theft".into()];
+        // The director explains it all itself too: said once, not twice.
+        t.beats = vec![Beat { jp: "はい、届けを書きました。東京の大使館は月曜日までしまっています。千円お貸しします。".into(), en: "Report written. The embassy is closed until Monday. I'll lend you ¥1,000.".into(), ..Beat::player("") }.with_speaker("yumi")];
+        let out = apply_turn(&story, &mut s, t, InputVia::Voice, "");
+        let said: Vec<&str> = out.beats.iter().filter(|b| b.speaker == "yumi").map(|b| b.en.as_str()).collect();
+        assert_eq!(said.iter().filter(|l| l.contains("Monday")).count(), 1, "{said:?}");
+        assert!(said.iter().any(|l| l.contains("¥1,000") && l.contains("Pay it back")), "{said:?}");
+        assert!(said.iter().any(|l| l.contains("closed until Monday")));
+        assert_eq!(s.yen, 1000);
+        // Aiko asks how much: no money in that same breath.
+        s.enter_place(&story, "narita_exterior");
+        let mut t = turn(false, &[], "stay");
+        t.beats = vec![Beat { jp: "いくらですか？".into(), en: "How much?".into(), ..Beat::player("") }.with_speaker("aiko")];
+        t.flags_set = vec!["aiko_loan".into()];
+        apply_turn(&story, &mut s, t, InputVia::Voice, "");
+        assert_eq!(s.yen, 1000, "she hasn't heard how much yet");
+        let mut t = turn(false, &[], "stay");
+        t.beats = vec![Beat { jp: "わかった。".into(), en: "Got it.".into(), ..Beat::player("") }.with_speaker("aiko")];
+        t.flags_set = vec!["aiko_loan".into()];
+        apply_turn(&story, &mut s, t, InputVia::Voice, "");
+        assert_eq!(s.yen, 1500);
+        // With the fare known and in hand, buying it is the first option, and
+        // nothing claims the old ¥1,000.
+        s.enter_place(&story, "ticket_window");
+        s.flags.insert("knows_fare".into());
+        let mut t = turn(false, &[], "stay");
+        t.choices = vec![
+            Phrase { jp: "うえのまで、いくらですか。".into(), romaji: String::new(), en: "How much is it to Ueno?".into() },
+            Phrase { jp: "せんえんあります。たりませんか。".into(), romaji: String::new(), en: "I have 1,000 yen. Is that not enough?".into() },
+        ];
+        apply_turn(&story, &mut s, t, InputVia::Voice, "");
+        assert_eq!(s.choices[0].en, "One ticket to Ueno, please.");
+        // With ¥1,500 in hand, nobody thinks they're still short.
+        let mut t = turn(false, &[], "stay");
+        t.beats.push(Beat { speaker: THOUGHT.into(), ..Beat::narration("I have ¥1,500 but I'm still ¥270 short.") });
+        t.lead = "I'm ¥270 short for the ticket.".into();
+        let out = apply_turn(&story, &mut s, t, InputVia::Voice, "");
+        assert!(!out.beats.iter().any(|b| b.en.contains("short")), "{:?}", out.beats.iter().map(|b| &b.en).collect::<Vec<_>>());
+        assert!(!s.choices.iter().any(|c| c.en.contains("1,000")));
+    }
+
+    #[test]
+    fn the_world_changes_only_by_the_rules() {
+        let story = story();
+        let (mut s, _) = RunState::new(&story, "Ren".into());
+        // Hiroshi only covers the difference, and only if they have most of it.
+        s.enter_place(&story, "airport_station");
+        s.yen = 500;
+        let mut t = turn(false, &[], "stay");
+        t.flags_set = vec!["hiroshi_paid".into()];
+        apply_turn(&story, &mut s, t, InputVia::Voice, "");
+        assert_eq!(s.yen, 500, "¥500 is nowhere near the fare: he won't");
+        assert!(!s.flags.contains("hiroshi_paid"));
+        s.yen = 1000;
+        let mut t = turn(false, &[], "stay");
+        t.flags_set = vec!["hiroshi_paid".into()];
+        apply_turn(&story, &mut s, t, InputVia::Voice, "");
+        assert_eq!(s.yen, 1270, "exactly the difference, ¥270");
+        // The fare is in hand: the money step is done, the other ways close.
+        assert!(s.steps_done.contains("escape/money"));
+        s.enter_place(&story, "koban");
+        let topup = story.place("koban").unwrap().events.iter().find(|e| e.flag == "koban_topup").unwrap();
+        assert!(s.event_blocked(&story, topup).is_some(), "no police top-up once you have the fare");
+        // The director is told what's possible, and the episode is remembered.
+        let msg = director_message(&story, &s, &[], Prompt::Look);
+        assert!(msg.contains("Hiroshi covers the difference. Money: ¥1000 → ¥1270."));
+        assert!(msg.contains("`koban_topup` [NOT POSSIBLE NOW"));
+        s.enter_place(&story, "ticket_window");
+        s.flags.extend(["reported_theft".to_string(), "knows_fare".to_string()]);
+        s.update_steps(&story);
+        assert!(director_message(&story, &s, &[], Prompt::Look).contains("Next step: Buy the ticket."));
+        // Buying: only with the money, and the facts say so.
+        s.enter_place(&story, "airport_station");
+        s.flags.insert("knows_fare".into());
+        let msg = director_message(&story, &s, &[], Prompt::Look);
+        assert!(msg.contains("Bought the ticket to Ueno costs ¥1270 at Keisei Ticket Window: CAN afford it"));
+        s.enter_place(&story, "ticket_window");
+        let mut t = turn(false, &[], "stay");
+        t.flags_set = vec!["has_ticket".into()];
+        apply_turn(&story, &mut s, t, InputVia::Voice, "");
+        assert_eq!(s.yen, 0);
+        assert!(s.items.contains(&"train_ticket".to_string()));
+        assert!(s.steps_done.contains("escape/ticket"));
+    }
+
+    #[test]
+    fn the_game_says_what_changed_and_nobody_assumes_the_fare() {
+        let story = story();
+        let (mut s, _) = RunState::new(&story, "Ren".into());
+        s.enter_place(&story, "koban");
+        let mut t = turn(false, &[], "stay");
+        t.flags_set = vec!["reported_theft".into()];
+        let out = apply_turn(&story, &mut s, t, InputVia::Voice, "");
+        assert_eq!(s.yen, 1000);
+        assert!(out.beats.iter().any(|b| b.en.starts_with("+¥1,000 · ")), "the loan is shown, not silent");
+        // At the station without the fare, the facts say the player doesn't know it.
+        s.enter_place(&story, "airport_station");
+        let msg = director_message(&story, &s, &[], Prompt::Look);
+        assert!(msg.contains("DOESN'T KNOW the price yet"));
+        s.flags.insert("knows_fare".into());
+        assert!(director_message(&story, &s, &[], Prompt::Look).contains("can't afford it yet: short ¥270"));
+    }
+
+    #[test]
+    fn leaving_a_words_only_scene_after_talking_finishes_it() {
+        let story = story();
+        let (mut s, _) = RunState::new(&story, "Ren".into());
+        // Kenji spoke in the intro; the player walks off where he pointed.
+        assert!(!s.engaged.is_empty());
+        let mut beats = Vec::new();
+        assert!(finish_on_leaving(&story, &mut s, &mut beats).is_some());
+        assert!(s.goals_done.contains("arrivals_hall"));
+        // A goal made of facts never finishes by walking away.
+        s.enter_place(&story, "koban");
+        s.engaged.insert("yumi".into());
+        assert!(finish_on_leaving(&story, &mut s, &mut beats).is_none());
+    }
+
+    #[test]
+    fn hearing_the_fare_moves_the_objective_on() {
+        let story = story();
+        let (mut s, _) = RunState::new(&story, "Ren".into());
+        s.flags.insert("reported_theft".into());
+        s.yen = 1000;
+        s.enter_place(&story, "ticket_window");
+        let mut t = turn(false, &[], "stay");
+        t.beats = vec![Beat { jp: "うえの、せんにひゃくななじゅうえんです。".into(), ..Beat::player("") }.with_speaker("nakajima")];
+        apply_turn(&story, &mut s, t, InputVia::Voice, "");
+        assert!(s.flags.contains("knows_fare"), "said aloud is known, event or not");
+        assert!(s.items.contains(&"fare_note".to_string()));
+        let o = s.objective(&story).unwrap();
+        assert_eq!(o.step, "Get ¥1,270 for the ticket", "the fare is known, so the money step is next");
+        assert!(o.elsewhere.iter().any(|(w, _)| w == "Police top-up"));
+        assert!(o.elsewhere.iter().any(|(w, _)| w == "Hiroshi covers the difference"), "¥1,000 is most of it");
+    }
+
+    #[test]
+    fn the_first_objective_is_finding_help() {
+        let story = story();
+        let (mut s, _) = RunState::new(&story, "Ren".into());
+        assert_eq!(s.objective(&story).unwrap().step, "Find out what to do");
+        let mut t = turn(false, &[], "stay");
+        t.flags_set = vec!["asked_for_help".into()];
+        let out = apply_turn(&story, &mut s, t, InputVia::Voice, "");
+        assert_eq!(out.steps_done, vec!["Find out what to do".to_string()]);
+        assert_eq!(s.objective(&story).unwrap().step, "Report the theft");
+    }
+
+    #[test]
+    fn beginners_get_more_patience() {
+        let story = story();
+        let (mut s, _) = RunState::new(&story, "Ren".into());
+        s.enter_place(&story, "airport_station");
+        s.engaged.insert("hiroshi".into()); // the player walked up to him
+        assert_eq!(s.difficulty, Difficulty::Beginner);
+        let start = s.patience["hiroshi"];
+        let mut miss = turn(false, &[], "stay");
+        miss.coach.verdict = Verdict::NotUnderstood;
+        apply_turn(&story, &mut s, miss, InputVia::Voice, "");
+        apply_turn(&story, &mut s, turn(false, &[], "stay"), InputVia::Voice, ""); // a good line
+        assert_eq!(s.patience["hiroshi"], start - 1, "a miss costs one, a good line nothing");
+    }
+
+    #[test]
+    fn a_scene_timer_moves_the_story_on() {
+        let story = story();
+        let (mut s, _) = RunState::new(&story, "Ren".into());
+        s.enter_place(&story, "train_to_ueno");
+        let turns = s.timer_left.expect("the train has a timer");
+        let mut last = None;
+        for _ in 0..turns {
+            let mut t = turn(false, &[], "stay");
+            t.coach.verdict = Verdict::Great; // patience holds; only the clock ends it
+            last = Some(apply_turn(&story, &mut s, t, InputVia::Voice, ""));
+        }
+        let out = last.unwrap();
+        assert_eq!(out.scene_over.as_deref(), Some("timer"));
+        assert_eq!(out.go_to.as_deref(), Some("ueno_street"));
+        // Quiet scenes have nobody waiting on the player.
+        s.enter_place(&story, "narita_departures");
+        assert!(s.patience.is_empty());
+    }
+
+    #[test]
+    fn named_side_characters_take_their_lines() {
+        let story = story();
+        // Lines the story wrote for "もりさん" belong to Mori.
+        let lobby = story.place("hostel_lobby").unwrap();
+        assert!(!lobby.intro.iter().any(|b| b.speaker == EXTRA && story.minor_by_name(&b.speaker_name).is_some()));
+        // And so do the director's, wherever he turns up. Strangers get a
+        // passer-by's face and keep their name; voices from nowhere stay unseen.
+        let (mut s, _) = RunState::new(&story, "Ren".into());
+        let line = |name: &str| Beat { jp: "うむ。".into(), speaker_name: name.into(), ..Beat::player("") }.with_speaker(EXTRA);
+        let out = accept_beats(&story, &mut s, vec![line("もりさん"), line("えきいん"), line("女の人"), line("アナウンス")], "");
+        assert_eq!(out[0].speaker, "mori");
+        assert_eq!(out[1].speaker, "folk_station");
+        assert_eq!(out[1].speaker_name, "えきいん");
+        assert_eq!(out[2].speaker, "folk_officeworker");
+        assert_eq!(out[3].speaker, EXTRA);
+        // One passer-by on stage at a time.
+        assert!(s.on_stage.contains(&"folk_officeworker".to_string()));
+        assert!(!s.on_stage.contains(&"folk_station".to_string()));
+        // A stranger with no name at all still gets a face.
+        let out = accept_beats(&story, &mut s, vec![line("")], "");
+        assert!(out[0].speaker.starts_with(TOWNSFOLK_PREFIX));
+        // The same stranger keeps the same face.
+        assert_eq!(story.townsfolk_for("Taxi guy"), story.townsfolk_for("Taxi guy"));
+        // The opening's voice in the dark is Kenji's, not a stranger's.
+        let first = &story.place(&story.start_place).unwrap().intro;
+        assert!(first.iter().any(|b| b.speaker == EXTRA && b.speaker_name == "???"));
     }
 
     #[test]
     fn the_most_specific_place_name_wins() {
         let story = Story::load(std::path::Path::new("content/courses/en/story.toml")).expect("en story is valid");
         let (mut s, _) = RunState::new(&story, "Ren".into());
-        s.enter_place(&story, "hostel_lobby_nyc");
+        roam(&story, &mut s, "hostel_lobby_nyc");
         s.flags.extend(["has_bed".to_string(), "has_job".to_string()]);
         assert_eq!(intended_exit(&story, &s, "I'm going to Mr. Russo's room").as_deref(), Some("russo_room"));
         assert_eq!(intended_exit(&story, &s, "ルッソさんのへやにいきます").as_deref(), Some("russo_room"));
@@ -1487,7 +3055,7 @@ mod tests {
     fn saying_where_you_are_going_takes_you_there() {
         let story = story();
         let (mut s, _) = RunState::new(&story, "Ren".into());
-        s.enter_place(&story, "koban");
+        roam(&story, &mut s, "koban");
         assert_eq!(intended_exit(&story, &s, "はい、えきへいきます！").as_deref(), Some("airport_station"));
         assert_eq!(intended_exit(&story, &s, "okay, I'll go to the station now").as_deref(), Some("airport_station"));
         assert_eq!(intended_exit(&story, &s, "駅に行きます").as_deref(), Some("airport_station"));
@@ -1495,7 +3063,7 @@ mod tests {
         assert_eq!(intended_exit(&story, &s, "えきはどこですか？"), None);
         assert_eq!(intended_exit(&story, &s, "I'll go to the hostel"), None);
         // Asking the fare, or asking someone to repeat, isn't leaving.
-        s.enter_place(&story, "airport_station");
+        roam(&story, &mut s, "airport_station");
         s.flags.insert("has_ticket".into());
         assert_eq!(intended_exit(&story, &s, "うえのまで、いくらですか"), None);
         assert_eq!(intended_exit(&story, &s, "でんしゃ…もういちどいってください"), None);
@@ -1551,8 +3119,9 @@ mod tests {
         let story = story();
         let (mut s, _) = RunState::new(&story, "Ren".into());
         s.enter_place(&story, "koban");
-        let mut t = turn(true, &[], "stay");
-        t.state.yen_delta = 50_000; // clamped to the kōban's ¥1,000
+        // The director can't hand out money: the report itself is what pays.
+        let mut t = turn(false, &[], "stay");
+        t.flags_set = vec!["reported_theft".into()];
         t.state.trust = vec![TrustChange { character: "yumi".into(), delta: 9 }];
         let out = apply_turn(&story, &mut s, t, InputVia::Voice, "");
         assert!(out.goal_complete.is_some());
@@ -1571,7 +3140,7 @@ mod tests {
         let story = story();
         let (mut s, _) = RunState::new(&story, "Ren".into());
         s.lesson_idx = 3;
-        s.enter_place(&story, "ueno_street");
+        roam(&story, &mut s, "ueno_street");
         assert!(s.flags.contains("reached_tokyo"), "on-enter flag");
         assert!(!s.can_go(&story, "hostel_lobby"));
         let mut t = turn(false, &[], "stay");
@@ -1643,10 +3212,14 @@ mod tests {
     #[test]
     fn director_message_carries_place_exits_and_player_words() {
         let story = story();
-        let (s, intro) = RunState::new(&story, "Ren".into());
+        let (mut s, intro) = RunState::new(&story, "Ren".into());
         let msg = director_message(&story, &s, &intro, Prompt::Turn { input: "だいじょうぶです", via: InputVia::Voice });
         assert!(msg.contains("<player_said via=\"voice\">だいじょうぶです</player_said>"));
+        // The director sees the world's locks; a story scene only holds the buttons.
         assert!(msg.contains("`koban` — The police box Kenji points to, just outside [OPEN]"));
+        assert!(!s.can_go(&story, "koban") && s.can_walk(&story, "koban"));
+        s.goals_done.insert(s.place.clone());
+        assert!(s.can_go(&story, "koban"));
         assert!(msg.contains("I have to get out of this airport"));
         let arrival = director_message(&story, &s, &[], Prompt::Arrival { from: Some("koban") });
         assert!(arrival.contains("<arrival from=\"The Kōban\"/>"));

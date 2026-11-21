@@ -6,13 +6,16 @@ import type { ExitView, InputVia, Phrase } from "@/lib/types";
 import type { Assist } from "./DialogueBox";
 import type { Difficulty } from "./Settings";
 import { audio } from "@/lib/audio/engine";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, type Strings } from "@/lib/i18n";
+import { ArrowDot } from "./Frame";
 
 interface Props {
   choices: Phrase[];
   assist: Assist;
   difficulty: Difficulty;
   voiceEnabled: boolean;
+  /** No microphone (or the player chose to type): a text box replaces the mic. */
+  typing: boolean;
   recording: boolean;
   level: number;
   transcribing: boolean;
@@ -22,44 +25,41 @@ interface Props {
   hintCost: number;
   battery: number;
   onUnlockHint: () => void;
+  /** People here the player can walk up to (minus whoever they're talking with). */
+  people: { id: string; name: string; color: string }[];
+  onApproach: (id: string) => void;
+  onLook: () => void;
   /** Places the player can walk to right now. */
   exits: ExitView[];
   onTravel: (to: string) => void;
   onStartTalk: () => void;
   onStopTalk: () => void;
   onSend: (text: string, via: InputVia) => void;
-  /** Called when the player peeks at a meaning (👁️); counts as a hint for scoring. */
-  onReveal: () => void;
-  /** Plays a phrase using the character's native TTS voice (or browser fallback). */
+  /** Plays a phrase in a character's voice (or the browser's). */
   onPreviewVoice?: (text: string) => Promise<void>;
-  /** Notifies parent which target card is currently selected for Levenshtein pronunciation comparison. */
+  /** The card the player is about to say, for pronunciation comparison. */
   onSelectChoice?: (choice: Phrase | null) => void;
 }
 
 export function ReplyDock(p: Props) {
-  const { t } = useI18n();
+  const { t, target } = useI18n();
   const held = useRef(false);
   // Latest props for the key handlers, which are registered once.
   const props = useRef(p);
   useEffect(() => { props.current = p; });
 
-  // ── Beginner shadowing state ──────────────────────────────────────────
-  // When a beginner clicks a choice, we enter "shadow" mode: play audio,
-  // then prompt them to repeat it before actually sending.
+  // Beginners pick a card, hear it, then say it (shadowing).
   const [shadowChoice, setShadowChoice] = useState<Phrase | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const [audioPlaying, setAudioPlaying] = useState(false);
+  const [text, setText] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  // ── Intermediate: per-choice meaning reveal ───────────────────────────
-  const [revealed, setRevealed] = useState<Set<string>>(new Set());
-
-  // Reset shadowing / reveal state whenever a new set of choices arrives
+  // A new set of choices starts fresh.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setShadowChoice(null);
-    p.onSelectChoice?.(null);
-    setRevealed(new Set());
     setAudioPlaying(false);
-    audioRef.current?.pause();
+    p.onSelectChoice?.(null);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [p.choices]);
 
@@ -68,42 +68,44 @@ export function ReplyDock(p: Props) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shadowChoice]);
 
-  // ── Picking a card: the player must then SPEAK it (no typing, no auto-send).
-  const playBrowserVoice = (text: string) => {
+  useEffect(() => {
+    if (p.typing) inputRef.current?.focus();
+  }, [p.typing, shadowChoice]);
+
+  const playBrowserVoice = (line: string) => {
     if (typeof speechSynthesis === "undefined") return;
     speechSynthesis.cancel();
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.lang = "ja-JP";
+    const utter = new SpeechSynthesisUtterance(line);
+    utter.lang = target === "en" ? "en-US" : "ja-JP";
     utter.rate = 0.85;
-    // Prefer a natural Japanese voice if available
-    const voices = speechSynthesis.getVoices();
-    const jpVoice = voices.find((v) => v.lang.startsWith("ja") && /natural|enhanced|premium|kyoko|nanami|otoya/i.test(v.name))
-      ?? voices.find((v) => v.lang.startsWith("ja"));
-    if (jpVoice) utter.voice = jpVoice;
-    utter.onstart = () => setAudioPlaying(true);
+    const voices = speechSynthesis.getVoices().filter((v) => v.lang.startsWith(target));
+    utter.voice = voices.find((v) => /natural|enhanced|premium/i.test(v.name)) ?? voices[0] ?? null;
     utter.onend = () => setAudioPlaying(false);
-    speechSynthesis.speak(utter);
     setAudioPlaying(true);
+    speechSynthesis.speak(utter);
   };
 
-  const playPreviewVoice = async (text: string) => {
-    if (props.current.onPreviewVoice) {
-      setAudioPlaying(true);
-      try {
-        await props.current.onPreviewVoice(text);
-      } finally {
-        setAudioPlaying(false);
-      }
+  const playPreviewVoice = async (line: string) => {
+    const preview = props.current.onPreviewVoice;
+    if (!preview) return playBrowserVoice(line);
+    setAudioPlaying(true);
+    try {
+      await preview(line);
+    } finally {
+      setAudioPlaying(false);
+    }
+  };
+
+  const pick = (choice: Phrase) => {
+    audio.ui("choice");
+    // Beginners shadow the line out loud; everyone else (and anyone typing)
+    // sends the card as is — the classic phrase-book reply.
+    if (props.current.difficulty !== "beginner" || props.current.typing) {
+      props.current.onSend(choice.jp, "choice");
       return;
     }
-    playBrowserVoice(text);
-  };
-
-  // Beginner also hears the line once first (shadowing); Intermediate does not.
-  const handleChoiceClick = (choice: Phrase) => {
-    audio.ui("choice");
     setShadowChoice(choice);
-    if (props.current.difficulty === "beginner") void playPreviewVoice(choice.jp);
+    void playPreviewVoice(choice.jp);
   };
 
   // Hold Space to talk; 1–3 picks a suggested reply.
@@ -112,19 +114,17 @@ export function ReplyDock(p: Props) {
       const p = props.current;
       const n = Number(e.key);
       const el = document.activeElement;
-      // Any text box (e.g. the dictionary's) means the player is typing there.
       const inInput = el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement;
-      // Digits pick a suggestion to speak (Beginner / Intermediate only).
-      if (n >= 1 && n <= p.choices.length && !inInput) {
+      const emptyOwnInput = el === inputRef.current && !inputRef.current?.value;
+      if (n >= 1 && n <= p.choices.length && (!inInput || emptyOwnInput) && p.difficulty !== "advanced") {
         e.preventDefault();
-        if (p.difficulty === "advanced") return; // no choices in advanced
-        handleChoiceClick(p.choices[n - 1]);
+        pick(p.choices[n - 1]);
         return;
       }
       if (inInput) return;
       if (e.code === "Space") {
         e.preventDefault(); // never scroll or "click" a focused button
-        if (p.voiceEnabled && !e.repeat && !held.current) {
+        if (p.voiceEnabled && !p.typing && !e.repeat && !held.current) {
           held.current = true;
           p.onStartTalk();
         }
@@ -155,28 +155,17 @@ export function ReplyDock(p: Props) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-
-  const replayVoice = () => {
-    if (!shadowChoice) return;
-    void playPreviewVoice(shadowChoice.jp);
+  const submit = () => {
+    const said = text.trim();
+    if (!said) return;
+    setText("");
+    p.onSend(said, "text");
   };
 
-  const cancelShadow = () => {
-    speechSynthesis?.cancel();
-    setShadowChoice(null);
-    setAudioPlaying(false);
-  };
-
-  const status = p.micError
-    ? p.micError
-    : p.transcribing
-      ? t.listeningBack
-      : p.recording
-        ? t.speakNow
-        : t.holdToTalk;
-
+  const status = p.micError ?? (p.transcribing ? t.listeningBack : p.recording ? t.speakNow : t.holdToTalk);
   const showChoices = p.difficulty !== "advanced" && p.choices.length > 0;
   const showHintButton = p.difficulty !== "advanced" && p.choices.length === 0;
+  const openExits = (p.exits ?? []).filter((e) => e.open);
 
   return (
     <motion.div
@@ -196,9 +185,33 @@ export function ReplyDock(p: Props) {
         )}
       </AnimatePresence>
 
-      {(p.exits ?? []).some((e) => e.open) && (
+      {!shadowChoice && (
         <div className="flex w-full flex-wrap justify-center gap-1.5">
-          {(p.exits ?? []).filter((e) => e.open).map((e) => (
+          {p.people.map((c) => (
+            <motion.button
+              key={c.id}
+              onClick={() => p.onApproach(c.id)}
+              onPointerEnter={() => audio.ui("hover")}
+              className="frost flex items-center gap-2 rounded-full py-1 pl-1.5 pr-3.5 text-[13px] text-ink transition hover:bg-white"
+              initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+              whileHover={{ y: -2 }}
+            >
+              <span className="grid h-5 w-5 place-items-center rounded-full text-[10px] text-white" style={{ background: c.color }}>
+                {c.name.charAt(0)}
+              </span>
+              <span className="text-muted">{t.talkTo}</span>
+              <span className="font-medium">{c.name}</span>
+            </motion.button>
+          ))}
+          <motion.button
+            onClick={p.onLook}
+            onPointerEnter={() => audio.ui("hover")}
+            className="smoke rounded-full px-3 py-1 text-[13px] text-white/80 transition hover:bg-black/50"
+            initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+          >
+            {t.lookAround}
+          </motion.button>
+          {openExits.map((e) => (
             <motion.button
               key={e.to}
               onClick={() => p.onTravel(e.to)}
@@ -213,14 +226,10 @@ export function ReplyDock(p: Props) {
         </div>
       )}
 
-      {/* ── Advanced: no choices, no hint button — just the mic ─────────── */}
       {p.difficulty === "advanced" && (
-        <motion.p className="text-xs text-white/60 drop-shadow" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          Speak freely — no hints in Advanced mode
-        </motion.p>
+        <p className="text-xs text-white/70 drop-shadow">{t.advancedNoHints}</p>
       )}
 
-      {/* ── Hint unlock button (Beginner / Intermediate, no choices yet) ── */}
       {showHintButton && (
         <motion.button
           onClick={p.onUnlockHint}
@@ -233,217 +242,140 @@ export function ReplyDock(p: Props) {
         </motion.button>
       )}
 
-      {/* ── Speak panel (Beginner / Intermediate): pick a line, then say it ── */}
+      {/* Picked a card: say it out loud. */}
       <AnimatePresence>
-        {p.difficulty !== "advanced" && shadowChoice && (
+        {shadowChoice && (
           <motion.div
             key="shadow"
-            className="frost w-full rounded-2xl p-4 text-ink"
-            initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
+            className="frost w-full rounded-[22px] px-5 py-4 text-ink"
+            initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
           >
-            <div className="mb-3 flex items-center justify-between">
-              <span className="rounded-full bg-emerald-100 px-3 py-0.5 text-xs font-medium text-emerald-700">
-                {p.difficulty === "beginner" ? "🎤 Now repeat out loud" : "🎤 Say it out loud"}
+            <div className="flex items-center justify-between text-[11px] text-muted">
+              <span className="flex items-center gap-1.5 uppercase tracking-wider">
+                <span className="h-1.5 w-1.5 rounded-full bg-shu" />
+                {t.repeatAloud}
               </span>
-              <button onClick={cancelShadow} className="text-xs text-muted hover:text-ink">← back</button>
+              <button onClick={() => { speechSynthesis?.cancel(); setShadowChoice(null); }} className="rounded-full px-2 hover:text-ink">
+                ← {t.back}
+              </button>
             </div>
-
-            {/* The phrase to say */}
-            <div className="mb-4 rounded-xl bg-cream-deep px-4 py-3 text-center">
-              <p className="font-jp text-xl font-medium text-ink">{shadowChoice.jp}</p>
-              {shadowChoice.romaji && <p className="mt-1 text-sm text-shu">{shadowChoice.romaji}</p>}
-              {p.difficulty === "beginner" || revealed.has(shadowChoice.jp) ? (
-                <p className="mt-0.5 text-sm text-muted">"{shadowChoice.en}"</p>
-              ) : (
-                <button
-                  onClick={() => { setRevealed((s) => new Set([...s, shadowChoice.jp])); p.onReveal(); audio.ui("tap"); }}
-                  className="mt-1 rounded-full bg-white/70 px-2.5 py-0.5 text-[12px] text-muted hover:text-ink"
-                >
-                  👁️ Show meaning
-                </button>
-              )}
-            </div>
-
-            {/* Listen again (Beginner only) */}
-            {p.difficulty === "beginner" && (
-              <div className="mb-3 flex justify-center">
-                <button
-                  onClick={replayVoice}
-                  disabled={audioPlaying}
-                  className="flex items-center gap-2 rounded-full border border-hairline px-4 py-1.5 text-sm text-ink transition hover:bg-cream-deep disabled:opacity-50"
-                >
-                  {audioPlaying ? (
-                    <motion.span animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 0.8, repeat: Infinity }}>
-                      🔊 Playing…
-                    </motion.span>
-                  ) : (
-                    <>🔊 Listen again</>
-                  )}
-                </button>
+            <div className="mt-2 flex items-end justify-between gap-4">
+              <div className="min-w-0">
+                <p className="font-jp text-2xl font-medium leading-snug">{shadowChoice.jp}</p>
+                {shadowChoice.romaji && <p className="text-[15px] text-shu">{shadowChoice.romaji}</p>}
+                <p className="tight text-sm text-muted">“{shadowChoice.en}”</p>
               </div>
-            )}
-
-            {/* Mic area */}
-            <div className="flex items-center gap-3">
-              <MicButton recording={p.recording} level={p.level} busy={p.transcribing} onDown={p.onStartTalk} onUp={p.onStopTalk} />
-              <div className="frost flex flex-1 items-center justify-between rounded-full py-2 pl-5 pr-2">
-                <span className="text-sm text-muted">
-                  {p.transcribing ? t.listeningBack : p.recording ? "Listening… release when done" : "Hold Space or the mic to speak"}
-                </span>
-              </div>
+              <button
+                onClick={() => void playPreviewVoice(shadowChoice.jp)}
+                disabled={audioPlaying}
+                aria-label={t.listen}
+                className="flex shrink-0 items-center gap-1.5 rounded-full border border-hairline px-3 py-1.5 text-sm transition hover:bg-cream-deep disabled:opacity-50"
+              >
+                <SpeakerIcon playing={audioPlaying} /> {t.listen}
+              </button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* ── Choice cards (Beginner / Intermediate) ──────────────────────── */}
       {showChoices && !shadowChoice && (
         <div className="grid w-full gap-2 sm:grid-cols-3">
           {p.choices.map((c, i) => (
-            <ChoiceCard
-              key={c.jp}
-              choice={c}
-              index={i}
-              difficulty={p.difficulty}
-              revealed={revealed.has(c.jp)}
-              onReveal={() => { setRevealed((s) => new Set([...s, c.jp])); p.onReveal(); }}
-              onSelect={() => handleChoiceClick(c)}
-            />
+            <ChoiceCard key={c.jp} choice={c} index={i} t={t} onSelect={() => pick(c)} />
           ))}
         </div>
       )}
 
-      {/* ── Mic bar (voice only) ────────────────────────────────────────── */}
-      {!shadowChoice && (
-        <div className="flex w-full items-center gap-3">
-          <MicButton recording={p.recording} level={p.level} busy={p.transcribing} onDown={p.onStartTalk} onUp={p.onStopTalk} />
-          <div className="frost flex flex-1 items-center rounded-full py-2 pl-5 pr-2">
+      <div className="flex w-full items-center gap-3">
+        {!p.typing && (
+          <MicButton label={t.holdToTalk} recording={p.recording} level={p.level} busy={p.transcribing} onDown={p.onStartTalk} onUp={p.onStopTalk} />
+        )}
+        {p.typing ? (
+          <form className="frost flex flex-1 items-center gap-2 rounded-full py-1.5 pl-5 pr-1.5"
+            onSubmit={(e) => { e.preventDefault(); submit(); }}>
+            <input
+              ref={inputRef}
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              maxLength={300}
+              placeholder={shadowChoice?.jp ?? t.typePlaceholder}
+              className="flex-1 bg-transparent font-jp text-[17px] text-ink placeholder:text-muted/60 focus:outline-none"
+            />
+            <button type="submit" disabled={!text.trim()} aria-label={t.sendIt} className="transition disabled:opacity-40">
+              <ArrowDot />
+            </button>
+          </form>
+        ) : (
+          <div className="frost flex flex-1 items-center rounded-full py-2.5 pl-5 pr-2">
             <span className="text-sm text-muted">{status}</span>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </motion.div>
   );
 }
 
-// ── ChoiceCard ────────────────────────────────────────────────────────────────
+type Intent = "leave" | "ask" | "story" | "reply";
 
-function getChoiceIntent(choice: Phrase, index: number): { label: string; className: string } {
-  const jp = choice.jp;
-  const en = choice.en.toLowerCase();
-  const isTravel =
-    /行きます|行く|行きましょう|行こう|向かいます|帰ります|戻ります|いこう|いきます/.test(jp) ||
-    /\b(go to|head to|going to|walk to|leave for|take the train)\b/.test(en);
-  if (isTravel) {
-    return {
-      label: "🚪 Leave / Next Scene",
-      className: "bg-indigo-50 text-indigo-700 border border-indigo-200/80",
-    };
-  }
-  const isQuestion =
-    /[？?]/.test(jp) ||
-    /[？?]/.test(choice.en) ||
-    /ですか|どこ|いくら|どう|なに|なん/.test(jp);
-  if (isQuestion && index !== 0) {
-    return {
-      label: "💬 Ask / Explore",
-      className: "bg-sky-50 text-sky-700 border border-sky-200/80",
-    };
-  }
-  if (index === 0) {
-    return {
-      label: "🎯 Story Progress",
-      className: "bg-amber-50 text-amber-800 border border-amber-200/80",
-    };
-  }
-  if (isQuestion) {
-    return {
-      label: "💬 Ask / Explore",
-      className: "bg-sky-50 text-sky-700 border border-sky-200/80",
-    };
-  }
-  return {
-    label: "✨ Reply / Continue",
-    className: "bg-stone-100 text-stone-700 border border-stone-200/80",
-  };
+/** A rough guess at what a suggested reply does, from either language. */
+function intentOf(choice: Phrase, index: number): Intent {
+  const both = `${choice.jp} ${choice.en}`;
+  if (/行きます|行く|行こう|向かいます|帰ります|戻ります|いきます|いこう|\b(go to|head to|going to|walk to|let'?s go)\b/i.test(both)) return "leave";
+  if (index === 0) return "story";
+  if (/[？?]|ですか|どこ|いくら/.test(both)) return "ask";
+  return "reply";
 }
 
-function ChoiceCard({ choice, index, difficulty, revealed, onReveal, onSelect }: {
+const INTENT_DOT: Record<Intent, string> = { leave: "bg-ink", story: "bg-shu", ask: "bg-sky", reply: "bg-muted/50" };
+
+function ChoiceCard({ choice, index, t, onSelect }: {
   choice: Phrase;
   index: number;
-  difficulty: Difficulty;
-  revealed: boolean;
-  onReveal: () => void;
+  t: Strings;
   onSelect: () => void;
 }) {
-  const intent = getChoiceIntent(choice, index);
+  const intent = intentOf(choice, index);
   return (
     <motion.div
-      className="frost group relative rounded-2xl px-4 py-3 text-left transition hover:bg-white/90"
+      className="frost group relative flex flex-col rounded-2xl px-4 py-3 text-left transition hover:bg-white/90"
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.05 * index }}
       whileHover={{ y: -3 }}
     >
-      {/* Top row: Intent badge + index badge */}
-      <div className="mb-1.5 flex items-center justify-between gap-2">
-        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide ${intent.className}`}>
-          {intent.label}
+      <div className="flex items-center justify-between gap-2 text-[11px] text-muted">
+        <span className="flex items-center gap-1.5">
+          <span className={`h-1.5 w-1.5 rounded-full ${INTENT_DOT[intent]}`} />
+          {t.intent[intent]}
         </span>
-        <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-cream-deep text-[11px] text-muted">{index + 1}</span>
+        <span className="grid h-5 w-5 place-items-center rounded-full bg-cream-deep">{index + 1}</span>
       </div>
-
-      {/* Beginner: meaning always visible */}
-      {difficulty === "beginner" && (
-        <span className="tight mb-1 block pr-6 text-[14px] font-medium leading-snug text-ink">"{choice.en}"</span>
-      )}
-
-      {/* Intermediate: meaning hidden behind 👁️ toggle */}
-      {difficulty === "intermediate" && (
-        <div className="mb-1 flex items-center gap-1.5 pr-6">
-          {revealed ? (
-            <span className="tight block text-[14px] font-medium leading-snug text-ink">"{choice.en}"</span>
-          ) : (
-            <button
-              onClick={(e) => { e.stopPropagation(); onReveal(); audio.ui("tap"); }}
-              className="relative z-10 flex items-center gap-1 rounded-full bg-cream-deep px-2.5 py-0.5 text-[12px] text-muted hover:text-ink"
-            >
-              👁️ Show meaning
-            </button>
-          )}
-        </div>
-      )}
-
-      {choice.romaji && (
-        <span className="mt-0.5 block text-[15px] leading-snug text-shu">{choice.romaji}</span>
-      )}
+      {/* A bought hint is a phrase-book page: what you'd say, how to say it, how it's written. */}
+      <span className="tight mt-1.5 block text-[15px] font-medium leading-snug text-ink">“{choice.en}”</span>
+      {choice.romaji && <span className="mt-0.5 block text-[15px] leading-snug text-shu">{choice.romaji}</span>}
       <span className="block font-jp text-sm leading-snug text-muted">{choice.jp}</span>
-
-      {/* Click overlay; the 👁️ button above sits over it (z-10) so it stays clickable */}
-      <button
-        className="absolute inset-0 rounded-2xl"
-        onClick={onSelect}
-        aria-label={choice.en}
-      />
-
-      {/* Beginner: listen badge */}
-      {difficulty === "beginner" && (
-        <span className="relative z-10 mt-2 inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] text-emerald-600">
-          🔊 Tap to listen &amp; shadow
-        </span>
-      )}
+      {/* The whole card picks it. */}
+      <button className="absolute inset-0 rounded-2xl" onClick={onSelect} aria-label={choice.en} />
     </motion.div>
   );
 }
 
-// ── MicButton ─────────────────────────────────────────────────────────────────
+function SpeakerIcon({ playing }: { playing: boolean }) {
+  return (
+    <motion.svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round"
+      animate={playing ? { opacity: [1, 0.4, 1] } : { opacity: 1 }} transition={{ duration: 0.8, repeat: playing ? Infinity : 0 }}>
+      <path d="M3.5 7.5h3l4-3v11l-4-3h-3z" fill="currentColor" stroke="none" />
+      <path d="M13.5 7a4 4 0 0 1 0 6M15.5 5a7 7 0 0 1 0 10" />
+    </motion.svg>
+  );
+}
 
-function MicButton({ recording, level, busy, onDown, onUp }: {
-  recording: boolean; level: number; busy: boolean; onDown: () => void; onUp: () => void;
+function MicButton({ label, recording, level, busy, onDown, onUp }: {
+  label: string; recording: boolean; level: number; busy: boolean; onDown: () => void; onUp: () => void;
 }) {
   return (
     <motion.button
-      aria-label="Hold to talk"
+      aria-label={label}
       className="relative grid h-16 w-16 shrink-0 place-items-center rounded-full bg-shu text-white shadow-[0_10px_30px_rgba(200,32,47,0.4)] ring-4 ring-white/70"
       onPointerDown={(e) => { e.preventDefault(); onDown(); }}
       onPointerUp={onUp}

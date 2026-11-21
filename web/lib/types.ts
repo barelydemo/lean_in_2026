@@ -19,7 +19,7 @@ export type Verdict = "none" | "great" | "good" | "understood" | "not_understood
 /** One line of the visual novel plus its stage cues. Omitted cues are defaults. */
 export interface Line {
   id: number;
-  speaker: string; // cast id | "narrator" | "extra" | "you"
+  speaker: string; // cast id | "narrator" | "thought" | "extra" | "you"
   speaker_name?: string;
   expression?: Expression;
   jp?: string;
@@ -32,6 +32,8 @@ export interface Line {
   emote?: Emote;
   ambient?: Ambient;
   sfx?: Sfx;
+  /** People who quietly come into view with this line, not talking yet. */
+  enter?: string[];
 }
 
 export interface Phrase {
@@ -45,15 +47,24 @@ export interface CastMember {
   name: string;
   name_jp: string;
   role: string;
-  age?: number;
   sprite: string;
   color: string;
-  english?: string;
-  looks?: string;
-  personality?: string;
-  speech_style?: string;
-  backstory?: string;
-  helps?: string;
+  /** Turns of patience in a scene before they have to go. */
+  patience: number;
+  /** Extra art in /characters/<id>/<pose>.png: expressions, "talk", gestures. */
+  poses: string[];
+  /** "counter": waist-up art behind a counter, kept whole and centred. */
+  stance?: "standing" | "counter";
+  /** A side character (hostel owner, shopkeeper), not part of the main cast. */
+  minor?: boolean;
+  /** A generic passer-by, cast by the game for unnamed speakers. */
+  townsfolk?: boolean;
+}
+
+/** Something in a scene that won't wait (a departing train). */
+export interface SceneTimer {
+  turns: number;
+  label: string;
 }
 
 export interface Device {
@@ -107,6 +118,9 @@ export interface SceneInfo {
   name_jp: string;
   music?: string;
   ambience?: string;
+  /** Another time of day of this scene id. */
+  variant_of?: string;
+  clock?: string;
 }
 
 export interface Item {
@@ -187,6 +201,7 @@ export interface Place {
   /** Key words this place teaches. */
   pack: Phrase[];
   candos: string[];
+  timer?: SceneTimer | null;
 }
 
 /** A step of the big arc, as the player's own thought. */
@@ -278,11 +293,10 @@ export interface PronunciationAssessment {
   provider: string;
 }
 
-export type SkillBranchId = "social" | "survival" | "commerce" | "daily";
-
 export interface UnlockedSkill {
   node_id: string;
-  branch: SkillBranchId | string;
+  /** "lesson": one node per lesson of the course. */
+  branch: string;
   title: string;
   title_jp: string;
   icon: string;
@@ -295,37 +309,6 @@ export interface UnlockedSkill {
   mastery_level: number;
   uses: number;
   segments_used?: number[];
-}
-
-export interface SkillNode {
-  id: string;
-  branch: SkillBranchId;
-  icon: string;
-  title: string;
-  title_jp: string;
-  formula: string;
-  unlockHint: string;
-  unlockHintJp: string;
-  explanation: string;
-  grammarIds: string[];
-  candoIds: string[];
-  examples: {
-    jp: string;
-    romaji: string;
-    en: string;
-    speakerId: string;
-    speakerName: string;
-  }[];
-}
-
-export interface SkillBranch {
-  id: SkillBranchId;
-  icon: string;
-  title: string;
-  title_jp: string;
-  subtitle: string;
-  accent: string;
-  nodes: SkillNode[];
 }
 
 export interface RunState {
@@ -361,7 +344,40 @@ export interface RunState {
   candos_done: string[];
   unlocked_skills?: Record<string, UnlockedSkill>;
   diary?: DiaryEntry[];
+  /** Patience left per character in this scene. */
+  patience?: Record<string, number>;
+  timer?: { label: string; left: number; total: number } | null;
+  /** Why the scene ran its course: "patience" or "timer". */
+  scene_over?: string | null;
+  /** The player's latest thought about what to try next. */
+  lead?: string;
+  /** People here the player can walk up to. */
+  present?: string[];
+  /** Who the player is talking with right now ("" when nobody). */
+  talking_to?: string;
+  /** The story graph as lived, for the flowchart. */
+  flow?: FlowQuest[];
+  /** The current objective: its step and the ways open (here, and elsewhere as [way, place]). */
+  objective?: { quest: string; step_id: string; step: string; why: string; progress: string; here: string[]; elsewhere: [string, string][] } | null;
   ending: string | null;
+}
+
+export interface FlowBranch {
+  label: string;
+  /** The place's name once visited, else "". */
+  at: string;
+  status: "taken" | "open" | "closed" | "locked";
+}
+export interface FlowStep {
+  title: string;
+  status: "done" | "todo";
+  branches: FlowBranch[];
+}
+export interface FlowQuest {
+  /** "" while locked: not reached yet. */
+  title: string;
+  status: "done" | "active" | "locked";
+  steps: FlowStep[];
 }
 
 export interface Run {
@@ -398,7 +414,14 @@ export interface TurnResult {
   candos_done: CanDo[];
   /** RPG Skill Tree node unlocked or leveled up this turn. */
   skill_unlocked?: UnlockedSkill | null;
-  goal_complete: { place: string; journal: string } | null;
+  /** The player tried to go past the end of the beta demo. */
+  demo_end?: boolean;
+  /** Characters whose patience ran out this turn. */
+  departed?: string[];
+  scene_over?: string | null;
+  goal_complete: { place: string; journal: string; next_steps?: string[] } | null;
+  /** Story-graph steps finished this turn: the scene ends. */
+  steps_done?: string[];
   lesson_complete: { finished: number; next: number } | null;
   ending: string | null;
   state: RunState;
@@ -406,8 +429,13 @@ export interface TurnResult {
 
 export interface TravelResult {
   beats: Line[];
-  arrival_starts_at: number;
+  arrival_starts_at: number | null;
+  /** Leaving after talking finished the scene being left. */
+  goal_complete?: { place: string; journal: string; next_steps?: string[] } | null;
+  moved_to?: string | null;
   state: RunState;
+  /** The beta demo ends at that place for this player. */
+  demo_end?: boolean;
 }
 
 export type InputVia = "voice" | "text" | "choice";
@@ -416,5 +444,58 @@ export type InputVia = "voice" | "text" | "choice";
 export const OWN_AFTER = 3;
 
 export const NARRATOR = "narrator";
+/** Townsfolk ids start with this (server: story::TOWNSFOLK_PREFIX). */
+export const TOWNSFOLK_PREFIX = "folk_";
+/** The player's inner monologue. */
+export const THOUGHT = "thought";
 export const EXTRA = "extra";
 export const PLAYER = "you";
+
+/** A signed-up player. */
+export interface Account {
+  id: string;
+  email: string | null;
+  display_name: string;
+  role: "player" | "admin" | string;
+  /** Plays past the beta demo (admins always do). */
+  full_access?: boolean;
+}
+
+/** Where a player has got to in their latest run. */
+export interface Progress {
+  course: string;
+  place: string;
+  lesson: number;
+  lesson_title: string;
+  lessons_total: number;
+  candos_done: number;
+  candos_total: number;
+  words_known: number;
+  words_owned: number;
+  scenes_cleared: number;
+  places_visited: number;
+  quest: string | null;
+  finished: boolean;
+}
+
+export interface Invite {
+  code: string;
+  full_access: boolean;
+  email: string | null;
+  note: string;
+  max_uses: number;
+  uses: number;
+  created_at: number;
+  expires_at: number;
+  revoked: boolean;
+  link: string;
+}
+
+export interface Member {
+  account: Account;
+  joined: number;
+  last_seen: number;
+  runs: number;
+  turns_today: number;
+  progress: Progress | null;
+}

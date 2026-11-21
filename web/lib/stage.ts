@@ -1,11 +1,14 @@
 import type { Ambient, Expression, Line } from "./types";
-import { EXTRA, NARRATOR, PLAYER } from "./types";
+import { EXTRA, NARRATOR, PLAYER, THOUGHT, TOWNSFOLK_PREFIX } from "./types";
 
 export interface Actor {
   id: string;
   from: "left" | "right";
   /** Where they walk off to when they exit. */
   exitTo?: "left" | "right";
+  /** Talking with the player, up front. Otherwise they're in the background,
+   *  going about their business, until one of them speaks or is approached. */
+  near: boolean;
 }
 
 /** Persistent stage state. Must stay in step with RunState::track_stage on the server. */
@@ -27,7 +30,7 @@ export function initialStage(scene: string, ambient: Ambient): StageState {
 }
 
 export function isCast(speaker: string) {
-  return speaker !== NARRATOR && speaker !== EXTRA && speaker !== PLAYER;
+  return speaker !== NARRATOR && speaker !== THOUGHT && speaker !== EXTRA && speaker !== PLAYER;
 }
 
 export function applyLine(s: StageState, line: Line): StageState {
@@ -57,13 +60,22 @@ export function applyLine(s: StageState, line: Line): StageState {
     case "pan_right": next.pan = -3; break;
   }
 
+  for (const id of line.enter ?? []) {
+    if (!next.actors.some((a) => a.id === id)) next.actors.push({ id, from: next.actors.length % 2 ? "left" : "right", near: false });
+  }
+
   if (isCast(line.speaker)) {
     const id = line.speaker;
     const action = line.action ?? "none";
+    // One passer-by on stage at a time: the next stranger replaces the last.
+    if (id.startsWith(TOWNSFOLK_PREFIX)) next.actors = next.actors.filter((a) => !a.id.startsWith(TOWNSFOLK_PREFIX) || a.id === id);
     if (action === "exit_left" || action === "exit_right") {
       next.actors = next.actors.filter((a) => a.id !== id);
     } else if (!next.actors.some((a) => a.id === id)) {
-      next.actors.push({ id, from: action === "enter_left" ? "left" : "right" });
+      next.actors.push({ id, from: action === "enter_left" ? "left" : "right", near: true });
+    } else if (line.jp) {
+      // Whoever speaks to the player steps up to them.
+      next.actors = next.actors.map((a) => (a.id === id ? { ...a, near: true } : a));
     }
     next.expressions[id] = line.expression ?? "neutral";
     if (action === "turn_away") next.flipped[id] = true;
@@ -82,6 +94,9 @@ export function replay(scene: string, ambient: Ambient, lines: Line[]): StageSta
   s.dark = false;
   return s;
 }
+
+/** Background spots for people not (yet) talking with the player: off to the sides. */
+export const FAR_SLOTS = [80, 20, 66, 34];
 
 /** Horizontal slot (percent of stage width) for each actor. */
 export function slots(count: number): number[] {

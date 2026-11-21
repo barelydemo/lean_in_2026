@@ -75,8 +75,6 @@ macro_rules! string_enum {
 // The default variants serialize as their (lowercase) identifier.
 #[allow(non_camel_case_types)]
 mod cues {
-    #[allow(unused_imports)]
-    use super::*;
 
     string_enum!(Expression {
         Happy => "happy", Worried => "worried", Surprised => "surprised",
@@ -214,6 +212,15 @@ pub use cues::*;
 pub const NARRATOR: &str = "narrator";
 pub const EXTRA: &str = "extra";
 pub const PLAYER: &str = "you";
+/// Townsfolk ids start with this, so the stage can swap one passer-by for the next.
+pub const TOWNSFOLK_PREFIX: &str = "folk_";
+/// The player's own inner monologue: first person, in the learner's language.
+pub const THOUGHT: &str = "thought";
+
+/// Narration and thought: lines nobody says out loud.
+pub fn is_inner(speaker: &str) -> bool {
+    speaker == NARRATOR || speaker == THOUGHT
+}
 
 /// One step of the visual novel: a line of dialogue or narration plus the
 /// stage cues that play with it. Used for authored intros and for
@@ -246,6 +253,10 @@ pub struct Beat {
     pub ambient: Ambient,
     #[serde(default, skip_serializing_if = "Sfx::is_default")]
     pub sfx: Sfx,
+    /// People who quietly come into view with this beat: here, going about
+    /// their own business, not (yet) talking to the player.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub enter: Vec<String>,
 }
 
 impl Beat {
@@ -272,6 +283,7 @@ impl Beat {
             emote: Emote::default(),
             ambient: Ambient::default(),
             sfx: Sfx::default(),
+            enter: Vec::new(),
         }
     }
 }
@@ -290,22 +302,100 @@ pub struct CastMember {
     pub name: String,
     pub name_jp: String,
     pub role: String,
+    #[serde(skip_serializing)]
     pub age: u32,
     pub sprite: String,
     pub color: String,
     /// Default ElevenLabs voice id; overridable per character via env.
     #[serde(skip_serializing)]
     pub voice: String,
+    #[serde(default, skip_serializing)]
     pub english: String,
+    #[serde(skip_serializing)]
     pub looks: String,
+    #[serde(skip_serializing)]
     pub personality: String,
+    #[serde(default, skip_serializing)]
     pub speech_style: String,
+    #[serde(default, skip_serializing)]
     pub backstory: String,
     /// How they get meaning across to someone with no Japanese.
+    #[serde(default, skip_serializing)]
     pub helps: String,
     /// The only English they can produce.
-    #[serde(skip_serializing)]
+    #[serde(default, skip_serializing)]
     pub english_words: Vec<String>,
+    /// Turns of patience in a scene before they have to go: busy people run
+    /// out fast, kind ones wait. Misunderstandings cost extra.
+    #[serde(default = "default_patience")]
+    pub patience: i64,
+    /// Narration (learner's language) when their patience runs out.
+    #[serde(default, skip_serializing)]
+    pub leaves: String,
+    /// What they want from their own day, apart from the player: it colours
+    /// every scene they're in. Director-only.
+    #[serde(default, skip_serializing)]
+    pub motive: String,
+    /// Extra sprite art in /characters/<id>/<pose>.png (see POSES).
+    #[serde(default)]
+    pub poses: Vec<String>,
+    /// "standing" (full figure) or "counter" (waist-up art that includes the
+    /// counter in front of them, sized to sit in the middle of the scene).
+    #[serde(default = "default_stance")]
+    pub stance: String,
+    /// A side character (the hostel owner, a shopkeeper): pictured and voiced
+    /// like the cast, but only appears where a place's situation brings them in.
+    #[serde(default)]
+    pub minor: bool,
+    /// Speaks the player's own language with them (a fellow foreigner) —
+    /// except while anyone listed in `own_language_except_near` is on stage.
+    #[serde(default)]
+    pub speaks_player_language: bool,
+    #[serde(default, skip_serializing)]
+    pub own_language_except_near: Vec<String>,
+    /// A generic passer-by: the face and voice given to an unnamed "extra"
+    /// whose speaker_name matches one of its `aliases`.
+    #[serde(default)]
+    pub townsfolk: bool,
+    /// Other names the story or director may give them as an "extra"
+    /// speaker_name (e.g. もりさん); those lines become theirs.
+    #[serde(default, skip_serializing)]
+    pub aliases: Vec<String>,
+}
+
+/// Pose art a character may have: expressions, a mouth-open talking frame,
+/// and gestures shown while the matching action plays.
+pub const POSES: &[&str] = &[
+    "happy", "sad", "surprised", "worried", "thinking", "annoyed", "embarrassed", "talk", "point", "bow", "wave",
+];
+
+fn default_stance() -> String {
+    "standing".into()
+}
+
+fn default_locked_story() -> String {
+    "Not yet — I should finish what I came here for.".into()
+}
+
+fn default_patience() -> i64 {
+    8
+}
+
+/// Something in the scene that won't wait: a train leaving, a desk closing.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SceneTimer {
+    /// Turns until it happens.
+    pub turns: u32,
+    /// Shown on the HUD, in the learner's language: "The Ueno train leaves".
+    pub label: String,
+    /// Narration when time runs out.
+    #[serde(skip_serializing)]
+    pub expires: String,
+    /// Where the story moves when it happens ("" = stay).
+    #[serde(default, skip_serializing)]
+    pub go_to: String,
+    #[serde(default, skip_serializing)]
+    pub flags: Vec<String>,
 }
 
 /// The player's cracked pocket translator. Battery is the budget for help.
@@ -337,6 +427,13 @@ pub struct Scene {
     pub music: String,
     /// Ambience loop id (`[[audio.ambience]]`).
     pub ambience: String,
+    /// Another time of day of the scene this names (the dorm in the
+    /// morning): the director may cut to it within the same place.
+    #[serde(default)]
+    pub variant_of: String,
+    /// The clock shown while this version is on screen ("" = the place's).
+    #[serde(default)]
+    pub clock: String,
 }
 
 /// One generatable audio asset: the prompt is only used server-side.
@@ -401,6 +498,14 @@ pub struct Course {
     /// `{lesson}` is replaced with the lesson's index and title.
     pub locked_lesson: String,
     pub locked_unknown: String,
+    /// Story flags that only mean "someone told the player where it is":
+    /// being told (or saying you're heading there) is enough to set them.
+    /// Never tickets, beds or anything else that has to be earned.
+    #[serde(default)]
+    pub told_flags: Vec<String>,
+    /// Why the exits of a story scene stay closed until its goal is done.
+    #[serde(default = "default_locked_story")]
+    pub locked_story: String,
     /// Narration for walking somewhere ({label}), arriving ({place}) and a
     /// misunderstood line, in the learner's language.
     #[serde(default = "default_set_off", skip_serializing)]
@@ -411,8 +516,18 @@ pub struct Course {
     pub pause: String,
     #[serde(default = "default_nod", skip_serializing)]
     pub nod: String,
+    /// Narration when something costs more than the player has.
+    #[serde(default = "default_short_of_money", skip_serializing)]
+    pub short_of_money: String,
+    /// When a character's patience runs out and they have no line of their own.
+    #[serde(default = "default_leaves", skip_serializing)]
+    pub leaves: String,
     #[serde(default)]
     pub landing: Landing,
+    /// Where the beta demo ends: testers without full access who try to go
+    /// here get "thanks for playing" instead. Empty: no demo limit.
+    #[serde(default, skip_serializing)]
+    pub demo_end: String,
     /// Setting and backstory for the director, in English.
     #[serde(skip_serializing)]
     pub premise: String,
@@ -423,6 +538,12 @@ fn default_set_off() -> String {
 }
 fn default_arrive() -> String {
     "You arrive at {place}.".into()
+}
+fn default_leaves() -> String {
+    "{name} has to go. A small apologetic bow, and they're gone.".into()
+}
+fn default_short_of_money() -> String {
+    "You count what's in your hand. It isn't enough — not yet.".into()
 }
 fn default_nod() -> String {
     "They nod — they understood you.".into()
@@ -489,6 +610,10 @@ pub struct Lesson {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Exit {
+    /// Stays open even while the place's story scene is unfinished (it's
+    /// right there, like a ticket window along the wall).
+    #[serde(default)]
+    pub open_in_scene: bool,
     pub to: String,
     pub label: String,
     #[serde(default)]
@@ -497,16 +622,79 @@ pub struct Exit {
     pub min_lesson: usize,
 }
 
+/// A line a character speaks when an event happens.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EventLine {
+    pub who: String,
+    pub jp: String,
+    #[serde(default)]
+    pub romaji: String,
+    pub en: String,
+}
+
 /// Something the director may make happen at a place, setting a flag.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PlaceEvent {
     pub flag: String,
     pub when: String,
+    /// Short name for the flowchart and the player's log ("Police top-up").
+    #[serde(default)]
+    pub label: String,
+    /// What it costs (a ticket, a bed). The game charges it and refuses the
+    /// event if the player can't pay, whatever the director wrote.
+    #[serde(default)]
+    pub cost: i64,
+    /// Money the player receives (a loan, wages).
+    #[serde(default)]
+    pub gives_yen: i64,
+    /// Only tops the player up to this much: they receive the difference,
+    /// at most `gives_yen` (a stranger covering the shortfall).
+    #[serde(default)]
+    pub tops_up_to: i64,
+    #[serde(default)]
+    pub gives_items: Vec<String>,
+    #[serde(default)]
+    pub takes_items: Vec<String>,
+    /// Other facts that become true with it (a token paid for by someone else is still a ticket).
+    #[serde(default)]
+    pub sets_flags: Vec<String>,
+    #[serde(default)]
+    pub requires_flags: Vec<String>,
+    #[serde(default)]
+    pub requires_items: Vec<String>,
+    /// The player must already hold at least this much.
+    #[serde(default)]
+    pub min_yen: i64,
+    /// The player only knows this price once this fact is true (the fare,
+    /// once someone tells them): until then nobody assumes they know it.
+    #[serde(default)]
+    pub price_known_by: String,
+    /// What the people here must make clear in the reply where this happens
+    /// (why the player needs Tokyo, what the money is for, where to go).
+    #[serde(default)]
+    pub must_convey: Vec<String>,
+    /// Happens as soon as a character says any of these (the fare, "1,270").
+    #[serde(default)]
+    pub heard: Vec<String>,
+    /// Lines the game itself speaks when this happens, so what it means
+    /// (the loan, what to do next) is always said, whatever the director wrote.
+    #[serde(default)]
+    pub says: Vec<EventLine>,
+    /// What the player says to make it happen; offered first whenever it can.
+    #[serde(default)]
+    pub ask: Option<Phrase>,
+    /// Can happen again on another visit (a shift, a purchase); otherwise once.
+    #[serde(default)]
+    pub repeatable: bool,
 }
 
 /// A location in the open world.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Place {
+    /// Nobody here appears on stage unless they're in the cast: strangers
+    /// are voices (sleepers behind bunk curtains).
+    #[serde(default)]
+    pub unseen_extras: bool,
     pub id: String,
     pub name: String,
     pub name_jp: String,
@@ -523,6 +711,7 @@ pub struct Place {
     pub act: u32,
     pub cast: Vec<String>,
     /// Situational context and atmosphere for this place.
+    #[serde(skip_serializing)]
     pub situation: String,
     /// The player's own thought about what to do here, in plain English.
     pub goal: String,
@@ -532,12 +721,7 @@ pub struct Place {
     pub goal_flags: Vec<String>,
     #[serde(default, skip_serializing)]
     pub on_enter_flags: Vec<String>,
-    #[serde(default, skip_serializing)]
-    pub items_allowed: Vec<String>,
-    #[serde(default, skip_serializing)]
-    pub max_yen_gain: i64,
-    #[serde(default, skip_serializing)]
-    pub max_yen_spend: i64,
+    /// Given by the game when the place's goal is done.
     #[serde(default, skip_serializing)]
     pub reward_yen: i64,
     #[serde(default, skip_serializing)]
@@ -545,6 +729,11 @@ pub struct Place {
     /// Dictionary battery restored when the goal here is achieved.
     #[serde(default, skip_serializing)]
     pub recharge: i64,
+    #[serde(default)]
+    pub timer: Option<SceneTimer>,
+    /// Nobody here is in a hurry (finales, quiet personal scenes): no patience.
+    #[serde(default, skip_serializing)]
+    pub unhurried: bool,
     #[serde(default, skip_serializing)]
     pub events: Vec<PlaceEvent>,
     #[serde(default)]
@@ -570,6 +759,35 @@ pub struct Quest {
     pub title: String,
     pub title_jp: String,
     pub flags_any: Vec<String>,
+    /// The quest's story graph: the steps toward it, each with the different
+    /// ways it can be done. Finishing a step closes its other ways.
+    #[serde(default)]
+    pub steps: Vec<QuestStep>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QuestStep {
+    pub id: String,
+    pub title: String,
+    /// Why this matters, in the player's words ("The fare is ¥1,270; Officer
+    /// Sato's loan covers ¥1,000").
+    #[serde(default)]
+    pub why: String,
+    /// Done once any of these facts is true…
+    #[serde(default)]
+    pub done_any: Vec<String>,
+    /// …or the player holds at least this much money.
+    #[serde(default)]
+    pub done_min_yen: i64,
+    pub branches: Vec<Branch>,
+}
+
+/// One way to do a step: a story event (or goal fact) at a place.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Branch {
+    pub flag: String,
+    pub at: String,
+    pub label: String,
 }
 
 /// The world acting on its own once conditions are met.
@@ -614,7 +832,29 @@ impl Story {
     pub fn load(path: &Path) -> anyhow::Result<Self> {
         let raw = std::fs::read_to_string(path)
             .with_context(|| format!("reading story file {}", path.display()))?;
-        let story: Story = toml::from_str(&raw).context("parsing story file")?;
+        let mut story: Story = toml::from_str(&raw).context("parsing story file")?;
+        // Lines written as a named "extra" belong to that side character.
+        let named: Vec<(String, String)> = story.minor_names();
+        let resolve = |b: &mut Beat| {
+            if b.speaker == EXTRA
+                && let Some((_, id)) = named.iter().find(|(n, _)| *n == b.speaker_name.trim())
+            {
+                b.speaker = id.clone();
+                b.speaker_name.clear();
+            }
+        };
+        let folk = story.clone_townsfolk();
+        let face = |b: &mut Beat| {
+            if b.speaker == EXTRA
+                && let Some(id) = pick_townsfolk(&folk, &b.speaker_name)
+            {
+                b.speaker = id;
+            }
+        };
+        story.places.iter_mut().filter(|p| !p.unseen_extras).flat_map(|p| p.intro.iter_mut()).for_each(face);
+        story.endings.iter_mut().flat_map(|e| e.beats.iter_mut()).for_each(face);
+        story.places.iter_mut().flat_map(|p| p.intro.iter_mut()).for_each(resolve);
+        story.endings.iter_mut().flat_map(|e| e.beats.iter_mut()).for_each(resolve);
         story.validate()?;
         Ok(story)
     }
@@ -624,6 +864,43 @@ impl Story {
         let scenes: HashSet<&str> = self.scenes.iter().map(|s| s.id.as_str()).collect();
         let items: HashSet<&str> = self.items.iter().map(|i| i.id.as_str()).collect();
         let places: HashSet<&str> = self.places.iter().map(|p| p.id.as_str()).collect();
+
+        // Events and the story graph only name things that exist.
+        let flags: HashSet<&str> = self.all_flags().into_iter().collect();
+        for p in &self.places {
+            for e in &p.events {
+                for i in e.gives_items.iter().chain(&e.takes_items).chain(&e.requires_items) {
+                    if !items.contains(i.as_str()) {
+                        bail!("place {}: event {} names unknown item {i}", p.id, e.flag);
+                    }
+                }
+                for f in e.requires_flags.iter().chain(&e.sets_flags) {
+                    if !flags.contains(f.as_str()) {
+                        bail!("place {}: event {} names unknown flag {f}", p.id, e.flag);
+                    }
+                }
+                for l in &e.says {
+                    if !self.cast.iter().any(|c| c.id == l.who) {
+                        bail!("place {}: event {} has a line for unknown character {}", p.id, e.flag, l.who);
+                    }
+                }
+            }
+        }
+        for q in &self.quests {
+            for st in &q.steps {
+                for f in &st.done_any {
+                    if !flags.contains(f.as_str()) {
+                        bail!("quest {} step {}: unknown flag {f}", q.id, st.id);
+                    }
+                }
+                for b in &st.branches {
+                    let Some(p) = self.place(&b.at) else { bail!("quest {} step {}: unknown place {}", q.id, st.id, b.at) };
+                    if !p.events.iter().any(|e| e.flag == b.flag) && !p.goal_flags.contains(&b.flag) && !p.on_enter_flags.contains(&b.flag) {
+                        bail!("quest {} step {}: {} can't happen at {}", q.id, st.id, b.flag, b.at);
+                    }
+                }
+            }
+        }
 
         let music: HashSet<&str> = self.audio.music.iter().map(|a| a.id.as_str()).collect();
         let ambience: HashSet<&str> = self.audio.ambience.iter().map(|a| a.id.as_str()).collect();
@@ -681,6 +958,27 @@ impl Story {
             Ok(())
         };
 
+        for c in &self.cast {
+            if !["standing", "counter"].contains(&c.stance.as_str()) {
+                bail!("cast {}: stance must be standing or counter", c.id);
+            }
+            if let Some(bad) = c.poses.iter().find(|p| !POSES.contains(&p.as_str())) {
+                bail!("cast {}: unknown pose {bad} (known: {})", c.id, POSES.join(", "));
+            }
+        }
+        for p in &self.places {
+            if let Some(t) = &p.timer {
+                if t.turns == 0 {
+                    bail!("place {}: timer needs at least one turn", p.id);
+                }
+                if !t.go_to.is_empty() && !places.contains(t.go_to.as_str()) {
+                    bail!("place {}: timer goes to unknown place {}", p.id, t.go_to);
+                }
+            }
+        }
+        if !self.course.demo_end.is_empty() && !places.contains(self.course.demo_end.as_str()) {
+            bail!("course demo_end {} is not a place", self.course.demo_end);
+        }
         if !places.contains(self.start_place.as_str()) {
             bail!("start_place {} is not a place", self.start_place);
         }
@@ -703,7 +1001,7 @@ impl Story {
                     bail!(ctx(&format!("unknown cast member {c}")));
                 }
             }
-            for i in p.items_allowed.iter().chain(&p.reward_items) {
+            for i in &p.reward_items {
                 if !items.contains(i.as_str()) {
                     bail!(ctx(&format!("unknown item {i}")));
                 }
@@ -753,13 +1051,57 @@ impl Story {
         cast: &HashSet<&str>,
         scenes: &HashSet<&str>,
     ) -> Result<(), String> {
-        if b.speaker != NARRATOR && b.speaker != EXTRA && !cast.contains(b.speaker.as_str()) {
+        if !is_inner(&b.speaker) && b.speaker != EXTRA && !cast.contains(b.speaker.as_str()) {
             return Err(format!("unknown speaker {}", b.speaker));
+        }
+        if let Some(who) = b.enter.iter().find(|w| !cast.contains(w.as_str())) {
+            return Err(format!("unknown character {who} entering"));
         }
         if !b.scene.is_empty() && !scenes.contains(b.scene.as_str()) {
             return Err(format!("unknown scene {}", b.scene));
         }
         Ok(())
+    }
+
+    /// Every name a side character answers to (as an "extra" speaker_name), with their id.
+    pub fn minor_names(&self) -> Vec<(String, String)> {
+        self.cast
+            .iter()
+            .filter(|c| c.minor)
+            .flat_map(|c| [c.name_jp.clone(), c.name.clone()].into_iter().chain(c.aliases.iter().cloned()).map(move |n| (n.trim().to_string(), c.id.clone())))
+            .filter(|(n, _)| !n.is_empty())
+            .collect()
+    }
+
+    fn clone_townsfolk(&self) -> Vec<(String, Vec<String>)> {
+        self.cast.iter().filter(|c| c.townsfolk).map(|c| (c.id.clone(), c.aliases.clone())).collect()
+    }
+
+    /// The passer-by who plays an unnamed speaker, if they should be seen.
+    pub fn townsfolk_for(&self, speaker_name: &str) -> Option<String> {
+        pick_townsfolk(&self.clone_townsfolk(), speaker_name)
+    }
+
+    /// Any passer-by, picked steadily from `seed` (the line itself), for a
+    /// stranger the director didn't name.
+    pub fn any_townsfolk(&self, seed: &str) -> Option<String> {
+        let folk = self.clone_townsfolk();
+        if folk.is_empty() {
+            return None;
+        }
+        let hash = seed.bytes().fold(0usize, |h, b| h.wrapping_mul(31).wrapping_add(b as usize));
+        Some(folk[hash % folk.len()].0.clone())
+    }
+
+    /// The versions of a place's scene at other times of day.
+    pub fn scene_versions(&self, scene: &str) -> Vec<&Scene> {
+        self.scenes.iter().filter(|s| s.variant_of == scene).collect()
+    }
+
+    /// The side character an "extra" speaker_name refers to, if any.
+    pub fn minor_by_name(&self, name: &str) -> Option<&CastMember> {
+        let name = name.trim();
+        self.cast.iter().find(|c| c.minor && (c.name_jp == name || c.name == name || c.aliases.iter().any(|a| a == name)))
     }
 
     pub fn cast_member(&self, id: &str) -> Option<&CastMember> {
@@ -788,7 +1130,8 @@ impl Story {
                     .iter()
                     .chain(&p.on_enter_flags)
                     .map(String::as_str)
-                    .chain(p.events.iter().map(|e| e.flag.as_str()))
+                    .chain(p.events.iter().flat_map(|e| std::iter::once(e.flag.as_str()).chain(e.sets_flags.iter().map(String::as_str))))
+                    .chain(p.timer.iter().flat_map(|t| t.flags.iter().map(String::as_str)))
             })
             .chain(self.triggers.iter().map(|t| t.flag.as_str()))
             .collect();
@@ -796,6 +1139,24 @@ impl Story {
         v.dedup();
         v
     }
+}
+
+/// Voices that come from nowhere: an announcement, a radio, a cry in the dark.
+const UNSEEN: &[&str] = &["???", "アナウンス", "announce", "放送", "voice", "声", "radio", "ラジオ", "テレビ", "tv", "speaker", "crowd", "群衆", "みんな", "everyone"];
+
+/// Matches an unnamed speaker to a townsfolk figure by the first alias found
+/// in their name (townsfolk are listed most specific first); anyone else gets
+/// a stable pick from the name, so the same stranger keeps the same face.
+fn pick_townsfolk(folk: &[(String, Vec<String>)], speaker_name: &str) -> Option<String> {
+    let name = speaker_name.trim().to_lowercase();
+    if folk.is_empty() || name.is_empty() || UNSEEN.iter().any(|u| name.contains(&u.to_lowercase())) {
+        return None;
+    }
+    if let Some((id, _)) = folk.iter().find(|(_, aliases)| aliases.iter().any(|a| name.contains(&a.to_lowercase()))) {
+        return Some(id.clone());
+    }
+    let hash = name.bytes().fold(0usize, |h, b| h.wrapping_mul(31).wrapping_add(b as usize));
+    Some(folk[hash % folk.len()].0.clone())
 }
 
 #[cfg(test)]

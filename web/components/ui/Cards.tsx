@@ -1,9 +1,9 @@
 "use client";
 
 import { motion } from "motion/react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import type { GrammarPoint, Lesson, Place } from "@/lib/types";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, type Strings } from "@/lib/i18n";
 import type { Difficulty } from "./Settings";
 
 /** The closing word, in the language being learned. */
@@ -47,66 +47,6 @@ function Ghost({ text }: { text: string }) {
   );
 }
 
-// ── Turn Budget Picker ────────────────────────────────────────────────────────
-
-const BUDGETS = [5, 10, 15, 20] as const;
-export type TurnBudget = (typeof BUDGETS)[number];
-
-/**
- * Shown after ArrivalCard. Lets the player choose how many turns they
- * want this scene to last before the scorecard appears.
- */
-export function TurnBudgetCard({ place, onDone }: {
-  place: Place;
-  onDone: (budget: TurnBudget) => void;
-}) {
-  const [selected, setSelected] = useState<TurnBudget>(10);
-
-  return (
-    <motion.div
-      className="absolute inset-0 z-40 flex cursor-default items-center justify-center overflow-hidden bg-cream px-6"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0, transition: { duration: 0.5 } }}
-    >
-      <Ghost text={place.name_jp} />
-      <div className="relative w-full max-w-sm text-center text-ink">
-        <p className="mb-1 text-xs uppercase tracking-[0.25em] text-muted">{place.name}</p>
-        <h2 className="tight text-3xl font-medium sm:text-4xl">How long do you<br />want this scene?</h2>
-        <p className="mt-3 text-sm text-muted">Choose your interaction budget. The scene scorecard appears when you hit the limit.</p>
-
-        <div className="mt-8 grid grid-cols-4 gap-3">
-          {BUDGETS.map((b) => (
-            <button
-              key={b}
-              onClick={() => setSelected(b)}
-              className={`rounded-2xl py-5 text-xl font-semibold transition
-                ${selected === b
-                  ? "bg-ink text-cream shadow-lg scale-105"
-                  : "bg-cream-deep text-ink/70 hover:bg-cream-deep hover:text-ink hover:scale-102"
-                }`}
-            >
-              {b}
-              <span className="mt-1 block text-[10px] font-normal uppercase tracking-widest opacity-60">turns</span>
-            </button>
-          ))}
-        </div>
-
-        <motion.button
-          className="mt-8 w-full rounded-full bg-ink py-3 text-[15px] font-medium text-cream"
-          whileTap={{ scale: 0.97 }}
-          onClick={() => onDone(selected)}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          Start Scene →
-        </motion.button>
-      </div>
-    </motion.div>
-  );
-}
-
 // ── Scene Score Card ──────────────────────────────────────────────────────────
 
 export interface SceneStats {
@@ -127,12 +67,15 @@ export interface SceneStats {
 
 export type Rank = "S" | "A" | "B" | "C";
 
-export const RANK_STYLES: Record<Rank, { bg: string; text: string; label: string }> = {
-  S: { bg: "bg-amber-400",   text: "text-amber-900",  label: "Outstanding!" },
-  A: { bg: "bg-emerald-500", text: "text-emerald-50",  label: "Excellent!" },
-  B: { bg: "bg-sky-500",     text: "text-sky-50",      label: "Good Work!" },
-  C: { bg: "bg-zinc-400",    text: "text-zinc-50",     label: "Keep Practicing" },
+export const RANK_STYLES: Record<Rank, { bg: string; text: string }> = {
+  S: { bg: "bg-shu", text: "text-white" },
+  A: { bg: "bg-ink", text: "text-cream" },
+  B: { bg: "bg-sky", text: "text-white" },
+  C: { bg: "bg-cream-deep", text: "text-ink/60" },
 };
+
+/** Score parts, keyed stably so saved diaries keep working; labels come from i18n. */
+export type Metric = "pronunciation" | "independence" | "grammar";
 
 function verdictScore(v: string): number {
   return { great: 100, good: 80, understood: 55, not_understood: 20, english: 10, none: 0 }[v] ?? 0;
@@ -157,28 +100,26 @@ export function computeScore(stats: SceneStats): { rank: Rank; scores: Record<st
   let scores: Record<string, number>;
 
   if (stats.difficulty === "beginner") {
-    // Easy: pronunciation only
-    scores = { "🗣️ Pronunciation clarity": pronunciationScore };
+    // Beginner: pronunciation only
+    scores = { pronunciation: pronunciationScore };
     total = pronunciationScore;
   } else if (stats.difficulty === "intermediate") {
     // Intermediate: pronunciation + hints used
-    scores = {
-      "🗣️ Pronunciation": pronunciationScore,
-      "🧠 Independence": independenceScore,
-    };
+    scores = { pronunciation: pronunciationScore, independence: independenceScore };
     total = Math.round(pronunciationScore * 0.5 + independenceScore * 0.5);
   } else {
     // Advanced: grammar + phrases + pronunciation
-    scores = {
-      "🎯 Grammar & Phrasing": grammarScore,
-      "🗣️ Pronunciation": pronunciationScore,
-      "🧠 Independence": independenceScore,
-    };
+    scores = { grammar: grammarScore, pronunciation: pronunciationScore, independence: independenceScore };
     total = Math.round(grammarScore * 0.5 + pronunciationScore * 0.3 + independenceScore * 0.2);
   }
 
   const rank: Rank = total >= 90 ? "S" : total >= 75 ? "A" : total >= 55 ? "B" : "C";
   return { rank, scores, total };
+}
+
+/** A metric's label; diaries saved before metrics had keys show as stored. */
+export function metricLabel(t: Strings, key: string): string {
+  return (t.metric as Record<string, string>)[key] ?? key;
 }
 
 function ScoreBar({ label, value, delay }: { label: string; value: number; delay: number }) {
@@ -205,6 +146,7 @@ export function ScoreCard({ stats, onDone, onStayAndDiary }: {
   onDone: () => void;
   onStayAndDiary: () => void;
 }) {
+  const { t } = useI18n();
   const { rank, scores, total } = computeScore(stats);
   const style = RANK_STYLES[rank];
   const defaultBatteryReward = rank === "S" ? 30 : rank === "A" ? 20 : rank === "B" ? 10 : 0;
@@ -223,7 +165,7 @@ export function ScoreCard({ stats, onDone, onStayAndDiary }: {
         {/* Header */}
         <div className="mb-6 text-center">
           <p className="mb-2 text-xs uppercase tracking-[0.25em] text-muted">
-            {stats.placeName} · Scene Complete
+            {stats.placeName} · {t.sceneComplete}
           </p>
 
           {/* Rank badge */}
@@ -240,13 +182,13 @@ export function ScoreCard({ stats, onDone, onStayAndDiary }: {
             className="tight text-lg font-medium text-ink"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
           >
-            {style.label}
+            {t.rank[rank]}
           </motion.p>
           <motion.p
             className="text-sm text-muted"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}
           >
-            {stats.totalTurns} turns · {stats.voiceTurns} spoken aloud
+            {t.turnsSpoken(stats.totalTurns, stats.voiceTurns)}
           </motion.p>
         </div>
 
@@ -256,35 +198,27 @@ export function ScoreCard({ stats, onDone, onStayAndDiary }: {
           initial={{ y: 12, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 }}
         >
           {Object.entries(scores).map(([label, val], i) => (
-            <ScoreBar key={label} label={label} value={val} delay={0.5 + i * 0.15} />
+            <ScoreBar key={label} label={metricLabel(t, label)} value={val} delay={0.5 + i * 0.15} />
           ))}
 
           {/* Divider */}
           <div className="border-t border-hairline pt-3">
             <div className="flex justify-between font-medium">
-              <span className="text-sm">Total Score</span>
+              <span className="text-sm">{t.totalScore}</span>
               <span className="text-sm">{total} / 100</span>
             </div>
           </div>
 
           {/* Rewards */}
           <div className="border-t border-hairline pt-3">
-            <p className="mb-1.5 text-[11px] uppercase tracking-widest text-muted">Scene Rewards</p>
+            <p className="mb-1.5 text-[11px] uppercase tracking-widest text-muted">{t.rewards}</p>
             {batteryGain > 0 || rank === "S" ? (
-              <div className="flex flex-wrap gap-2 text-xs font-medium">
-                {batteryGain > 0 && (
-                  <span className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-800">
-                    🔋 Translator Battery +{batteryGain}%
-                  </span>
-                )}
-                {rank === "S" && (
-                  <span className="rounded-full bg-amber-100 px-3 py-1 text-amber-900">
-                    🤝 Character Trust +1
-                  </span>
-                )}
+              <div className="flex flex-wrap gap-1.5 text-xs font-medium">
+                {batteryGain > 0 && <span className="rounded-full bg-cream-deep px-3 py-1">{t.rewardBattery(batteryGain)}</span>}
+                {rank === "S" && <span className="rounded-full bg-cream-deep px-3 py-1">{t.rewardTrust}</span>}
               </div>
             ) : (
-              <p className="text-xs text-muted">+0% Battery — Try again in the next scene!</p>
+              <p className="text-xs text-muted">{t.noReward}</p>
             )}
           </div>
         </motion.div>
@@ -295,8 +229,8 @@ export function ScoreCard({ stats, onDone, onStayAndDiary }: {
             className="mt-4 rounded-2xl border border-hairline px-5 py-4"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }}
           >
-            <p className="mb-1 text-[11px] uppercase tracking-widest text-muted">Travel Journal</p>
-            <p className="tight text-base italic text-ink/80">"{stats.journal}"</p>
+            <p className="mb-1 text-[11px] uppercase tracking-widest text-muted">{t.journal}</p>
+            <p className="tight text-base italic text-ink/80">“{stats.journal}”</p>
           </motion.div>
         )}
 
@@ -310,14 +244,14 @@ export function ScoreCard({ stats, onDone, onStayAndDiary }: {
             whileTap={{ scale: 0.97 }}
             onClick={onDone}
           >
-            Continue to Next Scene →
+            {t.nextScene}
           </motion.button>
           <motion.button
             className="w-full rounded-full border border-hairline bg-cream-deep py-3 text-[15px] font-medium text-ink transition hover:bg-ink/10"
             whileTap={{ scale: 0.97 }}
             onClick={onStayAndDiary}
           >
-            Open Diary 📖
+            {t.openDiary}
           </motion.button>
         </motion.div>
       </div>
@@ -409,6 +343,35 @@ export function ArrivalCard({ place, onDone }: { place: Place; onDone: () => voi
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }}>
           1998 · {place.clock}
         </motion.p>
+      </div>
+    </motion.div>
+  );
+}
+
+// ── DemoEndCard ───────────────────────────────────────────────────────────────
+
+/** The end of the beta demo: thanks, and back to the title. */
+export function DemoEndCard({ name, onDone }: { name: string; onDone: () => void }) {
+  const { t } = useI18n();
+  return (
+    <motion.div className="absolute inset-0 z-40 grid place-items-center overflow-hidden bg-cream px-6 text-ink"
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, transition: { duration: 0.6 } }}>
+      <Ghost text={t.demo.ghost} />
+      <div className="relative max-w-lg text-center">
+        <motion.p className="text-[11px] uppercase tracking-[0.25em] text-muted"
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>{t.demo.kicker}</motion.p>
+        <motion.h2 className="tight mt-3 text-5xl font-medium sm:text-6xl"
+          initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35, duration: 0.9 }}>
+          {t.demo.title}
+        </motion.h2>
+        <motion.p className="tight mt-4 text-lg leading-relaxed text-ink/75"
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.9 }}>
+          {t.demo.body(name)}
+        </motion.p>
+        <motion.button onClick={onDone} className="mt-8 rounded-full bg-ink px-6 py-3 text-[15px] font-medium text-cream transition hover:bg-ink/85"
+          initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.3 }} whileTap={{ scale: 0.97 }}>
+          {t.demo.back}
+        </motion.button>
       </div>
     </motion.div>
   );

@@ -27,6 +27,13 @@ pub async fn connect(url: &str) -> anyhow::Result<SqlitePool> {
     Ok(pool)
 }
 
+/// A consistent copy of the live database (safe while the server runs).
+pub async fn backup(pool: &SqlitePool, path: &str) -> anyhow::Result<()> {
+    anyhow::ensure!(!std::path::Path::new(path).exists(), "{path} already exists");
+    sqlx::query("VACUUM INTO ?1").bind(path).execute(pool).await?;
+    Ok(())
+}
+
 // ── players ────────────────────────────────────────────────────────────────
 
 pub async fn create_player(pool: &SqlitePool, id: &str, token_hash: &str) -> sqlx::Result<()> {
@@ -45,6 +52,213 @@ pub async fn player_by_token_hash(pool: &SqlitePool, token_hash: &str) -> sqlx::
         .fetch_optional(pool)
         .await?;
     Ok(row.map(|r| r.get("id")))
+}
+
+// ── accounts ───────────────────────────────────────────────────────────────
+
+/// A signed-up player (guests have no email).
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct Account {
+    pub id: String,
+    pub email: Option<String>,
+    pub display_name: String,
+    pub role: String,
+    /// The whole game, not just the beta demo (admins always have it).
+    pub full_access: bool,
+}
+
+impl Account {
+    pub fn plays_full_game(&self) -> bool {
+        self.full_access || self.role == "admin"
+    }
+}
+
+fn account(r: &sqlx::sqlite::SqliteRow) -> Account {
+    Account {
+        id: r.get("id"),
+        email: r.get("email"),
+        display_name: r.get("display_name"),
+        role: r.get("role"),
+        full_access: r.get::<i64, _>("full_access") != 0,
+    }
+}
+
+pub async fn account_by_id(pool: &SqlitePool, id: &str) -> sqlx::Result<Option<Account>> {
+    let row = sqlx::query("SELECT id, email, display_name, role, full_access FROM players WHERE id = ?1").bind(id).fetch_optional(pool).await?;
+    Ok(row.as_ref().map(account))
+}
+
+/// The account and its password hash, for signing in.
+pub async fn account_by_email(pool: &SqlitePool, email: &str) -> sqlx::Result<Option<(Account, Option<String>)>> {
+    let row = sqlx::query("SELECT id, email, display_name, role, full_access, password_hash FROM players WHERE email = ?1")
+        .bind(email)
+        .fetch_optional(pool)
+        .await?;
+    Ok(row.map(|r| (account(&r), r.get("password_hash"))))
+}
+
+/// Gives a player (a fresh one, or a guest signing up) an email and password.
+pub async fn set_credentials(
+    pool: &SqlitePool,
+    id: &str,
+    email: &str,
+    password_hash: &str,
+    name: &str,
+    role: &str,
+    invite: Option<&str>,
+) -> sqlx::Result<()> {
+    sqlx::query("UPDATE players SET email = ?2, password_hash = ?3, display_name = ?4, role = ?5, invite_code = ?6 WHERE id = ?1")
+        .bind(id)
+        .bind(email)
+        .bind(password_hash)
+        .bind(name)
+        .bind(role)
+        .bind(invite)
+        .execute(pool)
+        .await?;
+    Ok(())
+}
+
+pub async fn create_session(pool: &SqlitePool, token_hash: &str, player_id: &str, ttl_secs: i64) -> sqlx::Result<()> {
+    let t = now();
+    sqlx::query("INSERT INTO sessions (token_hash, player_id, created_at, expires_at) VALUES (?1, ?2, ?3, ?4)")
+        .bind(token_hash)
+        .bind(player_id)
+        .bind(t)
+        .bind(t + ttl_secs)
+        .execute(pool)
+        .await?;
+    Ok(())
+}
+
+pub async fn delete_session(pool: &SqlitePool, token_hash: &str) -> sqlx::Result<()> {
+    sqlx::query("DELETE FROM sessions WHERE token_hash = ?1").bind(token_hash).execute(pool).await?;
+    Ok(())
+}
+
+/// The player behind a session or guest token, marking them as seen.
+pub async fn player_by_session(pool: &SqlitePool, token_hash: &str) -> sqlx::Result<Option<String>> {
+    let row = sqlx::query("SELECT player_id FROM sessions WHERE token_hash = ?1 AND expires_at > ?2")
+        .bind(token_hash)
+        .bind(now())
+        .fetch_optional(pool)
+        .await?;
+    let id: Option<String> = match row {
+        Some(r) => Some(r.get("player_id")),
+        // Guests (and players from before accounts) still hold a player token.
+        None => player_by_token_hash(pool, token_hash).await?,
+    };
+    if let Some(id) = &id {
+        sqlx::query("UPDATE players SET last_seen = ?2 WHERE id = ?1 AND last_seen < ?2 - 60").bind(id).bind(now()).execute(pool).await?;
+    }
+    Ok(id)
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct Invite {
+    pub code: String,
+    /// Whoever signs up with it gets the whole game, not just the demo.
+    pub full_access: bool,
+    pub email: Option<String>,
+    pub note: String,
+    pub max_uses: i64,
+    pub uses: i64,
+    pub created_at: i64,
+    pub expires_at: i64,
+    pub revoked: bool,
+}
+
+pub async fn create_invite(pool: &SqlitePool, inv: &Invite, created_by: &str) -> sqlx::Result<()> {
+    sqlx::query("INSERT INTO invites (code, email, note, max_uses, created_by, created_at, expires_at, full_access) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)")
+        .bind(&inv.code)
+        .bind(&inv.email)
+        .bind(&inv.note)
+        .bind(inv.max_uses)
+        .bind(created_by)
+        .bind(inv.created_at)
+        .bind(inv.expires_at)
+        .bind(inv.full_access)
+        .execute(pool)
+        .await?;
+    Ok(())
+}
+
+pub async fn list_invites(pool: &SqlitePool) -> sqlx::Result<Vec<Invite>> {
+    let rows = sqlx::query("SELECT code, email, note, max_uses, uses, created_at, expires_at, revoked, full_access FROM invites ORDER BY created_at DESC")
+        .fetch_all(pool)
+        .await?;
+    Ok(rows
+        .iter()
+        .map(|r| Invite {
+            code: r.get("code"),
+            full_access: r.get::<i64, _>("full_access") != 0,
+            email: r.get("email"),
+            note: r.get("note"),
+            max_uses: r.get("max_uses"),
+            uses: r.get("uses"),
+            created_at: r.get("created_at"),
+            expires_at: r.get("expires_at"),
+            revoked: r.get::<i64, _>("revoked") != 0,
+        })
+        .collect())
+}
+
+pub async fn revoke_invite(pool: &SqlitePool, code: &str) -> sqlx::Result<bool> {
+    Ok(sqlx::query("UPDATE invites SET revoked = 1 WHERE code = ?1").bind(code).execute(pool).await?.rows_affected() > 0)
+}
+
+/// Uses one seat of an invite if it's live and (when tied to an email) for
+/// this email. Returns whether it grants full access, or None if refused.
+pub async fn claim_invite(pool: &SqlitePool, code: &str, email: &str) -> sqlx::Result<Option<bool>> {
+    let res = sqlx::query(
+        "UPDATE invites SET uses = uses + 1
+         WHERE code = ?1 AND revoked = 0 AND uses < max_uses AND expires_at > ?2
+           AND (email IS NULL OR lower(email) = lower(?3))",
+    )
+    .bind(code)
+    .bind(now())
+    .bind(email)
+    .execute(pool)
+    .await?;
+    if res.rows_affected() != 1 {
+        return Ok(None);
+    }
+    let full: i64 = sqlx::query_scalar("SELECT full_access FROM invites WHERE code = ?1").bind(code).fetch_one(pool).await?;
+    Ok(Some(full != 0))
+}
+
+pub async fn set_full_access(pool: &SqlitePool, id: &str, full: bool) -> sqlx::Result<bool> {
+    let res = sqlx::query("UPDATE players SET full_access = ?2 WHERE id = ?1 AND email IS NOT NULL").bind(id).bind(full).execute(pool).await?;
+    Ok(res.rows_affected() == 1)
+}
+
+/// The state of a player's most recently played run, in any course.
+pub async fn latest_run_state(pool: &SqlitePool, player_id: &str) -> sqlx::Result<Option<String>> {
+    let row = sqlx::query("SELECT state FROM runs WHERE player_id = ?1 ORDER BY updated_at DESC LIMIT 1")
+        .bind(player_id)
+        .fetch_optional(pool)
+        .await?;
+    Ok(row.map(|r| r.get("state")))
+}
+
+/// Members for the admin panel, each with their latest run's state.
+pub async fn members(pool: &SqlitePool) -> sqlx::Result<Vec<(Account, i64, i64, Option<String>, i64, i64)>> {
+    let rows = sqlx::query(
+        "SELECT p.id, p.email, p.display_name, p.role, p.full_access, p.created_at, p.last_seen, p.turns_day, p.turns_today,
+                (SELECT state FROM runs r WHERE r.player_id = p.id ORDER BY updated_at DESC LIMIT 1) AS state,
+                (SELECT COUNT(*) FROM runs r WHERE r.player_id = p.id) AS runs
+         FROM players p WHERE p.email IS NOT NULL ORDER BY p.last_seen DESC",
+    )
+    .fetch_all(pool)
+    .await?;
+    let today = today();
+    Ok(rows
+        .iter()
+        .map(|r| {
+            let turns_today = if r.get::<String, _>("turns_day") == today { r.get::<i64, _>("turns_today") } else { 0 };
+            (account(r), r.get("created_at"), r.get("last_seen"), r.get("state"), r.get("runs"), turns_today)
+        })
+        .collect())
 }
 
 /// Atomically counts one turn against the player's daily quota.

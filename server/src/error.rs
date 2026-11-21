@@ -13,6 +13,8 @@ pub enum AppError {
     BadRequest(String),
     #[error("{0}")]
     Conflict(&'static str),
+    #[error("{0}")]
+    Forbidden(&'static str),
     #[error("slow down a little — too many requests")]
     RateLimited,
     #[error("{0}")]
@@ -42,6 +44,7 @@ impl IntoResponse for AppError {
             AppError::NotFound(_) => (StatusCode::NOT_FOUND, "not_found"),
             AppError::BadRequest(_) => (StatusCode::BAD_REQUEST, "bad_request"),
             AppError::Conflict(_) => (StatusCode::CONFLICT, "conflict"),
+            AppError::Forbidden(_) => (StatusCode::FORBIDDEN, "forbidden"),
             AppError::RateLimited => (StatusCode::TOO_MANY_REQUESTS, "rate_limited"),
             AppError::Unavailable(_) => (StatusCode::SERVICE_UNAVAILABLE, "unavailable"),
             AppError::Upstream(e) => {

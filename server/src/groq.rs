@@ -27,9 +27,6 @@ pub struct Groq {
 #[derive(Deserialize)]
 struct Transcription {
     text: String,
-    /// Only present with `verbose_json` (e.g. "japanese", "english").
-    #[serde(default)]
-    language: Option<String>,
 }
 
 impl Groq {
@@ -161,6 +158,6 @@ impl Groq {
             bail!("Groq STT {status}: {}", resp.text().await.unwrap_or_default());
         }
         let t = resp.json::<Transcription>().await?;
-        Ok(crate::voice::Heard { text: t.text.trim().to_string(), language: t.language })
+        Ok(crate::voice::Heard { text: t.text.trim().to_string() })
     }
 }

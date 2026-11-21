@@ -69,6 +69,15 @@ class AudioEngine {
   setManifest(m: AudioManifest, apiOrigin: string) {
     this.manifest = m;
     this.base = apiOrigin;
+    // Another course's files: restart what's playing so ids like "title"
+    // pick up this course's version.
+    const { music, ambience } = this.want;
+    this.music?.stop(1.5);
+    this.amb?.stop(1.5);
+    this.music = null;
+    this.amb = null;
+    if (music) this.playMusic(music);
+    if (ambience) this.playAmbience(ambience);
   }
 
   setVolumes(v: Partial<Volumes>) {

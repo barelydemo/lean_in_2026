@@ -2,7 +2,8 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
-import type { Course, Story } from "@/lib/types";
+import type { Account, Course, Progress, Story } from "@/lib/types";
+import { AuthCard } from "./AuthCard";
 import { useI18n } from "@/lib/i18n";
 import { audio } from "@/lib/audio/engine";
 import { Ambient } from "../stage/Ambient";
@@ -10,69 +11,32 @@ import { Backdrop } from "../stage/Backdrop";
 import { ClockIcon, Mark, NotchTab, PillButton, PinIcon, Waveform } from "./Frame";
 import type { Difficulty } from "./Settings";
 
-// ── difficulty metadata ──────────────────────────────────────────────────────
+const LEVELS: Difficulty[] = ["beginner", "intermediate", "advanced"];
 
-const DIFFICULTIES: {
-  id: Difficulty;
-  emoji: string;
-  label: string;
-  tagline: string;
-  description: string;
-  expects: string[];
-  color: string;
-  border: string;
-}[] = [
-  {
-    id: "beginner",
-    emoji: "🟢",
-    label: "Beginner",
-    tagline: "I've never spoken Japanese",
-    description:
-      "You can read a few words from anime or know basic greetings — but when someone speaks, you freeze. That's exactly where Lexical starts.",
-    expects: [
-      "3 reply options always visible with English meanings",
-      "Hear the native pronunciation before you speak",
-      "Shadow (repeat) the line out loud to move the story",
-    ],
-    color: "from-emerald-500/20 to-emerald-500/5",
-    border: "border-emerald-500/30",
-  },
-  {
-    id: "intermediate",
-    emoji: "🟡",
-    label: "Intermediate",
-    tagline: "I know words but can't speak freely",
-    description:
-      "You've studied vocabulary and grammar — maybe finished Duolingo or a textbook — but real conversations still make you panic. Time to fix that.",
-    expects: [
-      "3 options shown — meanings hidden by default",
-      "Tap 👁️ on any option to peek at the English meaning",
-      "Speak your chosen reply or type it directly",
-    ],
-    color: "from-amber-500/20 to-amber-500/5",
-    border: "border-amber-500/30",
-  },
-  {
-    id: "advanced",
-    emoji: "🔴",
-    label: "Advanced",
-    tagline: "I can hold a basic conversation",
-    description:
-      "You can navigate simple situations but want to stress-test your fluency in a high-pressure story where every word matters.",
-    expects: [
-      "No suggested replies — pure open conversation",
-      "Characters speak naturally without slowing down",
-      "No hints, no battery — just your voice",
-    ],
-    color: "from-rose-500/20 to-rose-500/5",
-    border: "border-rose-500/30",
-  },
-];
+/** Signal-strength bars: one, two or three filled. */
+function LevelBars({ n, active }: { n: number; active: boolean }) {
+  return (
+    <span className="flex items-end gap-[3px]" aria-hidden>
+      {[0, 1, 2].map((i) => (
+        <span key={i} className={`w-1.5 rounded-full ${i < n ? (active ? "bg-shu" : "bg-ink/70") : "bg-ink/15"}`}
+          style={{ height: 6 + i * 4 }} />
+      ))}
+    </span>
+  );
+}
 
 // ── component ────────────────────────────────────────────────────────────────
 
-export function TitleScreen({ story, courses, courseId, onCourse, canContinue, busy, error, onContinue, onNew }: {
+export function TitleScreen({ story, courses, courseId, onCourse, canContinue, busy, error, onContinue, onNew, account, progress, needsAuth, inviteOnly, invite, onAuthed, onSignOut }: {
   story: Story;
+  account: Account | null;
+  progress: Progress | null;
+  /** Closed beta and nobody signed in: show the sign-in card instead of Start. */
+  needsAuth: boolean;
+  inviteOnly: boolean;
+  invite: string | null;
+  onAuthed: (a: Account) => void;
+  onSignOut: () => void;
   courses: Course[];
   courseId: string;
   onCourse: (id: string) => void;
@@ -87,6 +51,9 @@ export function TitleScreen({ story, courses, courseId, onCourse, canContinue, b
   const [step, setStep] = useState<"cta" | "difficulty" | "name">("cta");
   const [difficulty, setDifficulty] = useState<Difficulty>("beginner");
   const [name, setName] = useState("");
+  // Guests can still choose to sign in or make an account.
+  const [signingIn, setSigningIn] = useState(!!invite);
+  const showAuth = needsAuth || (signingIn && !account);
   const land = story.course.landing;
   const hero = story.cast.find((c) => c.id === land.character) ?? story.cast[0];
   const line = (i: number) => land.lines[i];
@@ -97,7 +64,7 @@ export function TitleScreen({ story, courses, courseId, onCourse, canContinue, b
   return (
     <div className="h-full overflow-y-auto bg-cream">
       {/* ── hero ───────────────────────────────────────────────── */}
-      <section className="relative m-2 h-[calc(100dvh-1rem)] overflow-hidden rounded-[26px] sm:m-3.5 sm:h-[calc(100dvh-1.75rem)]">
+      <section className="relative m-2 min-h-[calc(100dvh-1rem)] overflow-hidden rounded-[26px] sm:m-3.5 sm:min-h-[calc(100dvh-1.75rem)]">
         <Backdrop scene={land.scene} />
         <Ambient kind={story.course.target_lang === "ja" ? "petals" : "dust"} />
         {/* keeps the headline legible over a bright sky */}
@@ -106,13 +73,33 @@ export function TitleScreen({ story, courses, courseId, onCourse, canContinue, b
         <NotchTab corner="tl"><Mark /></NotchTab>
         <NotchTab corner="tr">
           <span className="flex items-center gap-2 text-[15px]">
-            <span className="hidden text-muted sm:inline">{t.iWantToLearn}</span>
-            {courses.map((c) => (
-              <button key={c.id} onClick={() => { audio.ui("tap"); onCourse(c.id); }} disabled={busy}
-                className={`rounded-full px-2.5 py-0.5 transition ${c.id === courseId ? "bg-ink text-white" : "hover:text-shu"}`}>
-                {c.label}
-              </button>
-            ))}
+            {courses.length > 1 && (
+              <>
+                <span className="hidden text-muted sm:inline">{t.iWantToLearn}</span>
+                {courses.map((c) => (
+                  <button key={c.id} onClick={() => { audio.ui("tap"); onCourse(c.id); }} disabled={busy}
+                    className={`rounded-full px-2.5 py-0.5 transition ${c.id === courseId ? "bg-ink text-white" : "hover:text-shu"}`}>
+                    {c.label}
+                  </button>
+                ))}
+              </>
+            )}
+            {account && (
+              <>
+                {courses.length > 1 && <span className="h-4 w-px bg-hairline" />}
+                <span className="tight max-w-[10rem] truncate">{account.display_name || account.email}</span>
+                {account.role === "admin" && <a href="/admin" className="rounded-full px-2 text-muted transition hover:text-shu">{t.auth.admin}</a>}
+                <button onClick={onSignOut} className="rounded-full px-2 text-muted transition hover:text-shu">{t.auth.signOut}</button>
+              </>
+            )}
+            {!account && (
+              <>
+                {courses.length > 1 && <span className="h-4 w-px bg-hairline" />}
+                <button onClick={() => { audio.ui("tap"); setSigningIn(true); }} className="rounded-full bg-ink px-3 py-0.5 text-white transition hover:bg-ink/85">
+                  {t.auth.signIn}
+                </button>
+              </>
+            )}
           </span>
         </NotchTab>
         <NotchTab corner="bl">
@@ -126,7 +113,7 @@ export function TitleScreen({ story, courses, courseId, onCourse, canContinue, b
           <span className="flex items-center gap-1.5"><PinIcon />{land.place}</span>
         </div>
 
-        <div key={story.course.id} className="relative z-10 max-w-2xl px-6 pt-24 text-white sm:px-12 sm:pt-28">
+        <div key={story.course.id} className="relative z-10 max-w-2xl px-6 pb-28 pt-24 text-white sm:px-12 sm:pt-28">
           <motion.h1
             className="tight whitespace-pre-line text-[2.6rem] font-medium leading-[1.05] drop-shadow-[0_2px_20px_rgba(0,0,0,0.25)] sm:text-6xl"
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9 }}
@@ -140,7 +127,11 @@ export function TitleScreen({ story, courses, courseId, onCourse, canContinue, b
 
           <div className="mt-8 min-h-[3.5rem]">
             <AnimatePresence mode="wait">
-              {step === "cta" && (
+              {showAuth && step === "cta" && (
+                <AuthCard key="auth" invite={invite} inviteOnly={inviteOnly} onAuthed={onAuthed}
+                  onBack={needsAuth ? undefined : () => setSigningIn(false)} />
+              )}
+              {!showAuth && step === "cta" && (
                 <motion.div key="cta" className="flex flex-wrap items-center gap-3"
                   initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0, transition: { delay: 0.6 } }} exit={{ opacity: 0 }}>
                   <PillButton onClick={() => { audio.ui("choice"); setStep("difficulty"); }} disabled={busy}>{t.startTrip}</PillButton>
@@ -155,52 +146,49 @@ export function TitleScreen({ story, courses, courseId, onCourse, canContinue, b
 
               {step === "difficulty" && (
                 <motion.div key="difficulty"
-                  className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-4 backdrop-blur-sm"
+                  className="fixed inset-0 z-50 flex items-center justify-center bg-ink/55 p-4 backdrop-blur-sm"
                   initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                   <motion.div
-                    className="w-full max-w-3xl rounded-[28px] bg-cream p-6 shadow-2xl sm:p-8"
-                    initial={{ scale: 0.94, y: 24 }} animate={{ scale: 1, y: 0 }} transition={{ type: "spring", stiffness: 220, damping: 22 }}
+                    className="max-h-[calc(100dvh-2rem)] w-full max-w-3xl overflow-y-auto rounded-[26px] bg-cream p-6 text-ink shadow-2xl sm:p-8"
+                    initial={{ scale: 0.96, y: 20 }} animate={{ scale: 1, y: 0 }} transition={{ type: "spring", stiffness: 220, damping: 24 }}
                   >
-                    <h2 className="tight mb-1 text-center text-2xl font-medium text-ink sm:text-3xl">Choose your level</h2>
-                    <p className="mb-6 text-center text-sm text-muted">You can change this anytime in Settings.</p>
+                    <h2 className="tight text-center text-3xl font-medium">{t.chooseLevel}</h2>
+                    <p className="mt-1 text-center text-sm text-muted">{t.changeLater}</p>
 
-                    <div className="grid gap-3 sm:grid-cols-3">
-                      {DIFFICULTIES.map((d) => (
-                        <button
-                          key={d.id}
-                          onClick={() => { audio.ui("tap"); setDifficulty(d.id); }}
-                          className={`relative rounded-2xl border-2 bg-gradient-to-b p-5 text-left transition ${d.color} ${d.border}
-                            ${difficulty === d.id ? "ring-2 ring-offset-2 ring-ink/30 shadow-lg scale-[1.02]" : "opacity-80 hover:opacity-100 hover:shadow-md"}`}
-                        >
-                          {difficulty === d.id && (
-                            <motion.span
-                              layoutId="diff-check"
-                              className="absolute right-3 top-3 grid h-6 w-6 place-items-center rounded-full bg-ink text-[11px] text-white"
-                            >✓</motion.span>
-                          )}
-                          <span className="mb-2 block text-2xl">{d.emoji}</span>
-                          <span className="tight block text-lg font-semibold text-ink">{d.label}</span>
-                          <span className="tight mt-0.5 block text-sm text-muted">{d.tagline}</span>
-                          <p className="tight mt-3 text-[13px] leading-relaxed text-ink/70">{d.description}</p>
-                          <ul className="mt-4 space-y-1.5">
-                            {d.expects.map((e) => (
-                              <li key={e} className="flex items-start gap-2 text-[12px] text-ink/60">
-                                <span className="mt-0.5 shrink-0 text-[10px]">▸</span>
-                                {e}
-                              </li>
-                            ))}
-                          </ul>
-                        </button>
-                      ))}
+                    <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                      {LEVELS.map((id, i) => {
+                        const lv = t.levels[id];
+                        const active = difficulty === id;
+                        return (
+                          <button key={id} onClick={() => { audio.ui("tap"); setDifficulty(id); }}
+                            className={`flex flex-col rounded-2xl border p-5 text-left transition ${
+                              active ? "border-ink bg-white shadow-[0_12px_30px_rgba(28,29,32,0.12)]" : "border-hairline bg-white/50 hover:bg-white/80"
+                            }`}>
+                            <span className="flex items-center justify-between">
+                              <LevelBars n={i + 1} active={active} />
+                              <span className={`grid h-5 w-5 place-items-center rounded-full border text-[10px] transition ${
+                                active ? "border-ink bg-ink text-white" : "border-hairline text-transparent"}`}>✓</span>
+                            </span>
+                            <span className="tight mt-4 text-xl font-medium">{lv.label}</span>
+                            <span className="tight mt-0.5 text-sm text-muted">{lv.tagline(story.course.target_lang)}</span>
+                            <ul className="mt-4 space-y-1.5 border-t border-hairline pt-3">
+                              {lv.expects.map((e) => (
+                                <li key={e} className="tight flex gap-2 text-[13px] leading-snug text-ink/75">
+                                  <span className="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-ink/40" />
+                                  {e}
+                                </li>
+                              ))}
+                            </ul>
+                          </button>
+                        );
+                      })}
                     </div>
 
-                    <div className="mt-6 flex justify-end gap-3">
-                      <button onClick={() => setStep("cta")} className="rounded-full px-5 py-2 text-sm text-muted hover:bg-cream-deep">
-                        ← Back
+                    <div className="mt-6 flex items-center justify-end gap-2">
+                      <button onClick={() => setStep("cta")} className="rounded-full px-5 py-2 text-sm text-muted transition hover:bg-cream-deep hover:text-ink">
+                        {t.back}
                       </button>
-                      <PillButton tone="dark" onClick={() => { audio.ui("choice"); setStep("name"); }}>
-                        Continue →
-                      </PillButton>
+                      <PillButton tone="dark" onClick={() => { audio.ui("choice"); setStep("name"); }}>{t.next}</PillButton>
                     </div>
                   </motion.div>
                 </motion.div>
@@ -218,6 +206,7 @@ export function TitleScreen({ story, courses, courseId, onCourse, canContinue, b
               )}
             </AnimatePresence>
             {error && <p className="mt-3 text-sm text-white drop-shadow">{error}</p>}
+            {!showAuth && step === "cta" && progress && <ProgressCard p={progress} />}
           </div>
         </div>
 
@@ -287,6 +276,31 @@ export function TitleScreen({ story, courses, courseId, onCourse, canContinue, b
         <p>{t.footer}</p>
       </footer>
     </div>
+  );
+}
+
+/** Where the player's save has got to, under Continue. */
+function ProgressCard({ p }: { p: Progress }) {
+  const { t } = useI18n();
+  const stats: [string, string][] = [
+    [t.auth.lessonOf(p.lesson, p.lessons_total), p.lesson_title],
+    [`${p.candos_done}/${p.candos_total}`, t.auth.goals],
+    [String(p.words_owned), t.auth.wordsOwned],
+    [String(p.scenes_cleared), t.auth.scenes],
+  ];
+  return (
+    <motion.div className="frost mt-4 max-w-md rounded-2xl px-4 py-3 text-ink"
+      initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0, transition: { delay: 0.8 } }}>
+      <p className="text-[11px] uppercase tracking-wider text-muted">{t.auth.yourProgress} · {p.place}</p>
+      <div className="mt-1.5 grid grid-cols-4 gap-2">
+        {stats.map(([v, label]) => (
+          <div key={label} className="min-w-0">
+            <p className="tight truncate text-[15px] font-medium tabular-nums">{v}</p>
+            <p className="tight truncate text-[11px] text-muted">{label}</p>
+          </div>
+        ))}
+      </div>
+    </motion.div>
   );
 }
 

@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion, useAnimate, useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
-import { slots, type StageState } from "@/lib/stage";
+import { FAR_SLOTS, slots, type StageState } from "@/lib/stage";
 import type { Camera, CastMember } from "@/lib/types";
 import { Ambient } from "./Ambient";
 import { Backdrop } from "./Backdrop";
@@ -55,7 +55,15 @@ export function Stage({ stage, cues, cast, thinking }: Props) {
     exits[actor.id] = actor.action === "exit_left" ? "left" : "right";
   }
 
-  const positions = slots(stage.actors.length);
+  // People talking with the player share the front; the rest stand back.
+  const isNear = (a: (typeof stage.actors)[number]) => a.near || cast[a.id]?.stance === "counter";
+  const near = stage.actors.filter(isNear);
+  const far = stage.actors.filter((a) => !isNear(a));
+  const front = slots(near.length);
+  const slotOf = (id: string) => {
+    const n = near.findIndex((a) => a.id === id);
+    return n >= 0 ? front[n] : FAR_SLOTS[far.findIndex((a) => a.id === id) % FAR_SLOTS.length];
+  };
   const someoneSpeaking = !!stage.speaker && stage.actors.some((a) => a.id === stage.speaker);
 
   return (
@@ -87,7 +95,7 @@ export function Stage({ stage, cues, cast, thinking }: Props) {
           <div className="absolute inset-0">
             <AnimatePresence custom={exits}>
               {scene === stage.scene &&
-                stage.actors.map((a, i) => {
+                [...far, ...near].map((a) => {
                   const member = cast[a.id];
                   if (!member) return null;
                   return (
@@ -95,8 +103,11 @@ export function Stage({ stage, cues, cast, thinking }: Props) {
                       key={a.id}
                       id={a.id}
                       sprite={member.sprite}
+                      poses={member.poses ?? []}
+                      counter={member.stance === "counter"}
                       name={member.name}
-                      slot={positions[i]}
+                      slot={slotOf(a.id)}
+                      distant={!isNear(a)}
                       from={a.from}
                       speaking={stage.speaker === a.id}
                       someoneSpeaking={someoneSpeaking}
