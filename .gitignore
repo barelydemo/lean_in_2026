@@ -1,0 +1,16 @@
+.DS_Store
+.env
+.env.*
+!.env.example
+
+# rust
+/server/target/
+/server/data/
+
+# web
+/web/node_modules/
+/web/.next/
+/web/out/
+/web/next-env.d.ts
+*.tsbuildinfo
+npm-debug.log*

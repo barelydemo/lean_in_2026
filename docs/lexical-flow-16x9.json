@@ -1,0 +1,369 @@
+{
+  "title": "How Lexical works: Voice RPG loop",
+  "props": {
+    "speed": 950,
+    "layout": {
+      "direction": "row",
+      "gap": 64,
+      "children": [
+        {
+          "label": "Web client (Next.js 16)",
+          "direction": "column",
+          "gap": 32,
+          "children": [
+            {
+              "id": "mic",
+              "label": "Voice recorder",
+              "sub": "WebAudio push-to-talk",
+              "width": 195,
+              "lines": 2,
+              "source": "web/lib/voice.ts#useRecorder"
+            },
+            {
+              "id": "stage",
+              "label": "Game stage",
+              "sub": "Stage, HUD & Companion",
+              "width": 195,
+              "lines": 2,
+              "source": "web/components/Game.tsx#Game"
+            }
+          ]
+        },
+        {
+          "label": "Axum API routes",
+          "direction": "column",
+          "gap": 28,
+          "children": [
+            {
+              "id": "stt_api",
+              "label": "Speech handler",
+              "sub": "POST /api/v1/stt",
+              "width": 195,
+              "lines": 2,
+              "source": "server/src/api.rs#stt"
+            },
+            {
+              "id": "turn_api",
+              "label": "Turn handler",
+              "sub": "POST /runs/:id/turn",
+              "width": 195,
+              "lines": 2,
+              "source": "server/src/api.rs#take_turn"
+            },
+            {
+              "id": "tts_api",
+              "label": "Voice output",
+              "sub": "POST /api/v1/tts",
+              "width": 195,
+              "lines": 2,
+              "source": "server/src/api.rs#tts"
+            }
+          ]
+        },
+        {
+          "label": "Core engine & storage",
+          "direction": "column",
+          "gap": 28,
+          "children": [
+            {
+              "id": "director",
+              "label": "Story director",
+              "sub": "Prompt & JSON schema",
+              "width": 205,
+              "lines": 2,
+              "source": "server/src/director.rs#Director.direct_turn"
+            },
+            {
+              "id": "rules",
+              "label": "Rules & skills",
+              "sub": "Clamps & Genki tree",
+              "width": 205,
+              "lines": 2,
+              "source": "server/src/game.rs#apply_turn_with_pron"
+            },
+            {
+              "id": "db",
+              "label": "SQLite store",
+              "sub": "Runs, lines & scores",
+              "shape": "store",
+              "width": 205,
+              "lines": 2,
+              "source": "server/src/db.rs#update_run"
+            }
+          ]
+        },
+        {
+          "label": "Voice & AI providers",
+          "direction": "column",
+          "gap": 28,
+          "children": [
+            {
+              "id": "bolna",
+              "label": "Bolna Voice AI",
+              "sub": "Primary Japanese STT",
+              "width": 205,
+              "lines": 2,
+              "source": "server/src/bolna.rs#Bolna.new"
+            },
+            {
+              "id": "deepseek",
+              "label": "DeepSeek LLM",
+              "sub": "Scene improvisation",
+              "width": 205,
+              "lines": 2,
+              "source": "server/src/deepseek.rs#DeepSeek.new"
+            },
+            {
+              "id": "eleven",
+              "label": "ElevenLabs TTS",
+              "sub": "Cast voices & cache",
+              "width": 205,
+              "lines": 2,
+              "source": "server/src/voice.rs#ElevenLabs.speak"
+            }
+          ]
+        }
+      ]
+    },
+    "edges": [
+      {
+        "id": "capture",
+        "from": "stage",
+        "to": "mic",
+        "label": "hold Space",
+        "source": "web/components/Game.tsx#Game"
+      },
+      {
+        "id": "upload_audio",
+        "from": "stage",
+        "to": "stt_api",
+        "label": "send audio",
+        "source": "web/lib/api.ts#api.stt",
+        "via": "/stt"
+      },
+      {
+        "id": "transcribe",
+        "from": "stt_api",
+        "to": "bolna",
+        "label": "transcribe",
+        "around": "above",
+        "source": "server/src/main.rs#main"
+      },
+      {
+        "id": "send_turn",
+        "from": "stage",
+        "to": "turn_api",
+        "label": "submit turn",
+        "source": "web/lib/api.ts#api.turn",
+        "via": "/turn"
+      },
+      {
+        "id": "ask_director",
+        "from": "turn_api",
+        "to": "director",
+        "label": "direct scene",
+        "source": "server/src/api.rs#take_turn"
+      },
+      {
+        "id": "llm_call",
+        "from": "director",
+        "to": "deepseek",
+        "label": "JSON turn",
+        "source": "server/src/director.rs#Director.new"
+      },
+      {
+        "id": "validate",
+        "from": "turn_api",
+        "to": "rules",
+        "label": "clamp & score",
+        "source": "server/src/api.rs#take_turn"
+      },
+      {
+        "id": "save_state",
+        "from": "turn_api",
+        "to": "db",
+        "label": "save run",
+        "source": "server/src/api.rs#take_turn"
+      },
+      {
+        "id": "request_tts",
+        "from": "stage",
+        "to": "tts_api",
+        "label": "fetch voice",
+        "source": "web/lib/api.ts#api.tts",
+        "via": "/tts"
+      },
+      {
+        "id": "synth_voice",
+        "from": "tts_api",
+        "to": "eleven",
+        "label": "speak line",
+        "around": "below",
+        "source": "server/src/api.rs#tts"
+      }
+    ],
+    "steps": [
+      {
+        "label": "1. Speak & transcribe",
+        "caption": "The player holds Space and speaks Japanese into the microphone.",
+        "flow": [
+          {
+            "edges": { "edge": "capture", "data": "Hold Space" },
+            "light": ["stage", "mic"],
+            "show": {
+              "mic": [
+                { "tag": "mic", "tone": "blue", "text": "speech.webm · 48 kHz" },
+                { "tag": "VAD", "tone": "gray", "text": "Auto-stops after speech" }
+              ]
+            },
+            "say": "The player holds Space to record a Japanese line."
+          },
+          {
+            "edges": { "edge": "upload_audio", "data": "speech.webm" },
+            "light": ["stt_api"],
+            "show": {
+              "stt_api": [
+                { "tag": "POST", "tone": "blue", "text": "/api/v1/stt (multipart)" },
+                { "tag": "ref", "tone": "purple", "text": "駅はどこですか" }
+              ]
+            },
+            "say": "The stage uploads the audio blob to the speech handler."
+          },
+          {
+            "edges": { "edge": "transcribe", "data": "ja · nova-3" },
+            "light": ["bolna"],
+            "show": {
+              "bolna": [
+                { "tag": "STT", "tone": "purple", "text": "駅はどこですか？" },
+                { "tag": "lang", "tone": "green", "text": "Japanese detected (ja)" }
+              ]
+            },
+            "say": "Bolna Voice AI transcribes the recording with Japanese biasing."
+          },
+          {
+            "edges": { "edge": "upload_audio", "back": true, "tone": "green", "data": "94% · Great" },
+            "light": ["stage"],
+            "show": {
+              "stage": [
+                { "tag": "heard", "tone": "green", "text": "駅はどこですか？" },
+                { "tag": "score", "tone": "green", "text": "Pronunciation: 94%" }
+              ]
+            },
+            "say": "The speech handler returns the transcript and pronunciation score."
+          }
+        ]
+      },
+      {
+        "label": "2. Direct & validate",
+        "caption": "DeepSeek improvises the NPC reaction and the rules engine validates every change.",
+        "flow": [
+          {
+            "edges": { "edge": "send_turn", "data": "voice · 94%" },
+            "light": ["turn_api"],
+            "show": {
+              "turn_api": [
+                { "tag": "place", "tone": "blue", "text": "Arrivals Hall · Ch.1" },
+                { "tag": "heard", "tone": "green", "text": "駅はどこですか？" }
+              ]
+            },
+            "say": "The stage submits the spoken turn to the turn handler."
+          },
+          {
+            "edges": { "edge": "ask_director", "data": "brief + state" },
+            "light": ["director"],
+            "show": {
+              "director": [
+                { "tag": "prompt", "tone": "purple", "text": "World + Lesson 1" },
+                { "tag": "cast", "tone": "blue", "text": "Kenji Tanaka on stage" }
+              ]
+            },
+            "say": "The turn handler builds the scene context for the story director."
+          },
+          {
+            "edges": { "edge": "llm_call", "data": "strict schema" },
+            "light": ["deepseek"],
+            "show": {
+              "deepseek": [
+                { "tag": "verdict", "tone": "green", "text": "Great · Trust +1" },
+                { "tag": "kenji", "tone": "blue", "text": "駅はあそこですよ！" }
+              ]
+            },
+            "say": "DeepSeek generates the coach verdict and Kenji's reply as JSON."
+          },
+          {
+            "edges": { "edge": "validate", "data": "DirectorTurn" },
+            "light": ["rules"],
+            "show": {
+              "rules": [
+                { "tag": "clamp", "tone": "orange", "text": "Trust +1 · Exit open" },
+                { "tag": "skill", "tone": "green", "text": "Asking Where Lv.2" }
+              ]
+            },
+            "say": "The rules engine clamps rewards and levels up the Genki skill tree."
+          },
+          {
+            "edges": { "edge": "save_state", "data": "SQLite tx" },
+            "light": ["db"],
+            "show": {
+              "db": [
+                { "tag": "runs", "tone": "green", "text": "State & skills saved" },
+                { "tag": "lines", "tone": "gray", "text": "2 dialogue beats saved" }
+              ]
+            },
+            "say": "The turn handler commits the run state and dialogue lines to SQLite."
+          }
+        ]
+      },
+      {
+        "label": "3. Voice & stage",
+        "caption": "The stage animates the character sprite and plays ElevenLabs voice audio.",
+        "flow": [
+          {
+            "edges": { "edge": "send_turn", "back": true, "tone": "green", "data": "beats + skill" },
+            "light": ["stage"],
+            "show": {
+              "stage": [
+                { "tag": "stage", "tone": "blue", "text": "Kenji: happy · sparkle" },
+                { "tag": "toast", "tone": "green", "text": "Asking Where Lv.2" }
+              ]
+            },
+            "say": "The turn handler returns the validated beats and skill unlock."
+          },
+          {
+            "edges": { "edge": "request_tts", "data": "line_id: 42" },
+            "light": ["tts_api"],
+            "show": {
+              "tts_api": [
+                { "tag": "voice", "tone": "purple", "text": "Speaker: Kenji Tanaka" },
+                { "tag": "line", "tone": "blue", "text": "駅はあそこですよ！" }
+              ]
+            },
+            "say": "The stage requests spoken audio for Kenji's dialogue line."
+          },
+          {
+            "edges": { "edge": "synth_voice", "data": "kenji · mp3" },
+            "light": ["eleven"],
+            "show": {
+              "eleven": [
+                { "tag": "TTS", "tone": "purple", "text": "ElevenLabs v2 voice" },
+                { "tag": "cache", "tone": "green", "text": "Cached on disk as MP3" }
+              ]
+            },
+            "say": "ElevenLabs synthesizes Kenji's voice and caches the MP3 on disk."
+          },
+          {
+            "edges": { "edge": "request_tts", "back": true, "tone": "green", "data": "audio/mpeg" },
+            "light": ["stage"],
+            "show": {
+              "stage": [
+                { "tag": "audio", "tone": "green", "text": "Playing Kenji voice" },
+                { "tag": "next", "tone": "blue", "text": "Ready for next turn" }
+              ]
+            },
+            "say": "The stage plays Kenji's voice while animating the scene."
+          }
+        ]
+      }
+    ]
+  }
+}

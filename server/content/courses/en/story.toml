@@ -1,0 +1,4185 @@
+# Lexical — "Lost in New York" (Learn English, for Japanese speakers)
+#
+# All story, cast and curriculum content lives here so writers can edit it
+# without touching Rust. The server validates this file at startup.
+#
+# Curriculum: an original A1 English syllabus for Japanese speakers
+# (lessons 0–12, A1→A2). Situations, dialogue and examples are original.
+
+
+title = "ニューヨークで迷子"
+title_jp = "Lost in New York"
+start_place = "jfk_arrivals"
+
+# Field convention for every course file: `jp`/`name_jp`/`title_jp` hold the
+# TARGET language, `en`/`name`/`title` the LEARNER's language, `romaji` the
+# reading aid. Here: English / Japanese / katakana pronunciation guide.
+[course]
+id = "en"
+target_lang = "en"
+learner_lang = "ja"
+target_name = "English"
+learner_name = "Japanese"
+reading = "katakana pronunciation guide"
+label = "英語を学ぶ"
+tagline = "ニューヨークで迷子 · JFK空港、1998年"
+currency = "$"
+locked_lesson = "まだ無理だ…もっと英語を覚えないと（レッスン {lesson}）。"
+locked_unknown = "まだ行き方がわからない。"
+set_off = "歩きだす：{label}。"
+arrive = "{place}に着いた。"
+pause = "少しの沈黙。相手はあなたがもう一度言うのを待っている。"
+nod = "相手はうなずいた。ちゃんと伝わったようだ。"
+premise = """
+It is April 1998. No smartphones, no internet translation, no mobile phone for a tourist: people use payphones (25 cents a call, or a prepaid phone card), paper subway maps, pagers, Walkmans and traveler's cheques. Keep every detail period-true: the Twin Towers stand on the skyline; subway fares are paid with brass tokens or the new MetroCard ($1.50 a ride); yellow cabs, bodegas on every corner, boomboxes and pay-per-minute phone cards. There is NO AirTrain (it opened in 2003): from JFK a free shuttle bus runs to Howard Beach station, where you catch the A train into Manhattan. Money is US dollars.
+The player, a Japanese traveller, landed at JFK on a Saturday morning, slipped on a wet escalator, hit their head, and woke to find their backpack — passport, wallet, traveler's cheques — stolen. They remember only their first name. No money, no guidebook, no English at all. A lost passport means going to the Consulate General of Japan in Manhattan, which is closed until Monday — so first they have to get into the city and survive the weekend. Over one long day and the next morning, the people they meet help them recover. The thief was a man in a grey cap and a red jacket who shouldered past them at the top of the escalator.
+Characters speak simple, slow, natural American (or Australian) English, adapted to the player's level. They know at most a handful of Japanese words and never translate whole sentences for the player.
+After that first weekend the story runs on through the following weeks of spring into early summer: the player lives at the Bowery Bunkhouse, works at Ruby's Diner, pays weekly rent to gruff Mr. Russo (who turns out to be their late grandfather's oldest friend), gets their stolen bag back through the police, and slowly recovers their memory.
+The curriculum is an A1→A2 English syllabus for Japanese speakers (lessons 0–12).
+"""
+
+
+
+[course.landing]
+title = "ニューヨークで迷子。\n言葉で帰り道をひらけ。"
+body = "1998年、JFK空港。スマホも翻訳アプリもない。パスポートも財布も盗まれ、英語はひとことも話せない。あるのは古い電子辞書と、自分の声だけ。覚えた言葉が物語を動かす。"
+scene = "jfk_curb"
+place = "JFK空港"
+clock = "1998年4月 · 午後4:15"
+character = "mia"
+feature_scenes = ["bodega_night", "jfk_police", "subway_car"]
+lines = [
+  { jp = "Are you okay?", romaji = "アー ユー オウケイ？", en = "大丈夫？" },
+  { jp = "Sorry… my bag is gone!", romaji = "ソーリー… マイ バッグ イズ ゴーン！", en = "すみません…かばんがないんです！" },
+  { jp = "Where's the water?", romaji = "ウェアズ ザ ウォーター？", en = "水はどこですか？" },
+  { jp = "In the back, by the fridge!", romaji = "イン ザ バック、バイ ザ フリッジ！", en = "奥の冷蔵庫のそばだよ！" },
+  { jp = "One ticket to Manhattan, please.", romaji = "ワン ティケット トゥ マンハッタン、プリーズ。", en = "マンハッタンまで一枚ください。" },
+]
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Cast
+# ─────────────────────────────────────────────────────────────────────────────
+
+[[cast]]
+id = "danny"
+name = "ダニー・パーク"
+name_jp = "Danny Park"
+role = "JFK airport security officer"
+age = 26
+sprite = "/characters/Kenji_Tanaka.png"
+color = "#60a5fa"
+voice = "TX3LPaxmHKxFdv7VOQHJ"
+english = "a few Japanese words picked up from anime, badly pronounced"
+looks = "Short spiky black hair, warm hazel eyes, tall and broad. Navy airport security jacket with a radio clipped to the shoulder, over a black tee."
+personality = "Big-brother energy. Calm in a crisis, quietly funny, takes his duty seriously but bends rules to help people."
+speech_style = "Short, friendly, plain New York English. Slows way down and repeats key words when he sees you're lost. Says 'Hey, hey — you okay?' a lot."
+backstory = "Korean-American, grew up above his parents' dry cleaner in Flushing, Queens. Joined airport security because he likes helping travellers on the worst day of their trip. Watched a lot of anime on VHS tapes as a teenager and is a little embarrassed that the only Japanese he knows is from cartoons."
+helps = "Points, mimes, and repeats one key word slowly and loudly. Draws arrows in the air. Checks you're okay with a thumbs-up and a questioning look. Tries one of his anime Japanese words when you look scared."
+english_words = ["だいじょうぶ", "すみません", "ありがとう", "はい", "いいえ", "がんばって"]
+
+[[cast]]
+id = "rachel"
+name = "レイチェル・キム巡査"
+name_jp = "Officer Rachel Kim"
+role = "Port Authority Police officer at JFK"
+age = 29
+sprite = "/characters/Yumi_Sato.png"
+color = "#a78bfa"
+voice = "FGY2WhTYpPnrIDTdsKH5"
+english = "no Japanese at all"
+looks = "Sleek black bob, sharp amber eyes behind thin silver glasses, crisp dark-blue Port Authority Police uniform, badge polished."
+personality = "Precise, by-the-book, dry humor. Doesn't baby anyone, but is fiercely fair and patient with honest effort."
+speech_style = "Clear, polite, slow English. Asks one short question at a time and waits. Repeats the question with fewer words if needed."
+backstory = "Seven years with the Port Authority Police, the last three at the JFK terminal office. Has handled hundreds of lost travellers and believes patience is a professional skill. Her parents are from Seoul; she speaks Korean at home but not a word of Japanese and refuses to pretend she does."
+helps = "Uses a laminated picture chart of common items (passport, wallet, bag, money, bus, train, consulate, phone), sketches on a notepad, points at the wall map and a desk calendar, and asks one slow question at a time with exaggerated pauses."
+english_words = []
+
+[[cast]]
+id = "mia"
+name = "ミア・チェン"
+name_jp = "Mia Chen"
+role = "NYU student, works nights at her uncle's bodega in the East Village"
+age = 20
+sprite = "/characters/Aiko_Nakamura.png"
+color = "#f472b6"
+voice = "cgSgspJ2msm6clMCkdW9"
+english = "one semester of Japanese 101 — a few words and phrases, shaky"
+looks = "Shoulder-length dark hair with bright pink tips, big brown eyes, oversized pastel sweater, pleated skirt, a Walkman on her belt and headphones round her neck."
+personality = "Bubbly, curious, endlessly kind, a little scatterbrained. Gets genuinely excited when you manage a sentence."
+speech_style = "Energetic, casual American English with fillers like 'um', 'like' and 'oh my gosh!'. Praises effort loudly. Talks fast, then remembers to slow down."
+backstory = "Sophomore at NYU studying literature, Taiwanese-American, raised in Flushing. Took Japanese 101 last semester because of a pen pal in Osaka and secretly dreams of going to Japan. Works night shifts at her uncle's bodega on Avenue A to pay for books. Was flying back from visiting her grandmother when she meets the player at the bus stop."
+helps = "Acts things out with big gestures, holds objects up, writes simple words in capital letters on her hand or a receipt, and claps when you get a word right. Occasionally blurts one Japanese word she remembers, proudly."
+english_words = ["こんにちは", "なまえ", "ともだち", "かわいい", "すごい", "はい", "ありがとう", "だいじょうぶ"]
+
+[[cast]]
+id = "david"
+name = "デイビッド・サトウ"
+name_jp = "David Sato"
+role = "accountant commuting into Manhattan"
+age = 31
+sprite = "/characters/Hiroshi_Yamamoto.png"
+color = "#34d399"
+voice = "iP95p4xoKVk53GoZ742B"
+english = "none — he looks Japanese but speaks no Japanese, and apologizes for it"
+looks = "Neatly combed dark-brown hair, black-framed glasses, slim, crisp white shirt and loosened tie under a beige trench coat; a folded copy of the New York Times under his arm."
+personality = "Reserved and formal at first, secretly a softie. Loves explaining small New York details once he warms up. Has a running, self-deprecating joke about being 'the most disappointing Japanese guy in Queens'."
+speech_style = "Careful, clear, polite English. Corrects gently by repeating your sentence back the right way. Says 'Sorry — no Japanese. Sorry.' with a pained smile."
+backstory = "Third-generation Japanese-American (his grandparents were interned during the war and never taught their kids Japanese). Accountant at a firm in the World Trade Center, lives in Howard Beach, takes the A train every day — even on Saturdays during tax-season cleanup. Everyone who is lost in New York walks up to him and speaks Japanese, and he always feels guilty."
+helps = "Writes short English words and numbers in his pocket planner and shows you the page, counts coins out on his palm, points at the subway map, and gives small formal nods to show you're on the right track."
+english_words = ["すみません", "ありがとう", "すし"]
+
+[[cast]]
+id = "emily"
+name = "エミリー・カーター"
+name_jp = "Emily Carter"
+role = "Australian backpacker working the desk at a Manhattan hostel"
+age = 23
+sprite = "/characters/Emily_Carter.png"
+color = "#fbbf24"
+voice = "EXAVITQu4vr4xnSDxMaL"
+english = "decent conversational Japanese from a year in Osaka — but the house rule says English only"
+looks = "Wavy chestnut hair in a loose ponytail, bright green eyes, freckles, light-blue hoodie, ripped jeans and sneakers."
+personality = "Optimistic, adventurous, has been exactly where you are. Tough love: she will not let you lean on Japanese."
+speech_style = "Simple, slow English with Aussie flavour ('no worries', 'mate', 'heaps'). Enforces the hostel's 'English only' house rule with a grin."
+backstory = "Australian backpacker who spent a year teaching English in Osaka, then flew to New York with $400 and a dream. Pays for her bunk by working the hostel desk. Arrived in Osaka knowing nothing — just like you are now in New York — and knows that the only way to learn is to be pushed."
+helps = "Speaks Japanese but is bound by the owner's English-only house rule: at most one whispered Japanese line, then she mimes, hints and coaches you in simple English."
+english_words = ["(understands Japanese well — but the house rule allows one whispered Japanese line per chapter)"]
+
+# ─────────────────────────────────────────────────────────────────────────────
+# The hint device: a battered English–Japanese electronic dictionary (it's
+# 1998 — nothing translates sentences for you). It looks words up; it runs on
+# AA batteries, which are the player's budget for help.
+# ─────────────────────────────────────────────────────────────────────────────
+
+[device]
+name = "Jisho PJ-98"
+name_jp = "電子辞書"
+start_battery = 100
+scan_cost = 3
+hint_cost = 5
+# Japanese → English phrase lookup ("how do I say…?")
+translate_cost = 4
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Items the player can carry
+# ─────────────────────────────────────────────────────────────────────────────
+
+[[items]]
+id = "theft_report"
+name = "盗難届の控え（受理番号 98-0418）"
+name_jp = "Theft report no. 98-0418"
+icon = "📄"
+
+[[items]]
+id = "train_ticket"
+name = "地下鉄のトークン"
+name_jp = "Subway token"
+icon = "🪙"
+
+[[items]]
+id = "david_card"
+name = "デイビッドの名刺"
+name_jp = "David's business card"
+icon = "💼"
+
+[[items]]
+id = "phone_card"
+name = "テレホンカード（10ドル分）"
+name_jp = "Prepaid phone card ($10)"
+icon = "💳"
+
+[[items]]
+id = "batteries"
+name = "単三電池2本"
+name_jp = "Two AA batteries"
+icon = "🔋"
+
+[[items]]
+id = "hostel_address"
+name = "ミアのメモ：ホステルの住所"
+name_jp = "Mia's note: the Bowery Bunkhouse"
+icon = "📝"
+
+[[items]]
+id = "hostel_key"
+name = "ドミトリーのかぎ（3番ベッド）"
+name_jp = "Dorm key, bunk 3"
+icon = "🔑"
+
+[[items]]
+id = "terminal_map"
+name = "矢印が書きこまれたターミナルの地図"
+name_jp = "Terminal map, with arrows drawn in pen"
+icon = "🗺️"
+
+[[items]]
+id = "backpack"
+name = "自分のリュック"
+name_jp = "Your backpack"
+icon = "🎒"
+
+[[items]]
+id = "passport"
+name = "パスポート"
+name_jp = "Passport"
+icon = "🛂"
+
+[[items]]
+id = "cheques"
+name = "トラベラーズチェック（未使用）"
+name_jp = "Traveler's cheques (uncashed)"
+icon = "🧾"
+
+[[items]]
+id = "letter"
+name = "英語で宛名が書かれた古い手紙"
+name_jp = "An old letter, addressed in English"
+icon = "✉️"
+
+[[items]]
+id = "photo"
+name = "若い男性ふたりの白黒写真"
+name_jp = "Black-and-white photo of two young men"
+icon = "🖼️"
+
+[[items]]
+id = "sandwich"
+name = "ベーコンエッグチーズのサンドイッチ"
+name_jp = "Bacon, egg and cheese on a roll"
+icon = "🥪"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Scenes (art is generated from the description)
+# ─────────────────────────────────────────────────────────────────────────────
+
+[[scenes]]
+id = "jfk_arrivals"
+name = "JFK空港 到着ロビー"
+name_jp = "JFK Airport — International Arrivals"
+description = "A busy late-1990s international arrivals hall at JFK: long escalators, baggage carousels, English-only signs, a wall of payphones, travellers with huge suitcases, a flickering arrivals board."
+music = "morning"
+ambience = "airport"
+
+[[scenes]]
+id = "jfk_info"
+name = "JFK空港 案内所"
+name_jp = "JFK — Information Desk"
+description = "A round airport information desk with a blue 'i' sign, racks of brochures for Manhattan hotels and Broadway shows, and a big terminal map on the wall."
+music = "morning"
+ambience = "airport"
+
+[[scenes]]
+id = "jfk_police"
+name = "JFK空港 警察署の窓口"
+name_jp = "Port Authority Police — JFK Terminal Office"
+description = "A small Port Authority Police office inside the terminal: one desk with a beige computer, a wall map of New York, a lost-property shelf of bags, a desk calendar showing Saturday, an American flag."
+music = "careful"
+ambience = "koban"
+
+[[scenes]]
+id = "jfk_curb"
+name = "JFK空港 バス乗り場"
+name_jp = "JFK — Bus & Taxi Curb"
+description = "Outside the terminal under a concrete canopy: a yellow-cab line, a sign for the free shuttle bus to Howard Beach station, a newspaper box, travellers with luggage carts, grey April morning light."
+music = "morning"
+ambience = "curbside"
+
+[[scenes]]
+id = "howard_beach"
+name = "ハワードビーチ駅"
+name_jp = "Howard Beach Station"
+description = "An open-air elevated subway station: a token booth behind thick glass, turnstiles, a brand-new MetroCard machine, a faded subway map, a silver A train waiting at the platform under a big sky."
+music = "journey"
+ambience = "station"
+
+[[scenes]]
+id = "subway_car"
+name = "地下鉄A線の車内"
+name_jp = "The A Train to Manhattan"
+description = "A rattling 1990s subway car: orange and yellow plastic seats, a strip map over the doors, ads for night schools and personal-injury lawyers, the Manhattan skyline with the Twin Towers glimpsed through scratched windows."
+music = "journey"
+ambience = "train"
+
+[[scenes]]
+id = "east_village_night"
+name = "イーストビレッジの夜道"
+name_jp = "East Village — Night"
+description = "Avenue A at night: brownstones with fire escapes, a glowing bodega awning, a payphone on the corner, steam rising from a manhole, yellow cabs passing, graffiti and punk flyers on lampposts."
+music = "night"
+ambience = "city_night"
+
+[[scenes]]
+id = "bodega_night"
+name = "夜のボデガ（街角の食料品店）"
+name_jp = "Avenue A Deli — Night"
+description = "A cramped corner bodega glowing under fluorescent lights: a deli counter with a grill, shelves of chips and canned goods, a lottery machine, a sleepy cat on the bread rack, a door bell that jingles."
+music = "night"
+ambience = "konbini"
+
+[[scenes]]
+id = "tompkins_park_night"
+name = "トンプキンス・スクエア公園（夜）"
+name_jp = "Tompkins Square Park — Night"
+description = "A lamp-lit park path with old elm trees, iron benches, a chess table, distant sirens, the glow of the city on low clouds."
+music = "night"
+ambience = "park"
+
+[[scenes]]
+id = "hostel_lobby_nyc"
+name = "ホステル バワリー・バンクハウス ロビー"
+name_jp = "Bowery Bunkhouse — Lobby"
+description = "A narrow, cozy hostel lobby up a steep staircase on the Bowery: a scuffed wooden desk, a notice board covered in flyers, a bookshelf of left-behind paperbacks, a hand-written 'ENGLISH ONLY!' sign."
+music = "cozy"
+ambience = "hostel"
+
+[[scenes]]
+id = "hostel_room_nyc"
+name = "ホステルのドミトリー"
+name_jp = "Bowery Bunkhouse — Dorm Room"
+description = "Bunk beds with mismatched blankets, a radiator clanking, a window showing the Twin Towers lit up in the distance over the rooftops."
+music = "cozy"
+ambience = "hostel"
+
+[[scenes]]
+id = "diner"
+name = "ルビーズ・ダイナー"
+name_jp = "Ruby's Diner"
+description = "A classic chrome-and-vinyl New York diner: red booths, a long counter with stools, a pie case, a short-order grill, coffee pots, a jukebox."
+music = "night"
+ambience = "izakaya"
+
+[[scenes]]
+id = "clinic_nyc"
+name = "ベス・イスラエル病院 外来"
+name_jp = "Beth Israel — Walk-in Clinic"
+description = "A small hospital walk-in clinic waiting room: plastic chairs, a reception window, an old CRT TV on a bracket playing the news."
+music = "careful"
+ambience = "clinic"
+
+[[scenes]]
+id = "jfk_departures"
+name = "JFK空港 出発ロビー"
+name_jp = "JFK — Departures"
+description = "The departures hall at golden hour: check-in counters, a clattering flip-board, planes beyond the glass, the Manhattan skyline faint on the horizon."
+music = "finale"
+ambience = "airport"
+
+[[scenes]]
+id = "east_village_day"
+name = "昼のイーストビレッジ"
+name_jp = "East Village — Daytime"
+description = "St. Marks Place in New York's East Village on a bright late-spring morning in 1998: brownstones with zig-zag fire escapes, a record shop and a vintage clothing store with hand-painted signs, a man selling VHS tapes from a blanket on the sidewalk, punk kids with skateboards on a stoop, a payphone plastered with stickers, lampposts thick with paper flyers, and down the block a chrome diner with a cardboard HELP WANTED sign in the window."
+music = "morning"
+ambience = "curbside"
+
+[[scenes]]
+id = "russo_room"
+name = "ルッソさんの部屋"
+name_jp = "Mr. Russo's Apartment"
+description = "A cramped old apartment behind a hostel desk on the Bowery, warm afternoon light through lace curtains: a Formica kitchen table with a cigar box on it, a rotary telephone, a stovetop espresso pot on a hot plate, a record player with a stack of LPs, and a whole wall of black-and-white family photographs in mismatched frames, one of them showing two young men laughing on brownstone front steps."
+music = "cozy"
+ambience = "hostel"
+
+[[scenes]]
+id = "coffee_shop"
+name = "カフェ・オービット"
+name_jp = "Café Orbit"
+description = "A narrow 1990s indie coffee shop near NYU on a rainy afternoon: mismatched thrift-store sofas and armchairs, a hand-lettered chalkboard menu, exposed brick covered in poetry-night and band flyers, a chunky beige Macintosh computer by the register, a hissing espresso machine, steamed-up front windows with rain streaking down, warm amber lamplight."
+music = "cozy"
+ambience = "cafe"
+
+[[scenes]]
+id = "street_fair"
+name = "アベニューAのストリートフェア"
+name_jp = "Avenue A Street Fair"
+description = "Avenue A in the East Village closed to traffic for a June street fair at dusk, 1998: striped food tents with sausage-and-pepper grills and trays of powdered zeppole, a salsa band playing on a flatbed truck, an open fire hydrant spraying laughing kids, string lights hung between fire escapes, a crowd in late-90s fashion, a pink and orange sky above the tenement rooftops."
+music = "journey"
+ambience = "festival"
+
+[[scenes]]
+id = "broadway_theatre"
+name = "カロウェイ劇場（ブロードウェイ）"
+name_jp = "The Calloway Theatre — Broadway"
+description = "The gilded lobby of an old 1920s Broadway theatre during intermission: red velvet ropes and carpets, a sweeping marble staircase, crystal chandeliers, gold-leaf mouldings, framed posters of classic musicals, a small bar serving drinks in plastic cups, and through the glass doors the neon billboards of late-1990s Times Square."
+music = "night"
+ambience = "theatre"
+
+[[scenes]]
+id = "precinct"
+name = "ニューヨーク市警 第9分署"
+name_jp = "NYPD 9th Precinct"
+description = "The front room of an old New York police precinct house in 1998: a tall scuffed wooden front desk with a brass rail, walls painted institutional green, a cork bulletin board of wanted posters and notices, a clanking radiator, beige computers and a ringing desk phone, a row of plastic chairs, a coffee pot, morning light through tall barred windows."
+music = "careful"
+ambience = "police_station"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Audio
+#
+# The web client synthesises music, ambience and effects procedurally, so the
+# game always has copyright-free sound. With an ElevenLabs key,
+# `lexical-server generate-audio` renders these prompts once into DATA_DIR/audio
+# and the client prefers the generated files.
+# ─────────────────────────────────────────────────────────────────────────────
+
+[audio]
+title_music = "title"
+epilogue_music = "finale"
+
+  [[audio.music]]
+  id = "title"
+  prompt = "Gentle instrumental theme for a cosy anime-style adventure game set in 1990s New York. Warm felt piano, soft strings, light jazzy upright bass, a touch of glockenspiel. Hopeful and curious. 92 BPM. No vocals."
+
+  [[audio.music]]
+  id = "morning"
+  prompt = "Airy lo-fi instrumental for a bright, slightly jet-lagged morning at a big airport. Soft electric piano, brushed drums, warm bass, gentle chimes. Optimistic but a little dazed. 84 BPM. No vocals."
+
+  [[audio.music]]
+  id = "careful"
+  prompt = "Quiet, lightly tense instrumental for a scene in a small police office. Pizzicato strings, muted marimba, soft clarinet, sparse percussion. Curious and careful, not scary. 90 BPM. No vocals."
+
+  [[audio.music]]
+  id = "journey"
+  prompt = "Steady, gently rhythmic instrumental for a subway ride into a big city. Acoustic guitar, glockenspiel, light shaker groove, soft bass. A feeling of travelling forward. 100 BPM. No vocals."
+
+  [[audio.music]]
+  id = "night"
+  prompt = "Mellow late-1990s jazzy hip-hop style instrumental for a New York night. Dusty Rhodes piano, muted trumpet, soft boom-bap drums, warm upright bass. Warm, a little lonely. 90 BPM. No vocals."
+
+  [[audio.music]]
+  id = "cozy"
+  prompt = "Cosy acoustic instrumental for a small hostel at night. Nylon-string guitar, soft piano, wooden percussion, light rain-like textures. Safe and warm. 78 BPM. No vocals."
+
+  [[audio.music]]
+  id = "finale"
+  prompt = "Uplifting instrumental finale. Piano and strings swelling gently, light percussion, a sense of relief, gratitude and new friendship. 88 BPM. No vocals."
+
+  [[audio.ambience]]
+  id = "airport"
+  prompt = "Large airport terminal ambience: distant crowd murmur, rolling suitcases, footsteps on polished floors, soft distant chime. No intelligible speech."
+
+  [[audio.ambience]]
+  id = "curbside"
+  prompt = "Outside an airport terminal: buses idling, taxis honking lightly, traffic passing, a whistle in the distance, gentle wind. No speech."
+
+  [[audio.ambience]]
+  id = "koban"
+  prompt = "Quiet small police office interior: wall clock ticking, a computer fan humming, faint terminal noise outside the door."
+
+  [[audio.ambience]]
+  id = "station"
+  prompt = "Open-air elevated subway station: turnstile clicks, footsteps on concrete, wind, a distant train screeching to a stop, muffled announcements without words."
+
+  [[audio.ambience]]
+  id = "train"
+  prompt = "Inside a rattling old subway car: loud rhythmic wheel clatter, squealing curves, motor hum, quiet passengers."
+
+  [[audio.ambience]]
+  id = "city_night"
+  prompt = "New York street at night: distant traffic, a far-off siren, a car horn, the rumble of a subway grate, faint music from a window."
+
+  [[audio.ambience]]
+  id = "konbini"
+  prompt = "Small corner deli interior: refrigerators humming, fluorescent light buzz, a grill sizzling, a faint radio playing without words."
+
+  [[audio.ambience]]
+  id = "hostel"
+  prompt = "Quiet cosy room at night: a radiator ticking, distant city hum, an occasional siren far away, a creak of old floorboards."
+
+  [[audio.ambience]]
+  id = "police_station"
+  prompt = "Police station waiting area: phones ringing in the distance, keyboard typing, quiet murmur, footsteps."
+
+  [[audio.ambience]]
+  id = "park"
+  prompt = "City park at night: soft wind in trees, distant traffic hum, occasional insect chirps, a faraway siren."
+
+  [[audio.ambience]]
+  id = "izakaya"
+  prompt = "Small busy diner: warm chatter without intelligible words, clinking plates and coffee cups, sizzling grill, kitchen bustle."
+
+  [[audio.ambience]]
+  id = "cafe"
+  prompt = "Quiet coffee shop on a rainy day: rain on windows, soft cup clinks, an espresso machine hissing."
+
+  [[audio.ambience]]
+  id = "festival"
+  prompt = "Street fair at dusk: crowd murmur, distant brass band, sizzling food stalls, occasional fireworks pops."
+
+  [[audio.ambience]]
+  id = "theatre"
+  prompt = "Theatre hall before a show: hushed audience murmur, rustling programmes, an orchestra tuning softly in the distance."
+
+  [[audio.ambience]]
+  id = "clinic"
+  prompt = "Small clinic waiting room: quiet air conditioning hum, a muffled TV, a clock ticking, a door swinging shut."
+
+  [[audio.sfx]]
+  id = "door_chime"
+  prompt = "Small brass bell on a shop door jingling, short and friendly."
+
+  [[audio.sfx]]
+  id = "train_doors"
+  prompt = "Subway doors: two-tone chime then doors sliding shut with a thump."
+
+  [[audio.sfx]]
+  id = "radio"
+  prompt = "Handheld police radio crackle and short static burst with a beep."
+
+  [[audio.sfx]]
+  id = "phone"
+  prompt = "Old landline telephone ringing twice."
+
+  [[audio.sfx]]
+  id = "stamp"
+  prompt = "Rubber stamp pressed firmly onto paper on a desk."
+
+  [[audio.sfx]]
+  id = "coins"
+  prompt = "A few American coins and a subway token dropped into a hand, light metallic clinks."
+
+  [[audio.sfx]]
+  id = "footsteps"
+  prompt = "Quick footsteps on a hard tiled floor, a few steps."
+
+  [[audio.sfx]]
+  id = "thud"
+  prompt = "Person slipping and falling hard onto a polished floor, heavy thud."
+
+  [[audio.sfx]]
+  id = "whoosh"
+  prompt = "Fast soft cinematic whoosh."
+
+  [[audio.sfx]]
+  id = "bell"
+  prompt = "Single soft bell strike with long gentle decay."
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Curriculum: an A1→A2 English syllabus for Japanese speakers, lessons 0–12, in
+# order. This is the player's own progress track; wherever they are,
+# conversations drill the current lesson.
+# ─────────────────────────────────────────────────────────────────────────────
+
+[[lessons]]
+index = 0
+title = "サバイバル英語"
+title_jp = "Survival English"
+topic = "あいさつと、困ったときのひとこと"
+min_grammar = 2
+min_turns = 3
+
+  [[lessons.grammar]]
+  id = "e0_im_okay"
+  pattern = "I'm okay. / Are you okay?"
+  meaning = "大丈夫です／大丈夫ですか？（okay = fine = all right）"
+  example_jp = "Yes, I'm okay."
+  example_romaji = "イエス、アイム オウケイ。"
+  example_en = "はい、大丈夫です。"
+
+  [[lessons.grammar]]
+  id = "e0_excuse_me_sorry"
+  pattern = "Excuse me. / Sorry."
+  meaning = "Excuse me＝声をかける「すみません」、Sorry＝あやまる「すみません」"
+  example_jp = "Excuse me — sorry!"
+  example_romaji = "エクスキューズ ミー — ソーリー！"
+  example_en = "すみません、ごめんなさい！"
+
+  [[lessons.grammar]]
+  id = "e0_yes_no"
+  pattern = "Yes. / No."
+  meaning = "はい／いいえ"
+  example_jp = "No, I don't understand."
+  example_romaji = "ノウ、アイ ドウント アンダスタンド。"
+  example_en = "いいえ、わかりません。"
+
+  [[lessons.grammar]]
+  id = "e0_dont_understand"
+  pattern = "I don't understand."
+  meaning = "わかりません（Slowly, please.＝ゆっくりお願いします）"
+  example_jp = "Sorry, I don't understand."
+  example_romaji = "ソーリー、アイ ドウント アンダスタンド。"
+  example_en = "すみません、わかりません。"
+
+  [[lessons.grammar]]
+  id = "e0_thank_you"
+  pattern = "Thank you. / Thanks."
+  meaning = "ありがとう（Thank you very much.＝どうもありがとうございます）"
+  example_jp = "Thank you very much."
+  example_romaji = "サンキュー ヴェリー マッチ。"
+  example_en = "どうもありがとうございます。"
+
+
+  [[lessons.vocab]]
+  jp = "bag"
+  romaji = "バッグ"
+  en = "かばん"
+
+  [[lessons.vocab]]
+  jp = "gone"
+  romaji = "ゴーン"
+  en = "なくなった"
+
+  [[lessons.vocab]]
+  jp = "head"
+  romaji = "ヘッド"
+  en = "あたま"
+
+
+  [[lessons.candos]]
+  id = "ec0_okay"
+  text = "「大丈夫です」と言える"
+  example = "I'm okay."
+  example_reading = "アイム オウケイ。"
+  match_all = [["okay", "ok", "fine", "alright", "all right", "オーケー", "オッケー"]]
+
+  [[lessons.candos]]
+  id = "ec0_sorry"
+  text = "「すみません」と言える"
+  example = "Excuse me. / Sorry."
+  example_reading = "エクスキューズ ミー。／ソーリー。"
+  match_all = [["sorry", "excuse me", "pardon", "ソーリー"]]
+
+  [[lessons.candos]]
+  id = "ec0_thanks"
+  text = "「ありがとう」と言える"
+  example = "Thank you."
+  example_reading = "サンキュー。"
+  match_all = [["thank", "thanks", "サンキュー"]]
+
+  [[lessons.candos]]
+  id = "ec0_dont_understand"
+  text = "「わかりません」と言える"
+  example = "I don't understand."
+  example_reading = "アイ ドウント アンダスタンド。"
+  match_all = [["don't", "dont", "do not", "not", "no"], ["understand", "know"]]
+
+[[lessons]]
+index = 1
+title = "はじめまして"
+title_jp = "Nice to Meet You"
+topic = "My name is…, I'm from…, be動詞の疑問文（Are you…?）"
+min_grammar = 2
+min_turns = 3
+
+  [[lessons.grammar]]
+  id = "e1_my_name_is"
+  pattern = "My name is ___. / I'm ___."
+  meaning = "わたしの名前は＿＿です"
+  example_jp = "Hi, my name is Ken."
+  example_romaji = "ハイ、マイ ネイム イズ ケン。"
+  example_en = "こんにちは、ケンです。"
+
+  [[lessons.grammar]]
+  id = "e1_im_from"
+  pattern = "I'm from ___. / I'm Japanese."
+  meaning = "＿＿から来ました／日本人です"
+  example_jp = "I'm from Japan. I'm Japanese."
+  example_romaji = "アイム フロム ジャパン。アイム ジャパニーズ。"
+  example_en = "日本から来ました。日本人です。"
+
+  [[lessons.grammar]]
+  id = "e1_are_you"
+  pattern = "Are you ___? / Is it ___?"
+  meaning = "be動詞を前に出すと疑問文になる"
+  example_jp = "Are you a student?"
+  example_romaji = "アー ユー ア ステューデント？"
+  example_en = "学生ですか？"
+
+  [[lessons.grammar]]
+  id = "e1_whats_your_name"
+  pattern = "What's your name?"
+  meaning = "お名前は？（what＝なに）"
+  example_jp = "What's your name?"
+  example_romaji = "ワッツ ユア ネイム？"
+  example_en = "お名前は何ですか？"
+
+
+  [[lessons.vocab]]
+  jp = "name"
+  romaji = "ネイム"
+  en = "名前"
+
+  [[lessons.vocab]]
+  jp = "student"
+  romaji = "ステューデント"
+  en = "学生"
+
+  [[lessons.vocab]]
+  jp = "Oh, really?"
+  romaji = "オウ、リアリー？"
+  en = "へえ、そうなんですか？"
+
+  [[lessons.vocab]]
+  jp = "Nice to meet you."
+  romaji = "ナイス トゥ ミーチュー。"
+  en = "はじめまして。"
+
+
+  [[lessons.candos]]
+  id = "ec1_name"
+  text = "自分の名前を言える"
+  example = "My name is ___."
+  example_reading = "マイ ネイム イズ ＿＿。"
+  match_all = [["my name", "name is", "names", "call me"]]
+
+  [[lessons.candos]]
+  id = "ec1_from"
+  text = "どこから来たか言える"
+  example = "I'm from Japan."
+  example_reading = "アイム フロム ジャパン。"
+  match_all = [["from", "japanese", "japan"]]
+
+  [[lessons.candos]]
+  id = "ec1_ask"
+  text = "かんたんな質問ができる（Are you…?）"
+  example = "Are you a student?"
+  example_reading = "アー ユー ア ステューデント？"
+  match_all = [["are you", "is it", "is this", "is that", "is he", "is she", "am i", "whats your", "what is your"]]
+
+[[lessons]]
+index = 2
+title = "もの と 場所"
+title_jp = "Things and Places"
+topic = "this／that, my／mine, Where is…?, It's not mine, I lost my…"
+min_grammar = 3
+min_turns = 3
+
+  [[lessons.grammar]]
+  id = "e2_this_that"
+  pattern = "this / that"
+  meaning = "これ（近く）／あれ・それ（はなれたところ）"
+  example_jp = "Is this your bag?"
+  example_romaji = "イズ ディス ユア バッグ？"
+  example_en = "これはあなたのかばんですか？"
+
+  [[lessons.grammar]]
+  id = "e2_my_mine"
+  pattern = "my / your / mine / whose"
+  meaning = "わたしの／あなたの／わたしのもの／だれの"
+  example_jp = "Whose bag is this?"
+  example_romaji = "フーズ バッグ イズ ディス？"
+  example_en = "これはだれのかばんですか？"
+
+  [[lessons.grammar]]
+  id = "e2_not_mine"
+  pattern = "It's not ___. / That's not mine."
+  meaning = "〜ではありません（be動詞＋not）"
+  example_jp = "No, that's not mine."
+  example_romaji = "ノウ、ザッツ ナット マイン。"
+  example_en = "いいえ、それはわたしのではありません。"
+
+  [[lessons.grammar]]
+  id = "e2_lost_my"
+  pattern = "I lost my ___. / My ___ was stolen."
+  meaning = "＿＿をなくしました／＿＿を盗まれました"
+  example_jp = "My passport was stolen."
+  example_romaji = "マイ パスポート ワズ ストウルン。"
+  example_en = "パスポートを盗まれました。"
+
+  [[lessons.grammar]]
+  id = "e2_where_is"
+  pattern = "Where is ___?"
+  meaning = "＿＿はどこですか？"
+  example_jp = "Where is the police?"
+  example_romaji = "ウェア イズ ザ ポリース？"
+  example_en = "警察はどこですか？"
+
+
+  [[lessons.vocab]]
+  jp = "passport"
+  romaji = "パスポート"
+  en = "パスポート"
+
+  [[lessons.vocab]]
+  jp = "wallet"
+  romaji = "ウォレット"
+  en = "さいふ"
+
+  [[lessons.vocab]]
+  jp = "backpack"
+  romaji = "バックパック"
+  en = "リュック"
+
+  [[lessons.vocab]]
+  jp = "stolen"
+  romaji = "ストウルン"
+  en = "盗まれた"
+
+
+  [[lessons.candos]]
+  id = "ec2_lost"
+  text = "何を盗まれたか言える"
+  example = "My passport was stolen."
+  example_reading = "マイ パスポート ワズ ストウルン。"
+  match_all = [["passport", "wallet", "bag", "backpack", "money", "cheque", "check", "パスポート", "バッグ"], ["lost", "stolen", "stole", "gone", "dont have", "do not have", "missing", "took", "taken", "no"]]
+
+  [[lessons.candos]]
+  id = "ec2_not_mine"
+  text = "「わたしのではありません」と言える"
+  example = "That's not mine."
+  example_reading = "ザッツ ナット マイン。"
+  match_all = [["not mine", "not my", "isnt mine", "isnt my", "no mine", "no my"]]
+
+  [[lessons.candos]]
+  id = "ec2_where"
+  text = "どこにあるか聞ける"
+  example = "Where is the station?"
+  example_reading = "ウェア イズ ザ ステイション？"
+  match_all = [["where", "wheres"]]
+
+[[lessons]]
+index = 3
+title = "移動する"
+title_jp = "Getting Around"
+topic = "I want to go to…, How much is…?, Can I have…, please"
+min_grammar = 3
+min_turns = 3
+
+  [[lessons.grammar]]
+  id = "e3_want_to_go"
+  pattern = "I want to go to ___."
+  meaning = "＿＿に行きたいです（want to＝〜したい）"
+  example_jp = "I want to go to Manhattan."
+  example_romaji = "アイ ウォント トゥ ゴウ トゥ マンハッタン。"
+  example_en = "マンハッタンに行きたいです。"
+
+  [[lessons.grammar]]
+  id = "e3_how_much"
+  pattern = "How much is ___?"
+  meaning = "＿＿はいくらですか？"
+  example_jp = "How much is a token?"
+  example_romaji = "ハウ マッチ イズ ア トウクン？"
+  example_en = "トークンはいくらですか？"
+
+  [[lessons.grammar]]
+  id = "e3_can_i_have"
+  pattern = "Can I have ___, please?"
+  meaning = "＿＿をください（ていねいなお願い）"
+  example_jp = "Can I have one token, please?"
+  example_romaji = "キャナイ ハヴ ワン トウクン、プリーズ？"
+  example_en = "トークンを1枚ください。"
+
+  [[lessons.grammar]]
+  id = "e3_by_train"
+  pattern = "by train / by bus"
+  meaning = "電車で／バスで（交通手段）"
+  example_jp = "I'm going by train."
+  example_romaji = "アイム ゴウイング バイ トレイン。"
+  example_en = "電車で行きます。"
+
+  [[lessons.grammar]]
+  id = "e3_not_enough"
+  pattern = "I don't have enough ___."
+  meaning = "＿＿が足りません"
+  example_jp = "Sorry, I don't have enough money."
+  example_romaji = "ソーリー、アイ ドウント ハヴ イナフ マニー。"
+  example_en = "すみません、お金が足りません。"
+
+
+  [[lessons.vocab]]
+  jp = "token"
+  romaji = "トウクン"
+  en = "（地下鉄の）トークン"
+
+  [[lessons.vocab]]
+  jp = "subway"
+  romaji = "サブウェイ"
+  en = "地下鉄"
+
+  [[lessons.vocab]]
+  jp = "a dollar fifty"
+  romaji = "ア ダラー フィフティ"
+  en = "1ドル50セント"
+
+
+  [[lessons.candos]]
+  id = "ec3_going"
+  text = "どこへ行きたいか言える"
+  example = "I want to go to Manhattan."
+  example_reading = "アイ ウォント トゥ ゴウ トゥ マンハッタン。"
+  match_all = [["go to", "going to", "want to go", "wanna go", "get to", "manhattan", "マンハッタン"]]
+
+  [[lessons.candos]]
+  id = "ec3_price"
+  text = "値段を聞ける"
+  example = "How much is it?"
+  example_reading = "ハウ マッチ イズ イット？"
+  match_all = [["how much", "price", "cost"]]
+
+  [[lessons.candos]]
+  id = "ec3_request"
+  text = "ていねいにお願いできる"
+  example = "Can I have a token, please?"
+  example_reading = "キャナイ ハヴ ア トウクン、プリーズ？"
+  match_all = [["please", "can i have", "could i have", "may i have", "id like", "i would like", "プリーズ"]]
+
+[[lessons]]
+index = 4
+title = "何があったの？"
+title_jp = "What Happened?"
+topic = "There is／are, 場所の前置詞, 過去形（lost, came, was）"
+min_grammar = 3
+min_turns = 3
+
+  [[lessons.grammar]]
+  id = "e4_is_there"
+  pattern = "Is there a ___? / There is ___."
+  meaning = "＿＿はありますか？／＿＿があります"
+  example_jp = "Is there a phone here?"
+  example_romaji = "イズ ゼア ア フォウン ヒア？"
+  example_en = "ここに電話はありますか？"
+
+  [[lessons.grammar]]
+  id = "e4_prepositions"
+  pattern = "next to / near / behind / in front of / on / in"
+  meaning = "〜のとなり／近く／うしろ／前／上／中"
+  example_jp = "The batteries are next to the register."
+  example_romaji = "ザ バッテリーズ アー ネクスト トゥ ザ レジスター。"
+  example_en = "電池はレジのとなりにあります。"
+
+  [[lessons.grammar]]
+  id = "e4_past_verbs"
+  pattern = "I came / I lost / I fell (past tense)"
+  meaning = "過去形：〜しました（-ed がつく動詞と、形が変わる動詞）"
+  example_jp = "I came to New York this morning."
+  example_romaji = "アイ ケイム トゥ ニューヨーク ディス モーニング。"
+  example_en = "今朝ニューヨークに来ました。"
+
+  [[lessons.grammar]]
+  id = "e4_was_were"
+  pattern = "It was ___. / I was ___."
+  meaning = "〜でした（be動詞の過去形）"
+  example_jp = "It was a long day."
+  example_romaji = "イット ワズ ア ロング デイ。"
+  example_en = "長い一日でした。"
+
+
+  [[lessons.vocab]]
+  jp = "sandwich"
+  romaji = "サンドウィッチ"
+  en = "サンドイッチ"
+
+  [[lessons.vocab]]
+  jp = "payphone"
+  romaji = "ペイフォウン"
+  en = "公衆電話"
+
+  [[lessons.vocab]]
+  jp = "cheap"
+  romaji = "チープ"
+  en = "安い"
+
+
+  [[lessons.candos]]
+  id = "ec4_is_there"
+  text = "何かがあるか聞ける"
+  example = "Is there a phone?"
+  example_reading = "イズ ゼア ア フォウン？"
+  match_all = [["is there", "are there", "do you have", "is here", "any"]]
+
+  [[lessons.candos]]
+  id = "ec4_past"
+  text = "何があったか言える"
+  example = "I came to New York today."
+  example_reading = "アイ ケイム トゥ ニューヨーク トゥデイ。"
+  match_all = [["came", "lost", "fell", "slipped", "stole", "stolen", "took", "arrived", "went", "happened", "landed", "was", "were", "hit"]]
+
+  [[lessons.candos]]
+  id = "ec4_location"
+  text = "物の場所を言える（となり、中…）"
+  example = "It's next to the register."
+  example_reading = "イッツ ネクスト トゥ ザ レジスター。"
+  match_all = [["next to", "near", "behind", "in front", "inside", "under", "beside", "between", "on the", "in the"]]
+
+[[lessons]]
+index = 5
+title = "好きなもの"
+title_jp = "Things I Like"
+topic = "形容詞, I like…, Let's…"
+min_grammar = 2
+min_turns = 3
+
+  [[lessons.grammar]]
+  id = "e5_adjectives"
+  pattern = "It's ___ (big / warm / nice)"
+  meaning = "形容詞でものを説明する"
+  example_jp = "This room is warm."
+  example_romaji = "ディス ルーム イズ ウォーム。"
+  example_en = "この部屋は暖かいですね。"
+
+  [[lessons.grammar]]
+  id = "e5_i_like"
+  pattern = "I like ___."
+  meaning = "＿＿が好きです"
+  example_jp = "I like New York pizza."
+  example_romaji = "アイ ライク ニューヨーク ピッツァ。"
+  example_en = "ニューヨークのピザが好きです。"
+
+  [[lessons.grammar]]
+  id = "e5_lets"
+  pattern = "Let's ___. / Shall I ___?"
+  meaning = "〜しましょう／〜しましょうか"
+  example_jp = "Let's eat together."
+  example_romaji = "レッツ イート トゥゲザー。"
+  example_en = "いっしょに食べましょう。"
+
+  [[lessons.vocab]]
+  jp = "delicious"
+  romaji = "デリシャス"
+  en = "おいしい"
+
+  [[lessons.vocab]]
+  jp = "fun"
+  romaji = "ファン"
+  en = "楽しい"
+
+  [[lessons.candos]]
+  id = "ec5_like"
+  text = "好きなものを言える"
+  example = "I like New York pizza."
+  example_reading = "アイ ライク ニューヨーク ピッツァ。"
+  match_all = [["i like", "i love", "i really like", "i really love"]]
+
+  [[lessons.candos]]
+  id = "ec5_describe"
+  text = "形容詞でものを説明できる"
+  example = "This street is really nice."
+  example_reading = "ディス ストリート イズ リアリー ナイス。"
+  match_all = [["its", "it is", "this is", "thats", "that is", "is so", "is very", "is really", "are so", "very", "really", "looks"], ["nice", "big", "small", "warm", "cold", "beautiful", "delicious", "cute", "cool", "fun", "busy", "pretty", "hot", "noisy", "quiet", "tasty", "amazing", "wonderful", "great", "good", "interesting", "expensive"]]
+  ignore = ["good morning", "good evening", "good night", "good afternoon"]
+
+  [[lessons.candos]]
+  id = "ec5_lets"
+  text = "「〜しましょう」とさそえる"
+  example = "Let's eat together."
+  example_reading = "レッツ イート トゥゲザー。"
+  match_all = [["lets", "let us", "shall we", "shall i", "why dont we"]]
+
+[[lessons]]
+index = 6
+title = "お願いと許可"
+title_jp = "Asking and Permission"
+topic = "Please ___, Can I ___?, Don't ___, then"
+min_grammar = 3
+min_turns = 3
+
+  [[lessons.grammar]]
+  id = "e6_please_verb"
+  pattern = "Please ___. (命令形＋please)"
+  meaning = "〜してください"
+  example_jp = "Please speak slowly."
+  example_romaji = "プリーズ スピーク スロウリー。"
+  example_en = "ゆっくり話してください。"
+
+  [[lessons.grammar]]
+  id = "e6_can_i"
+  pattern = "Can I ___? / May I ___?"
+  meaning = "〜してもいいですか？"
+  example_jp = "Can I stay here?"
+  example_romaji = "キャナイ ステイ ヒア？"
+  example_en = "ここに泊まってもいいですか？"
+
+  [[lessons.grammar]]
+  id = "e6_dont"
+  pattern = "Don't ___. / You can't ___."
+  meaning = "〜してはいけません"
+  example_jp = "You can't smoke here."
+  example_romaji = "ユー キャント スモウク ヒア。"
+  example_en = "ここでたばこを吸ってはいけません。"
+
+  [[lessons.grammar]]
+  id = "e6_and_then"
+  pattern = "___ and then ___."
+  meaning = "〜して、それから〜する（動作をつなぐ）"
+  example_jp = "I get up and then I take a shower."
+  example_romaji = "アイ ゲラップ アンド ゼン アイ テイク ア シャウワー。"
+  example_en = "起きて、シャワーを浴びます。"
+
+  [[lessons.vocab]]
+  jp = "clean"
+  romaji = "クリーン"
+  en = "そうじする"
+
+  [[lessons.vocab]]
+  jp = "I can help."
+  romaji = "アイ キャン ヘルプ。"
+  en = "手伝えます"
+
+  [[lessons.vocab]]
+  jp = "part-time job"
+  romaji = "パートタイム ジョブ"
+  en = "アルバイト"
+
+  [[lessons.candos]]
+  id = "ec6_please_do"
+  text = "「〜してください」とたのめる"
+  example = "Please speak slowly."
+  example_reading = "プリーズ スピーク スロウリー。"
+  match_all = [["please"], ["speak", "say", "wait", "help", "show", "tell", "write", "repeat", "teach", "give", "come", "sit", "slowly", "again", "look"]]
+
+  [[lessons.candos]]
+  id = "ec6_can_i"
+  text = "「〜してもいいですか？」と許可をもらえる"
+  example = "Can I work here?"
+  example_reading = "キャナイ ワーク ヒア？"
+  match_all = [["can i", "may i", "could i", "is it ok if i", "is it okay if i"], ["stay", "work", "help", "use", "sit", "try", "go", "come", "ask", "start", "clean", "wash", "sleep", "take", "see", "pay", "call"]]
+
+  [[lessons.candos]]
+  id = "ec6_dont"
+  text = "ルール（〜してはいけない）を言える"
+  example = "Don't touch the grill."
+  example_reading = "ドウント タッチ ザ グリル。"
+  match_all = [["dont", "do not", "you cant", "you cannot", "we cant", "i cant", "must not", "mustnt", "not allowed"], ["touch", "smoke", "eat", "run", "use", "worry", "drink", "forget", "open", "sit", "sleep", "drop", "park", "be late"]]
+  ignore = ["i dont understand", "i dont know"]
+
+  [[lessons.candos]]
+  id = "ec6_and_then"
+  text = "「〜して、それから〜」と順番を言える"
+  example = "I wipe the tables, and then I wash the dishes."
+  example_reading = "アイ ワイプ ザ テイブルズ、アンド ゼン アイ ウォッシュ ザ ディッシズ。"
+  match_all = [["and then", "after that", "then i", "first i", "and after"]]
+
+[[lessons]]
+index = 7
+title = "家族の写真"
+title_jp = "Family Photos"
+topic = "人を説明する：has, is wearing, 現在進行形（be＋-ing）, 家族"
+min_grammar = 2
+min_turns = 3
+
+  [[lessons.grammar]]
+  id = "e7_is_wearing"
+  pattern = "He's wearing ___."
+  meaning = "〜を着ています（服も帽子もめがねも、ぜんぶ wear）"
+  example_jp = "He's wearing a red jacket."
+  example_romaji = "ヒーズ ウェアリング ア レッド ジャケット。"
+  example_en = "彼は赤いジャケットを着ています。"
+
+  [[lessons.grammar]]
+  id = "e7_has"
+  pattern = "She has ___. / He has ___ hair."
+  meaning = "見た目の特徴は have／has で言う（3人称は has）"
+  example_jp = "She has long black hair."
+  example_romaji = "シー ハズ ロング ブラック ヘア。"
+  example_en = "彼女は長い黒髪です。"
+
+  [[lessons.grammar]]
+  id = "e7_present_continuous"
+  pattern = "___ is ___ing."
+  meaning = "今〜しています（be動詞＋-ing）"
+  example_jp = "My grandfather is smiling in this photo."
+  example_romaji = "マイ グランファーザー イズ スマイリング イン ディス フォウトウ。"
+  example_en = "この写真で、祖父は笑っています。"
+
+  [[lessons.grammar]]
+  id = "e7_family"
+  pattern = "my father / my mother / my grandfather"
+  meaning = "家族の言い方（There are four people in my family.＝4人家族です）"
+  example_jp = "There are four people in my family."
+  example_romaji = "ゼア アー フォー ピープル イン マイ ファミリー。"
+  example_en = "4人家族です。"
+
+  [[lessons.vocab]]
+  jp = "grey"
+  romaji = "グレイ"
+  en = "灰色の"
+
+  [[lessons.vocab]]
+  jp = "cap"
+  romaji = "キャップ"
+  en = "（つばのある）帽子"
+
+  [[lessons.vocab]]
+  jp = "red"
+  romaji = "レッド"
+  en = "赤い"
+
+  [[lessons.vocab]]
+  jp = "family"
+  romaji = "ファミリー"
+  en = "家族"
+
+  [[lessons.vocab]]
+  jp = "grandfather"
+  romaji = "グランファーザー"
+  en = "祖父"
+
+  [[lessons.candos]]
+  id = "ec7_wearing"
+  text = "人が何を着ているか言える"
+  example = "He's wearing a grey cap."
+  example_reading = "ヒーズ ウェアリング ア グレイ キャップ。"
+  match_all = [["wearing", "wears", "wore", "had on", "has on"]]
+
+  [[lessons.candos]]
+  id = "ec7_looks"
+  text = "人の見た目を説明できる"
+  example = "He's tall. He has short hair."
+  example_reading = "ヒーズ トール。ヒー ハズ ショート ヘア。"
+  match_all = [["he has", "she has", "he had", "she had", "hes", "shes", "he is", "she is", "he was", "she was", "they are", "they were", "his", "her"], ["hair", "glasses", "beard", "mustache", "moustache", "tall", "short", "young", "old", "thin", "eyes", "beautiful", "handsome", "kind"]]
+  ignore = ["here"]
+
+  [[lessons.candos]]
+  id = "ec7_family"
+  text = "家族のことを話せる"
+  example = "This is my grandfather."
+  example_reading = "ディス イズ マイ グランファーザー。"
+  match_all = [["my father", "my mother", "my dad", "my mom", "my brother", "my sister", "my grandfather", "my grandmother", "my grandpa", "my grandma", "my family", "my parents", "my son", "my daughter", "my wife", "my husband", "your family", "your wife", "your father", "your mother"]]
+
+  [[lessons.candos]]
+  id = "ec7_doing"
+  text = "今だれが何をしているか言える"
+  example = "She's laughing in this photo."
+  example_reading = "シーズ ラフィング イン ディス フォウトウ。"
+  match_all = [["im", "i am", "hes", "he is", "shes", "she is", "theyre", "they are", "youre", "you are", "were", "we are", "is", "are"], ["working", "eating", "reading", "smiling", "laughing", "standing", "sitting", "playing", "waiting", "looking", "holding", "talking", "drinking", "cooking", "cleaning", "singing", "dancing", "walking", "running", "sleeping", "studying", "living", "staying", "crying", "raining"]]
+
+[[lessons]]
+index = 8
+title = "意見を言う"
+title_jp = "What Do You Think?"
+topic = "I think…, I don't…, Please don't…, He said…, Me too"
+min_grammar = 2
+min_turns = 3
+
+  [[lessons.grammar]]
+  id = "e8_i_think"
+  pattern = "I think ___."
+  meaning = "〜と思います（I don't think…＝〜とは思いません）"
+  example_jp = "I think Mia is kind."
+  example_romaji = "アイ シンク ミア イズ カインド。"
+  example_en = "ミアはやさしいと思います。"
+
+  [[lessons.grammar]]
+  id = "e8_dont_verb"
+  pattern = "I don't ___."
+  meaning = "一般動詞の否定（do not＝don't、3人称は doesn't）"
+  example_jp = "I don't like this book."
+  example_romaji = "アイ ドウント ライク ディス ブック。"
+  example_en = "この本は好きじゃありません。"
+
+  [[lessons.grammar]]
+  id = "e8_please_dont"
+  pattern = "Please don't ___."
+  meaning = "〜しないでください"
+  example_jp = "Please don't worry."
+  example_romaji = "プリーズ ドウント ウォーリー。"
+  example_en = "心配しないでください。"
+
+  [[lessons.grammar]]
+  id = "e8_said"
+  pattern = "___ said ___."
+  meaning = "〜と言っていました（人から聞いたことを伝える）"
+  example_jp = "Emily said the fair is on Saturday."
+  example_romaji = "エミリー セッド ザ フェア イズ オン サタデイ。"
+  example_en = "フェアは土曜日だってエミリーが言っていました。"
+
+  [[lessons.grammar]]
+  id = "e8_me_too"
+  pattern = "Me too. / I agree. / Me neither."
+  meaning = "わたしも／賛成です／わたしも（〜ない）"
+  example_jp = "Me too! I agree."
+  example_romaji = "ミー トゥー！アイ アグリー。"
+  example_en = "わたしも！賛成です。"
+
+  [[lessons.vocab]]
+  jp = "kind"
+  romaji = "カインド"
+  en = "やさしい"
+
+  [[lessons.vocab]]
+  jp = "worry"
+  romaji = "ウォーリー"
+  en = "心配する"
+
+  [[lessons.vocab]]
+  jp = "boring"
+  romaji = "ボーリング"
+  en = "退屈な"
+
+  [[lessons.candos]]
+  id = "ec8_think"
+  text = "自分の意見を言える（I think…）"
+  example = "I think it's interesting."
+  example_reading = "アイ シンク イッツ インタレスティング。"
+  match_all = [["i think", "i dont think", "i feel like", "in my opinion", "i guess", "i believe"]]
+
+  [[lessons.candos]]
+  id = "ec8_dont_like"
+  text = "「〜しません／好きじゃない」と言える"
+  example = "I don't like coffee."
+  example_reading = "アイ ドウント ライク カーフィー。"
+  match_all = [["i dont", "i do not"], ["like", "agree", "mind", "care", "think so", "want", "believe", "drink", "eat"]]
+  ignore = ["i dont know", "i dont understand", "i dont have"]
+
+  [[lessons.candos]]
+  id = "ec8_please_dont"
+  text = "「〜しないでください」と言える"
+  example = "Please don't worry."
+  example_reading = "プリーズ ドウント ウォーリー。"
+  match_all = [["please dont", "please do not", "dont worry", "dont be sad", "dont be sorry", "dont cry", "dont go"]]
+
+  [[lessons.candos]]
+  id = "ec8_agree"
+  text = "賛成・同意を伝えられる"
+  example = "Me too! I agree."
+  example_reading = "ミー トゥー！アイ アグリー。"
+  match_all = [["me too", "i agree", "me neither", "you are right", "youre right", "i think so", "same here"]]
+
+[[lessons]]
+index = 9
+title = "あの日のこと"
+title_jp = "That Night"
+topic = "過去形で話す, because, didn't／haven't…yet, Did you…?, the man in…"
+min_grammar = 2
+min_turns = 3
+
+  [[lessons.grammar]]
+  id = "e9_past_story"
+  pattern = "I went… and I saw… (不規則動詞の過去形)"
+  meaning = "過去形をつないで、あったことを順番に話す"
+  example_jp = "Yesterday I went to a show and I saw David."
+  example_romaji = "イェスタデイ アイ ウェント トゥ ア ショウ アンド アイ ソー デイヴィッド。"
+  example_en = "きのうショーに行って、デイビッドに会いました。"
+
+  [[lessons.grammar]]
+  id = "e9_because"
+  pattern = "___ because ___."
+  meaning = "〜だから（理由をあとにつける）"
+  example_jp = "I'm tired because I worked all day."
+  example_romaji = "アイム タイアード ビコーズ アイ ワークト オール デイ。"
+  example_en = "一日中働いたから疲れています。"
+
+  [[lessons.grammar]]
+  id = "e9_didnt_yet"
+  pattern = "I didn't ___. / I haven't ___ yet."
+  meaning = "〜しませんでした／まだ〜していません"
+  example_jp = "I haven't eaten yet."
+  example_romaji = "アイ ハヴント イートゥン イェット。"
+  example_en = "まだ食べていません。"
+
+  [[lessons.grammar]]
+  id = "e9_did_you"
+  pattern = "Did you ___? / How was ___?"
+  meaning = "過去のことを聞く（Did＋主語＋動詞の原形）"
+  example_jp = "Did you like the show?"
+  example_romaji = "ディッジュー ライク ザ ショウ？"
+  example_en = "ショーは気に入りましたか？"
+
+  [[lessons.grammar]]
+  id = "e9_the_man_in"
+  pattern = "the man in the ___ / the woman who ___"
+  meaning = "名詞をうしろから説明する"
+  example_jp = "The man in the red jacket took my bag."
+  example_romaji = "ザ マン イン ザ レッド ジャケット トゥック マイ バッグ。"
+  example_en = "赤いジャケットの男が、わたしのかばんを取りました。"
+
+  [[lessons.vocab]]
+  jp = "tired"
+  romaji = "タイアード"
+  en = "疲れた"
+
+  [[lessons.vocab]]
+  jp = "yesterday"
+  romaji = "イェスタデイ"
+  en = "きのう"
+
+  [[lessons.vocab]]
+  jp = "show"
+  romaji = "ショウ"
+  en = "ショー（舞台）"
+
+  [[lessons.candos]]
+  id = "ec9_because"
+  text = "理由を言える（because）"
+  example = "I liked it because the songs were beautiful."
+  example_reading = "アイ ライクト イット ビコーズ ザ ソングズ ワー ビューティフル。"
+  match_all = [["because", "cause", "thats why", "so i"]]
+
+  [[lessons.candos]]
+  id = "ec9_yesterday"
+  text = "きのう何をしたか話せる"
+  example = "Yesterday I worked at the diner."
+  example_reading = "イェスタデイ アイ ワークト アット ザ ダイナー。"
+  match_all = [["yesterday", "last night", "last week", "last year", "this morning", "ago", "when i was"], ["went", "saw", "ate", "was", "were", "did", "had", "came", "met", "worked", "watched", "played", "lived", "bought", "got", "made", "said", "told", "danced", "walked", "cleaned", "slept"]]
+
+  [[lessons.candos]]
+  id = "ec9_didnt"
+  text = "「〜しなかった／まだ〜していない」と言える"
+  example = "I didn't understand the story."
+  example_reading = "アイ ディドゥント アンダスタンド ザ ストーリー。"
+  match_all = [["didnt", "did not", "wasnt", "was not", "werent", "havent", "have not", "not yet"]]
+
+  [[lessons.candos]]
+  id = "ec9_did_you"
+  text = "過去のことを質問できる"
+  example = "Did you like the show?"
+  example_reading = "ディッジュー ライク ザ ショウ？"
+  match_all = [["did you", "what did", "where did", "how did", "how was", "were you", "was it"]]
+
+[[lessons]]
+index = 10
+title = "これからの予定"
+title_jp = "Plans and Comparisons"
+topic = "比較級（-er than）, the best, going to, get better"
+min_grammar = 2
+min_turns = 3
+
+  [[lessons.grammar]]
+  id = "e10_er_than"
+  pattern = "A is ___er than B. / more ___ than"
+  meaning = "AはBより〜（長い形容詞は more ___ than）"
+  example_jp = "Manhattan is smaller than Tokyo."
+  example_romaji = "マンハッタン イズ スモーラー ザン トウキョウ。"
+  example_en = "マンハッタンは東京より小さいです。"
+
+  [[lessons.grammar]]
+  id = "e10_the_best"
+  pattern = "the best / the most ___ / my favorite"
+  meaning = "いちばん〜（最上級）"
+  example_jp = "This is the best pizza in New York."
+  example_romaji = "ディス イズ ザ ベスト ピッツァ イン ニューヨーク。"
+  example_en = "これがニューヨークでいちばんおいしいピザです。"
+
+  [[lessons.grammar]]
+  id = "e10_going_to"
+  pattern = "I'm going to ___."
+  meaning = "〜するつもりです（決めている予定）"
+  example_jp = "I'm going to stay here this summer."
+  example_romaji = "アイム ゴウイング トゥ ステイ ヒア ディス サマー。"
+  example_en = "この夏はここにいるつもりです。"
+
+  [[lessons.grammar]]
+  id = "e10_get_better"
+  pattern = "get better / become ___"
+  meaning = "〜になる（変化を言う）"
+  example_jp = "My English is getting better."
+  example_romaji = "マイ イングリッシュ イズ ゲティング ベター。"
+  example_en = "英語が上手になってきました。"
+
+  [[lessons.vocab]]
+  jp = "summer"
+  romaji = "サマー"
+  en = "夏"
+
+  [[lessons.vocab]]
+  jp = "next year"
+  romaji = "ネクスト イヤー"
+  en = "来年"
+
+  [[lessons.vocab]]
+  jp = "better"
+  romaji = "ベター"
+  en = "もっとよい"
+
+  [[lessons.candos]]
+  id = "ec10_compare"
+  text = "ふたつのものをくらべられる"
+  example = "It's better than the movie!"
+  example_reading = "イッツ ベター ザン ザ ムーヴィー！"
+  match_all = [["better than", "worse than", "bigger than", "smaller than", "cheaper than", "older than", "younger than", "faster than", "nicer than", "colder than", "hotter than", "busier than", "longer than", "taller than", "easier than", "harder than", "more than", "less than", "more beautiful", "more expensive", "more interesting", "more fun"]]
+
+  [[lessons.candos]]
+  id = "ec10_best"
+  text = "「いちばん〜」と言える"
+  example = "This is the best zeppole in New York."
+  example_reading = "ディス イズ ザ ベスト ゼポリー イン ニューヨーク。"
+  match_all = [["the best", "the most", "my favorite", "my favourite", "number one", "the biggest", "the worst"]]
+
+  [[lessons.candos]]
+  id = "ec10_going_to"
+  text = "これからの予定を言える（going to）"
+  example = "I'm going to work tomorrow."
+  example_reading = "アイム ゴウイング トゥ ワーク トゥマーロウ。"
+  match_all = [["going to", "gonna", "will", "ill", "plan to", "planning to"], ["stay", "work", "live", "come back", "go home", "go back", "study", "visit", "see", "try", "learn", "save", "move", "tomorrow", "next", "tonight", "someday", "this weekend", "this summer", "later", "soon", "one day"]]
+  ignore = ["going to the", "going to a", "going to my"]
+
+  [[lessons.candos]]
+  id = "ec10_become"
+  text = "変化を言える（get better / become）"
+  example = "My English is getting better."
+  example_reading = "マイ イングリッシュ イズ ゲティング ベター。"
+  match_all = [["got better", "getting better", "get better", "becoming", "become", "became", "improved", "improving", "is better now"]]
+
+[[lessons]]
+index = 11
+title = "やってみたいこと"
+title_jp = "Things I Want to Do"
+topic = "want to, Have you ever…?, I like ___ing, …and stuff"
+min_grammar = 2
+min_turns = 3
+
+  [[lessons.grammar]]
+  id = "e11_want_to"
+  pattern = "I want to ___."
+  meaning = "〜したいです（want to＋動詞の原形）"
+  example_jp = "I want to remember everything."
+  example_romaji = "アイ ウォント トゥ リメンバー エヴリシング。"
+  example_en = "全部思い出したいです。"
+
+  [[lessons.grammar]]
+  id = "e11_have_you_ever"
+  pattern = "Have you ever ___? / I've ___ before."
+  meaning = "〜したことがありますか？／〜したことがあります（have＋過去分詞）"
+  example_jp = "Have you ever been to Japan?"
+  example_romaji = "ハヴ ユー エヴァー ビーン トゥ ジャパン？"
+  example_en = "日本に行ったことがありますか？"
+
+  [[lessons.grammar]]
+  id = "e11_like_ing"
+  pattern = "I like ___ing."
+  meaning = "〜するのが好きです"
+  example_jp = "I like walking in the park."
+  example_romaji = "アイ ライク ウォーキング イン ザ パーク。"
+  example_en = "公園を歩くのが好きです。"
+
+  [[lessons.grammar]]
+  id = "e11_and_stuff"
+  pattern = "___, ___ and stuff"
+  meaning = "〜とか〜とか（例をいくつかあげる）"
+  example_jp = "On my day off I clean, read and stuff."
+  example_romaji = "オン マイ デイ オフ アイ クリーン、リード アンド スタッフ。"
+  example_en = "休みの日は、そうじしたり本を読んだりします。"
+
+  [[lessons.vocab]]
+  jp = "remember"
+  romaji = "リメンバー"
+  en = "思い出す・覚えている"
+
+  [[lessons.vocab]]
+  jp = "ever"
+  romaji = "エヴァー"
+  en = "今までに"
+
+  [[lessons.vocab]]
+  jp = "day off"
+  romaji = "デイ オフ"
+  en = "休みの日"
+
+  [[lessons.candos]]
+  id = "ec11_want_to"
+  text = "やりたいことを言える（want to）"
+  example = "I want to see Japan again."
+  example_reading = "アイ ウォント トゥ スィー ジャパン アゲイン。"
+  match_all = [["i want to", "i wanna", "i would like to", "id like to", "i really want to"], ["see", "stay", "learn", "work", "be", "live", "try", "eat", "visit", "meet", "know", "remember", "study", "find", "help", "become", "come back", "say", "thank"]]
+
+  [[lessons.candos]]
+  id = "ec11_ever"
+  text = "経験を聞いたり言ったりできる（Have you ever…?）"
+  example = "Have you ever been to Japan?"
+  example_reading = "ハヴ ユー エヴァー ビーン トゥ ジャパン？"
+  match_all = [["have you ever", "ever been", "ever seen", "ever tried", "ive been", "i have been", "ive seen", "i have seen", "ive never", "i have never", "never been"]]
+
+  [[lessons.candos]]
+  id = "ec11_like_ing"
+  text = "するのが好きなことを言える（I like ___ing）"
+  example = "I like walking in the park."
+  example_reading = "アイ ライク ウォーキング イン ザ パーク。"
+  match_all = [["i like", "i love", "i enjoy", "i hate", "i dont like"], ["walking", "reading", "cooking", "singing", "dancing", "swimming", "drawing", "painting", "running", "watching", "listening", "playing", "eating", "drinking", "talking", "working", "studying", "traveling", "travelling", "shopping", "writing", "learning", "sleeping", "skating", "fishing", "riding", "making", "helping", "cleaning", "sitting"]]
+
+  [[lessons.candos]]
+  id = "ec11_and_stuff"
+  text = "例をいくつかあげて話せる（〜とか〜とか）"
+  example = "I clean, I read and stuff."
+  example_reading = "アイ クリーン、アイ リード アンド スタッフ。"
+  match_all = [["and stuff", "and things", "things like", "stuff like", "and so on", "for example", "such as"]]
+
+[[lessons]]
+index = 12
+title = "体の調子"
+title_jp = "Feeling Sick"
+topic = "I feel…, My ___ hurts, too much, should, maybe／probably, have to"
+min_grammar = 3
+min_turns = 3
+
+  [[lessons.grammar]]
+  id = "e12_i_feel"
+  pattern = "I feel ___. / My ___ hurts."
+  meaning = "体の調子を言う"
+  example_jp = "My head hurts. I feel dizzy."
+  example_romaji = "マイ ヘッド ハーツ。アイ フィール ディズィー。"
+  example_en = "頭が痛いです。めまいがします。"
+
+  [[lessons.grammar]]
+  id = "e12_too_much"
+  pattern = "too much / too ___"
+  meaning = "〜すぎる"
+  example_jp = "I worked too much."
+  example_romaji = "アイ ワークト トゥー マッチ。"
+  example_en = "働きすぎました。"
+
+  [[lessons.grammar]]
+  id = "e12_should"
+  pattern = "You should ___."
+  meaning = "〜したほうがいいです（アドバイス）"
+  example_jp = "You should rest."
+  example_romaji = "ユー シュッド レスト。"
+  example_en = "休んだほうがいいです。"
+
+  [[lessons.grammar]]
+  id = "e12_maybe"
+  pattern = "maybe / probably"
+  meaning = "たぶん（maybe より probably のほうが確信が強い）"
+  example_jp = "It's probably nothing. Maybe I'm just tired."
+  example_romaji = "イッツ プロバブリー ナッシング。メイビー アイム ジャスト タイアード。"
+  example_en = "たぶん何でもないです。ただ疲れているだけかも。"
+
+  [[lessons.grammar]]
+  id = "e12_have_to"
+  pattern = "I have to ___."
+  meaning = "〜しなければなりません"
+  example_jp = "I have to go back to Japan."
+  example_romaji = "アイ ハフ トゥ ゴウ バック トゥ ジャパン。"
+  example_en = "日本に帰らなければなりません。"
+
+  [[lessons.vocab]]
+  jp = "hurt"
+  romaji = "ハート"
+  en = "痛む"
+
+  [[lessons.vocab]]
+  jp = "dizzy"
+  romaji = "ディズィー"
+  en = "めまいがする"
+
+  [[lessons.vocab]]
+  jp = "memory"
+  romaji = "メモリー"
+  en = "記憶"
+
+  [[lessons.candos]]
+  id = "ec12_feel"
+  text = "体の調子を説明できる"
+  example = "My head hurts. I feel dizzy."
+  example_reading = "マイ ヘッド ハーツ。アイ フィール ディズィー。"
+  match_all = [["i feel", "i felt", "im", "i am", "i was", "my", "it"], ["sick", "dizzy", "tired", "hurt", "pain", "ache", "headache", "terrible", "sore", "fever", "awful", "unwell"]]
+
+  [[lessons.candos]]
+  id = "ec12_too_much"
+  text = "「〜すぎる」と言える"
+  example = "I worked too much."
+  example_reading = "アイ ワークト トゥー マッチ。"
+  match_all = [["too much", "too many", "too hard", "too long", "too tired", "too fast", "too late", "too busy", "too hot", "too cold", "too expensive", "too far", "too big", "too small", "too loud"]]
+
+  [[lessons.candos]]
+  id = "ec12_should"
+  text = "アドバイスや「〜しなければ」を言える（should / have to）"
+  example = "You should rest. / I have to go home."
+  example_reading = "ユー シュッド レスト。／アイ ハフ トゥ ゴウ ホウム。"
+  match_all = [["should", "shouldnt", "had better", "ought to", "have to", "has to", "must"]]
+
+  [[lessons.candos]]
+  id = "ec12_maybe"
+  text = "「たぶん」と推測を言える"
+  example = "Maybe I'm just tired."
+  example_reading = "メイビー アイム ジャスト タイアード。"
+  match_all = [["maybe", "probably", "perhaps", "might"]]
+
+# ─────────────────────────────────────────────────────────────────────────────
+# The big arc, as the player's own thoughts. The current goal is the first
+# one not yet achieved.
+# ─────────────────────────────────────────────────────────────────────────────
+
+[[quests]]
+id = "escape"
+title = "この空港を出て、マンハッタンに行かなきゃ。"
+title_jp = "Into the City"
+flags_any = ["reached_city"]
+
+[[quests]]
+id = "bed"
+title = "今夜寝る場所が必要だ。"
+title_jp = "A Bed for Tonight"
+flags_any = ["has_bed"]
+
+[[quests]]
+id = "work"
+title = "お金もパスポートもない。仕事を見つけないと。"
+title_jp = "Finding Work"
+flags_any = ["has_job"]
+
+[[quests]]
+id = "rent"
+title = "家賃の日だ。ルッソさんに払わないと。"
+title_jp = "Rent"
+flags_any = ["paid_rent"]
+
+[[quests]]
+id = "love"
+title = "ここでも、ひとりぼっちじゃないのかも…"
+title_jp = "Love"
+flags_any = ["love_mia", "love_emily", "love_david"]
+
+[[quests]]
+id = "identity"
+title = "わたしはだれ？思い出さなきゃ。"
+title_jp = "Who Am I?"
+flags_any = ["remembered"]
+
+[[quests]]
+id = "home"
+title = "わたしの居場所は、どこ？"
+title_jp = "Home"
+flags_any = ["ending_home", "ending_stay"]
+
+# Things the world does on its own once their conditions are met.
+[[triggers]]
+flag = "bag_found"
+requires_flags = ["paid_rent"]
+min_lesson = 7
+narration = "ホステルの受付に伝言メモが置いてある。エミリーの丸い字で「Officer Kim called! NYPD 9th Precinct, E. 5th St. — 98-0418」。受理番号だ。何か見つかったらしい。"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Places. The world is a map: each place has people, a situation, a goal and
+# exits. The player moves by saying where they want to go — the director sets
+# go_to when someone guides them there — or by picking an exit on the map.
+# Exits can wait on story flags or on curriculum progress (min_lesson).
+# Goals are the player's own thoughts, so they are in plain Japanese.
+# ─────────────────────────────────────────────────────────────────────────────
+
+[[places]]
+id = "jfk_arrivals"
+name = "到着ロビー"
+name_jp = "International Arrivals"
+aliases = ["arrivals", "arrival", "terminal", "inside", "lobby", "escalator", "ロビー", "到着", "とうちゃく", "ターミナル"]
+scene = "jfk_arrivals"
+clock = "7:42 AM"
+act = 1
+cast = ["danny"]
+situation = """
+The player slipped on a wet escalator, hit their head, and woke on the floor of the JFK international arrivals hall. Their backpack — passport, wallet, traveler's cheques — was stolen while they were out. They remember only their first name; everything else is fog. It is Saturday morning. Danny, a security officer, is kneeling beside them. He can point to the Port Authority Police office down the hall, or to the information desk across the hall, but he is on duty and cannot leave his post. He may try one of his anime Japanese words (だいじょうぶ?) when the player looks scared, which should be funny and comforting — but then he goes back to slow English.
+"""
+goal = "大丈夫だって伝えなきゃ。それと、かばんがなくなったことも。"
+success = """
+The player reassures Danny (e.g. "I'm okay") and gets across that their bag is gone, in any English at all. Danny then points towards the police office ("police — there") or the information desk. Set go_to only once the player clearly decides where to go.
+"""
+goal_flags = []
+on_enter_flags = []
+items_allowed = []
+max_yen_gain = 0
+max_yen_spend = 0
+reward_yen = 0
+reward_items = []
+recharge = 0
+
+candos = ["ec0_okay", "ec0_sorry", "ec0_dont_understand"]
+
+  [[places.pack]]
+  jp = "okay"
+  romaji = "オウケイ"
+  en = "大丈夫"
+
+  [[places.pack]]
+  jp = "sorry"
+  romaji = "ソーリー"
+  en = "すみません（あやまる）"
+
+  [[places.pack]]
+  jp = "bag"
+  romaji = "バッグ"
+  en = "かばん"
+
+  [[places.pack]]
+  jp = "gone"
+  romaji = "ゴーン"
+  en = "なくなった"
+
+  [[places.pack]]
+  jp = "head"
+  romaji = "ヘッド"
+  en = "あたま"
+
+  [[places.pack]]
+  jp = "police"
+  romaji = "ポリース"
+  en = "警察"
+
+  [[places.pack]]
+  jp = "over there"
+  romaji = "オウヴァー ゼア"
+  en = "あそこ"
+
+  [[places.exits]]
+  to = "jfk_police"
+  label = "ダニーが指さす警察の窓口"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "jfk_info"
+  label = "ロビーの向こうの案内所"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "jfk_curb"
+  label = "ガラスのドアから外へ"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "jfk_arrivals"
+  transition = "fade"
+  ambient = "dust"
+  en = "ニューヨーク、JFK国際空港。国際線到着ロビー。1998年4月、午前7時42分。"
+
+  [[places.intro]]
+  speaker = "narrator"
+  en = "十三時間のフライト。睡眠ゼロ。看板は全部アルファベットのパズル。アナウンスは、言葉のないメロディーみたいだ。"
+
+  [[places.intro]]
+  speaker = "narrator"
+  en = "英語はまったく話せない。ひとことも。ガイドブックはリュックの中だ。"
+
+  [[places.intro]]
+  speaker = "narrator"
+  camera = "pan_right"
+  en = "エスカレーターの上で、グレーのキャップに赤いジャケットの男が肩をぶつけてきた。男は振り返らない。"
+
+  [[places.intro]]
+  speaker = "narrator"
+  en = "エスカレーターはとても長くて、とてもピカピカで、そして——気づいた時にはもう遅い——とても濡れていた。"
+
+  [[places.intro]]
+  speaker = "narrator"
+  camera = "shake"
+  transition = "flash"
+  sfx = "thud"
+  en = "——！"
+
+  [[places.intro]]
+  speaker = "narrator"
+  transition = "blackout"
+  en = "……"
+
+  [[places.intro]]
+  speaker = "extra"
+  speaker_name = "???"
+  jp = "…Hey. Hey, you okay?"
+  romaji = "…ヘイ。ヘイ、ユー オウケイ？"
+  en = "…おい。おい、大丈夫？"
+
+  [[places.intro]]
+  speaker = "narrator"
+  transition = "wake"
+  camera = "tilt_blur"
+  en = "光。まぶしすぎる光。誰かの顔が、ぼんやりと目の前に浮かんでくる。"
+
+  [[places.intro]]
+  speaker = "danny"
+  expression = "worried"
+  action = "enter_right"
+  emote = "exclaim"
+  jp = "Whoa, whoa — are you okay?!"
+  romaji = "ウォウ、ウォウ — アー ユー オウケイ？！"
+  en = "おいおい、大丈夫か？！"
+
+  [[places.intro]]
+  speaker = "narrator"
+  camera = "zoom_in"
+  en = "ポケットを探る。財布——ない。トラベラーズチェック——ない。パスポートの入ったリュック——ない。"
+
+  [[places.intro]]
+  speaker = "narrator"
+  sfx = "bell"
+  en = "ジャケットの内ポケットで、指が何かに触れた。おばさんが貸してくれた英和電子辞書だ。液晶にはヒビ。単三電池が二本、ほとんど空っぽ。単語は引けるけど、文の翻訳はできない。一回一回、大事に使わないと。"
+
+  [[places.intro]]
+  speaker = "danny"
+  expression = "worried"
+  action = "lean_in"
+  emote = "sweat"
+  jp = "Your head… okay? Uh… daijoubu?"
+  romaji = "ユア ヘッド… オウケイ？ アー… ダイジョウブ？"
+  en = "頭…大丈夫？ えっと…「だいじょうぶ」？"
+
+
+  [[places.choices]]
+  jp = "Yes, I'm okay."
+  romaji = "イエス、アイム オウケイ。"
+  en = "はい、大丈夫です。"
+
+  [[places.choices]]
+  jp = "Sorry… my bag… gone!"
+  romaji = "ソーリー… マイ バッグ… ゴーン！"
+  en = "すみません…かばんが…ない！"
+
+  [[places.choices]]
+  jp = "I don't understand…"
+  romaji = "アイ ドウント アンダスタンド…"
+  en = "わかりません…"
+
+
+[[places]]
+id = "jfk_info"
+name = "案内所"
+name_jp = "Information Desk"
+aliases = ["information", "info", "desk", "help desk", "counter", "案内所", "あんないじょ", "インフォメーション", "案内"]
+scene = "jfk_info"
+clock = "8:00 AM"
+act = 1
+cast = []
+situation = """
+An airport information desk. Gloria (speaker "extra", speaker_name "グロリア"), a brisk but warm Queens native in her fifties, has seen everything and speaks fast — but slows right down when she sees a lost face. She knows no Japanese ("Japanese? Sorry, honey, no."). She can phone the police office, draw arrows on a free terminal map, and point outside to the free shuttle bus to Howard Beach station ("A train — Manhattan"). She asks one simple question at a time.
+"""
+goal = "ここなら、どこで助けてもらえるか知っている人がいるはず。"
+success = """
+The player asks where something is ("Where is…?" or similar) and Gloria draws the way on a terminal map she gives them.
+"""
+goal_flags = []
+on_enter_flags = []
+items_allowed = ["terminal_map"]
+max_yen_gain = 0
+max_yen_spend = 0
+reward_yen = 0
+reward_items = ["terminal_map"]
+recharge = 0
+
+candos = ["ec2_where", "ec0_dont_understand"]
+
+  [[places.pack]]
+  jp = "where"
+  romaji = "ウェア"
+  en = "どこ"
+
+  [[places.pack]]
+  jp = "police"
+  romaji = "ポリース"
+  en = "警察"
+
+  [[places.pack]]
+  jp = "bus"
+  romaji = "バス"
+  en = "バス"
+
+  [[places.pack]]
+  jp = "map"
+  romaji = "マップ"
+  en = "地図"
+
+  [[places.pack]]
+  jp = "outside"
+  romaji = "アウトサイド"
+  en = "外"
+
+  [[places.exits]]
+  to = "jfk_police"
+  label = "地図に書かれた警察の窓口"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "jfk_curb"
+  label = "外のバス乗り場へ"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "jfk_arrivals"
+  label = "到着ロビーにもどる"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "jfk_info"
+  transition = "whip"
+  en = "青い「i」の看板。ホテルやミュージカルのパンフレットの棚、壁には大きなターミナルの地図。"
+
+  [[places.intro]]
+  speaker = "extra"
+  speaker_name = "グロリア"
+  jp = "Next! … Oh, honey. You lost? Where do you need to go?"
+  romaji = "ネクスト！…オウ、ハニー。ユー ロスト？ウェア ドゥー ユー ニード トゥ ゴウ？"
+  en = "次の方！…あらまあ。迷子？どこに行きたいの？"
+
+  [[places.choices]]
+  jp = "Where is the police?"
+  romaji = "ウェア イズ ザ ポリース？"
+  en = "警察はどこですか？"
+
+  [[places.choices]]
+  jp = "Sorry, I don't understand."
+  romaji = "ソーリー、アイ ドウント アンダスタンド。"
+  en = "すみません、わかりません。"
+
+  [[places.choices]]
+  jp = "Where is the bus?"
+  romaji = "ウェア イズ ザ バス？"
+  en = "バスはどこですか？"
+
+[[places]]
+id = "jfk_police"
+name = "空港警察の窓口"
+name_jp = "Port Authority Police Office"
+aliases = ["police", "cop", "cops", "officer", "office", "police office", "port authority", "けいさつ", "警察", "ポリス", "交番", "こうばん"]
+scene = "jfk_police"
+clock = "8:40 AM"
+act = 1
+cast = ["rachel"]
+situation = """
+Officer Rachel Kim runs the small Port Authority Police office in the terminal. She speaks zero Japanese and communicates with a laminated picture chart (passport, wallet, bag, money, bus, train, consulate, phone icons), quick sketches on a notepad, the wall map and a desk calendar. She treats a stolen passport as serious and is patient and kind about it. What really happens here, step by step, whenever the player asks or worries:
+- She takes the theft report: what was stolen (she points at icons — "Passport? Wallet? Money?"), what the bag looked like ("Color? Black? Blue?"), and asks for a hotel or phone number — the player has none, so she writes the report number and the office's phone number on a card: "If we find it, we call. You call us. Okay?"
+- She shows bags from the lost-property shelf asking "Is this your bag?" — none are theirs.
+- Passport: she points at the consulate icon, says "Japanese Consulate" slowly, writes CONSULATE OF JAPAN — PARK AVE and circles Manhattan on the map. Today is Saturday — she taps the calendar and mimes "closed" until Monday ("Closed. Monday."). That's WHY the player must get into Manhattan and survive the weekend.
+- Money: as the Port Authority really can for stranded travellers, she lends $10 from the emergency fund for the bus and subway, and explains: free shuttle bus outside → Howard Beach station → A train → Manhattan. She draws it as three boxes with arrows.
+If the player asks why, what next, or about their passport, phone or luggage, she always answers with this information — never just "go to the bus".
+"""
+goal = "パスポートもお金も、全部なくなった。届け出て、どうすればいいか聞かないと。"
+success = """
+The player gets across what was stolen and correctly refuses at least one wrong bag ("No, not mine" or similar). Rachel files the report, gives the card with the report number, explains the Japanese consulate in Manhattan (closed until Monday), and lends $10 for the bus and subway.
+"""
+goal_flags = ["reported_theft"]
+on_enter_flags = []
+items_allowed = ["theft_report"]
+max_yen_gain = 10
+max_yen_spend = 0
+reward_yen = 10
+reward_items = ["theft_report"]
+recharge = 20
+
+candos = ["ec2_lost", "ec2_not_mine"]
+
+  [[places.pack]]
+  jp = "passport"
+  romaji = "パスポート"
+  en = "パスポート"
+
+  [[places.pack]]
+  jp = "wallet"
+  romaji = "ウォレット"
+  en = "さいふ"
+
+  [[places.pack]]
+  jp = "stolen"
+  romaji = "ストウルン"
+  en = "盗まれた"
+
+  [[places.pack]]
+  jp = "this"
+  romaji = "ディス"
+  en = "これ"
+
+  [[places.pack]]
+  jp = "mine"
+  romaji = "マイン"
+  en = "わたしのもの"
+
+  [[places.pack]]
+  jp = "not mine"
+  romaji = "ナット マイン"
+  en = "わたしのではない"
+
+  [[places.pack]]
+  jp = "consulate"
+  romaji = "カンスレット"
+  en = "領事館"
+
+  [[places.pack]]
+  jp = "Monday"
+  romaji = "マンデイ"
+  en = "月曜日"
+
+  [[places.exits]]
+  to = "jfk_curb"
+  label = "キム巡査が指さすバス乗り場"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "jfk_info"
+  label = "案内所"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "jfk_arrivals"
+  label = "ターミナルにもどる"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "jfk_police"
+  transition = "whip"
+  en = "空港警察の窓口は思ったより小さい。机がひとつ、地図が一枚、星条旗——そして、背筋のぴんと伸びた警察官がひとり。"
+
+  [[places.intro]]
+  speaker = "rachel"
+  expression = "neutral"
+  action = "enter_right"
+  jp = "Hello. What happened?"
+  romaji = "ハロウ。ワット ハプンド？"
+  en = "こんにちは。どうしましたか？"
+
+
+  [[places.choices]]
+  jp = "My bag was stolen."
+  romaji = "マイ バッグ ワズ ストウルン。"
+  en = "かばんを盗まれました。"
+
+  [[places.choices]]
+  jp = "My passport… gone."
+  romaji = "マイ パスポート… ゴーン。"
+  en = "パスポートが…ありません。"
+
+  [[places.choices]]
+  jp = "My wallet, too."
+  romaji = "マイ ウォレット、トゥー。"
+  en = "財布もです。"
+
+
+[[places]]
+id = "jfk_curb"
+name = "ターミナル前のバス乗り場"
+name_jp = "Bus & Taxi Curb"
+aliases = ["outside", "curb", "bus", "bus stop", "shuttle", "taxi", "cab", "そと", "外", "バス", "バス停", "タクシー"]
+scene = "jfk_curb"
+clock = "8:05 AM"
+act = 1
+cast = ["mia"]
+situation = """
+Outside the terminal: a yellow-cab line, newspaper boxes, and a sign for the free shuttle bus to Howard Beach station. Mia, an NYU student flying back from visiting her grandmother, sits on her suitcase eating a bagel, Walkman headphones round her neck, waiting for the same shuttle. She notices the dazed traveller. She took one semester of Japanese and is thrilled to try a word or two (こんにちは! なまえ?), then switches to slow, enthusiastic English. She mentions (plant it casually) that she works nights at her uncle's bodega on Avenue A in the East Village. A cab to Manhattan costs about $30 flat — way too much; she points to the shuttle bus and the A train instead.
+"""
+goal = "スーツケースに座っているあの子なら、助けてくれるかも…"
+success = """
+The player tells Mia their name ("My name is…" / "I'm…") and answers at least one of her questions. She writes "A TRAIN → MANHATTAN" on their hand with a smile and points to the shuttle bus, or to the police office.
+"""
+goal_flags = ["met_mia"]
+on_enter_flags = []
+items_allowed = []
+max_yen_gain = 0
+max_yen_spend = 0
+reward_yen = 0
+reward_items = []
+recharge = 0
+
+candos = ["ec1_name", "ec1_from", "ec1_ask"]
+
+  [[places.pack]]
+  jp = "name"
+  romaji = "ネイム"
+  en = "名前"
+
+  [[places.pack]]
+  jp = "my name is"
+  romaji = "マイ ネイム イズ"
+  en = "わたしの名前は"
+
+  [[places.pack]]
+  jp = "I'm from Japan"
+  romaji = "アイム フロム ジャパン"
+  en = "日本から来ました"
+
+  [[places.pack]]
+  jp = "student"
+  romaji = "ステューデント"
+  en = "学生"
+
+  [[places.pack]]
+  jp = "Manhattan"
+  romaji = "マンハッタン"
+  en = "マンハッタン"
+
+  [[places.pack]]
+  jp = "shuttle bus"
+  romaji = "シャトル バス"
+  en = "シャトルバス"
+
+  [[places.exits]]
+  to = "howard_beach"
+  label = "無料シャトルバスでハワードビーチ駅へ"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "jfk_police"
+  label = "空港警察の窓口"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "jfk_arrivals"
+  label = "中にもどる"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "jfk_curb"
+  en = "外は排気ガスと雨のにおい。黄色いタクシー。バス。看板。でも、どれも読めない。"
+  ambient = "rain"
+
+  [[places.intro]]
+  speaker = "mia"
+  expression = "surprised"
+  action = "enter_left"
+  emote = "question"
+  jp = "Um… excuse me, are you okay?"
+  romaji = "アム… エクスキューズ ミー、アー ユー オウケイ？"
+  en = "あの…すみません、大丈夫ですか？"
+
+  [[places.intro]]
+  speaker = "mia"
+  expression = "happy"
+  action = "hop"
+  jp = "Konnichiwa! I'm Mia! What's your name?"
+  romaji = "コンニチワ！アイム ミア！ワッツ ユア ネイム？"
+  en = "こんにちは！わたし、ミア！あなたの名前は？"
+
+
+  [[places.choices]]
+  jp = "My name is ___."
+  romaji = "マイ ネイム イズ ＿＿。"
+  en = "わたしの名前は＿＿です。"
+
+  [[places.choices]]
+  jp = "Where is the police?"
+  romaji = "ウェア イズ ザ ポリース？"
+  en = "警察はどこですか？"
+
+  [[places.choices]]
+  jp = "Are you a student?"
+  romaji = "アー ユー ア ステューデント？"
+  en = "学生ですか？"
+
+
+[[places]]
+id = "howard_beach"
+name = "ハワードビーチ駅"
+name_jp = "Howard Beach Station"
+aliases = ["station", "subway", "train", "token", "metrocard", "howard beach", "a train", "えき", "駅", "地下鉄", "ちかてつ", "電車", "でんしゃ"]
+scene = "howard_beach"
+clock = "9:15 AM"
+act = 1
+cast = ["david"]
+situation = """
+The open-air elevated station at Howard Beach, where the free JFK shuttle bus drops passengers. A token booth behind thick glass with a bored clerk (speaker "extra", speaker_name "駅員"), turnstiles, a brand-new MetroCard vending machine nobody understands yet, and a faded subway map. A ride is $1.50 — one token. David, a Japanese-American accountant heading to his office, notices the player staring at the map. The player probably assumes he speaks Japanese and tries it — he winces and apologizes ("Sorry — I don't speak Japanese. My grandparents… long story."), which is a running gag. If the player has the police loan, they can buy a token themselves when they ask properly; if they're short or confused, David covers the fare when asked sincerely and shows them how the turnstile works. He writes "$1.50" and "A → W 4 ST" in his planner to communicate.
+"""
+goal = "マンハッタンまでの切符…いや、トークン？がいる。いくらで、どうやって買うんだろう。"
+success = """
+The player asks a price or says where they're going ("How much…?" / "I want to go to Manhattan" / "One token, please"). One way or another they end up holding a token, and David offers to ride together.
+"""
+goal_flags = ["has_ticket", "met_david"]
+on_enter_flags = []
+items_allowed = ["train_ticket", "david_card"]
+max_yen_gain = 2
+max_yen_spend = 2
+reward_yen = 0
+reward_items = ["train_ticket"]
+recharge = 0
+
+candos = ["ec3_price", "ec3_going", "ec3_request"]
+
+  [[places.pack]]
+  jp = "token"
+  romaji = "トウクン"
+  en = "トークン（地下鉄の切符代わりのコイン）"
+
+  [[places.pack]]
+  jp = "how much"
+  romaji = "ハウ マッチ"
+  en = "いくら"
+
+  [[places.pack]]
+  jp = "one, please"
+  romaji = "ワン、プリーズ"
+  en = "ひとつください"
+
+  [[places.pack]]
+  jp = "not enough"
+  romaji = "ナット イナフ"
+  en = "足りない"
+
+  [[places.pack]]
+  jp = "subway"
+  romaji = "サブウェイ"
+  en = "地下鉄"
+
+  [[places.pack]]
+  jp = "I want to go to"
+  romaji = "アイ ウォント トゥ ゴウ トゥ"
+  en = "〜に行きたい"
+
+  [[places.events]]
+  flag = "has_ticket"
+  when = "the player ends up holding a subway token (bought, or paid for by David)"
+
+  [[places.exits]]
+  to = "subway_car"
+  label = "改札を通ってA線へ"
+  requires_flags = ["has_ticket"]
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "jfk_curb"
+  label = "シャトルバスで空港にもどる"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "howard_beach"
+  transition = "fade"
+  sfx = "footsteps"
+  ambient = "clear"
+  en = "ハワードビーチ駅。高架のホーム、風、壁一面の色あせた路線図。改札の向こうに銀色の電車が見える。"
+
+  [[places.intro]]
+  speaker = "narrator"
+  camera = "zoom_in"
+  en = "窓口の上に「TOKENS $1.50」。キム巡査が貸してくれた、しわしわの10ドル札を見つめる。"
+
+  [[places.intro]]
+  speaker = "david"
+  expression = "thinking"
+  action = "enter_right"
+  emote = "question"
+  jp = "Um… are you lost? Where are you going?"
+  romaji = "アム… アー ユー ロスト？ ウェア アー ユー ゴウイング？"
+  en = "あの…迷ってる？どこに行くの？"
+
+
+  [[places.choices]]
+  jp = "How much is it to Manhattan?"
+  romaji = "ハウ マッチ イズ イット トゥ マンハッタン？"
+  en = "マンハッタンまでいくらですか？"
+
+  [[places.choices]]
+  jp = "I want to go to Manhattan."
+  romaji = "アイ ウォント トゥ ゴウ トゥ マンハッタン。"
+  en = "マンハッタンに行きたいです。"
+
+  [[places.choices]]
+  jp = "Sorry, I don't have enough money."
+  romaji = "ソーリー、アイ ドウント ハヴ イナフ マニー。"
+  en = "すみません、お金が足りません。"
+
+
+[[places]]
+id = "subway_car"
+name = "地下鉄A線 マンハッタン行き"
+name_jp = "The A Train to Manhattan"
+aliases = ["a train", "train", "subway", "manhattan", "電車", "でんしゃ", "地下鉄", "マンハッタン"]
+scene = "subway_car"
+clock = "9:40 AM"
+act = 1
+cast = ["david"]
+situation = """
+The A train rattles over Jamaica Bay, then through Brooklyn and under the river. David, formal and kind, makes small talk: where the player will go tonight, what they'll do, whether they're a tourist (want to / going to, by train). He points out the Twin Towers through the window when the train comes above ground ("My office. 84th floor."). He gives them his business card before they arrive, in case they need help, and tells them to get off at West 4th Street for the East Village.
+"""
+goal = "マンハッタンに着くまで、なんとか世間話を乗りきろう。"
+success = """
+The player tells David at least one thing they will do or where they'll go ("I want to go to…", "I'm going to…"). He hands over his business card as the train pulls into West 4th Street.
+"""
+goal_flags = []
+on_enter_flags = []
+items_allowed = ["david_card"]
+max_yen_gain = 0
+max_yen_spend = 0
+reward_yen = 0
+reward_items = ["david_card"]
+recharge = 0
+
+candos = ["ec3_going"]
+
+  [[places.pack]]
+  jp = "tonight"
+  romaji = "トゥナイト"
+  en = "今夜"
+
+  [[places.pack]]
+  jp = "where"
+  romaji = "ウェア"
+  en = "どこ"
+
+  [[places.pack]]
+  jp = "go"
+  romaji = "ゴウ"
+  en = "行く"
+
+  [[places.pack]]
+  jp = "business card"
+  romaji = "ビズネス カード"
+  en = "名刺"
+
+  [[places.pack]]
+  jp = "get off"
+  romaji = "ゲット オフ"
+  en = "降りる"
+
+  [[places.exits]]
+  to = "east_village_night"
+  label = "ウエスト4丁目駅で降りて、イーストビレッジへ"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "subway_car"
+  transition = "fade"
+  sfx = "train_doors"
+  en = "ドアが閉まる。電車はガタガタ揺れながら、ジャマイカ湾の上を走りだした。"
+
+  [[places.intro]]
+  speaker = "david"
+  expression = "neutral"
+  action = "enter_right"
+  jp = "So… tonight. Where are you going to go?"
+  romaji = "ソウ…トゥナイト。ウェア アー ユー ゴウイング トゥ ゴウ？"
+  en = "それで…今夜はどこに行くの？"
+
+  [[places.intro]]
+  speaker = "narrator"
+  camera = "pan_right"
+  en = "傷だらけの窓の外、遠くにマンハッタンのビル群。ひときわ高い、二本のタワー。"
+
+  [[places.choices]]
+  jp = "I want to go to Manhattan."
+  romaji = "アイ ウォント トゥ ゴウ トゥ マンハッタン。"
+  en = "マンハッタンに行きたいです。"
+
+  [[places.choices]]
+  jp = "I don't know…"
+  romaji = "アイ ドウント ノウ…"
+  en = "わかりません…"
+
+  [[places.choices]]
+  jp = "Where do I get off?"
+  romaji = "ウェア ドゥー アイ ゲット オフ？"
+  en = "どこで降りればいいですか？"
+
+[[places]]
+id = "east_village_night"
+name = "イーストビレッジの夜"
+name_jp = "East Village — Night"
+aliases = ["east village", "avenue a", "city", "downtown", "イーストビレッジ", "夜の街", "まち"]
+scene = "east_village_night"
+clock = "9:15 PM"
+act = 2
+cast = []
+situation = """
+The East Village at night, after a long, lost day of wandering Manhattan: fire escapes, steam from a manhole, a payphone on the corner, punk flyers, a glowing bodega awning on Avenue A. The player is exhausted and hungry. Passers-by (speaker "extra") are busy but kind if approached politely — a bike messenger, a woman walking her dog, a guy in a Knicks jersey. One can point to the bodega or the park, or — if asked about somewhere to sleep — mention the cheap hostels on the Bowery.
+"""
+goal = "おなかがぺこぺこ。それに、寝る場所も探さないと。"
+success = """
+The player asks a passer-by something useful (where, how much) and gets pointed somewhere — the bodega, the park, or the hostels on the Bowery.
+"""
+goal_flags = []
+on_enter_flags = ["reached_city"]
+items_allowed = []
+max_yen_gain = 0
+max_yen_spend = 0
+reward_yen = 0
+reward_items = []
+recharge = 0
+
+candos = ["ec2_where"]
+
+  [[places.pack]]
+  jp = "food"
+  romaji = "フード"
+  en = "食べもの"
+
+  [[places.pack]]
+  jp = "cheap"
+  romaji = "チープ"
+  en = "安い"
+
+  [[places.pack]]
+  jp = "where"
+  romaji = "ウェア"
+  en = "どこ"
+
+  [[places.pack]]
+  jp = "hostel"
+  romaji = "ホステル"
+  en = "ホステル（安い宿）"
+
+  [[places.pack]]
+  jp = "the Bowery"
+  romaji = "ザ バウアリー"
+  en = "バワリー通り"
+
+  [[places.events]]
+  flag = "knows_hostel"
+  when = "someone tells the player where to find a cheap hostel on the Bowery"
+
+  [[places.exits]]
+  to = "bodega_night"
+  label = "角で光っているボデガ"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "tompkins_park_night"
+  label = "通りの先の暗い公園"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "hostel_lobby_nyc"
+  label = "バワリー通りのホステル"
+  requires_flags = ["knows_hostel"]
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "east_village_day"
+  label = "夜が明けたら、昼の街へ"
+  requires_flags = ["has_bed"]
+  min_lesson = 0
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "east_village_night"
+  transition = "fade"
+  ambient = "night_bokeh"
+  en = "夜9時15分。一日じゅうマンハッタンを歩きまわって、気づけばイーストビレッジ。マンホールから湯気、角には公衆電話。"
+
+  [[places.intro]]
+  speaker = "narrator"
+  en = "おなかが鳴る。足が痛い。通りの角で、ボデガの看板だけがやけに明るい。"
+
+  [[places.intro]]
+  speaker = "extra"
+  speaker_name = "犬を散歩させている女性"
+  jp = "You okay, hon? You look lost."
+  romaji = "ユー オウケイ、ハン？ユー ルック ロスト。"
+  en = "大丈夫？迷ってるみたいね。"
+
+  [[places.choices]]
+  jp = "Excuse me. Where is a cheap hotel?"
+  romaji = "エクスキューズ ミー。ウェア イズ ア チープ ホウテル？"
+  en = "すみません。安いホテルはどこですか？"
+
+  [[places.choices]]
+  jp = "Where is food?"
+  romaji = "ウェア イズ フード？"
+  en = "食べものはどこですか？"
+
+  [[places.choices]]
+  jp = "I'm okay. Thank you."
+  romaji = "アイム オウケイ。サンキュー。"
+  en = "大丈夫です。ありがとう。"
+
+[[places]]
+id = "bodega_night"
+name = "夜のボデガ"
+name_jp = "Avenue A Deli"
+aliases = ["bodega", "deli", "store", "shop", "corner store", "grocery", "ボデガ", "デリ", "店", "みせ", "コンビニ"]
+scene = "bodega_night"
+clock = "9:30 PM"
+act = 2
+cast = ["mia"]
+situation = """
+A cramped 24-hour corner bodega on Avenue A — and behind the counter is Mia from the airport, overjoyed to see the player again ("Oh my gosh! Airport friend!"). The player has little or no money and no phone. She can explain where things are (prepositions: next to the register, behind the chips, in the fridge), sell them a cheap prepaid phone card for the payphone outside, give them two AA batteries for their dictionary at "family discount" (basically free), make them a bacon-egg-and-cheese on the house if they ask nicely, and write down the address of the Bowery Bunkhouse hostel where her friend Emily works the desk. She asks what happened today (past tense: "What happened? You lost your bag?"). The sleepy bodega cat is named Mochi — she named it after her Japanese class.
+"""
+goal = "食べもの、電話、寝る場所…ミアなら助けてくれるかも。"
+success = """
+The player asks where something is or whether something exists ("Is there…?"), tells Mia something that happened today in the past tense, and leaves with her note for the Bowery Bunkhouse.
+"""
+goal_flags = ["mia_friend", "knows_hostel"]
+on_enter_flags = []
+items_allowed = ["sandwich", "phone_card", "batteries", "hostel_address"]
+max_yen_gain = 0
+max_yen_spend = 5
+reward_yen = 0
+reward_items = ["hostel_address", "batteries"]
+recharge = 100
+
+candos = ["ec4_is_there", "ec4_past", "ec4_location"]
+
+  [[places.pack]]
+  jp = "sandwich"
+  romaji = "サンドウィッチ"
+  en = "サンドイッチ"
+
+  [[places.pack]]
+  jp = "payphone"
+  romaji = "ペイフォウン"
+  en = "公衆電話"
+
+  [[places.pack]]
+  jp = "Is there…?"
+  romaji = "イズ ゼア…？"
+  en = "〜はありますか？"
+
+  [[places.pack]]
+  jp = "next to"
+  romaji = "ネクスト トゥ"
+  en = "〜のとなり"
+
+  [[places.pack]]
+  jp = "how much"
+  romaji = "ハウ マッチ"
+  en = "いくら"
+
+  [[places.pack]]
+  jp = "phone card"
+  romaji = "フォウン カード"
+  en = "テレホンカード"
+
+  [[places.pack]]
+  jp = "batteries"
+  romaji = "バッテリーズ"
+  en = "電池"
+
+  [[places.events]]
+  flag = "love_mia"
+  when = "a genuinely warm, romantic moment with Mia happens and she clearly returns the feeling (only after several visits and high trust)"
+
+  [[places.exits]]
+  to = "hostel_lobby_nyc"
+  label = "ミアのメモ：バワリー通りのホステル"
+  requires_flags = ["knows_hostel"]
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "east_village_night"
+  label = "通りにもどる"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "tompkins_park_night"
+  label = "通りの先の公園"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "bodega_night"
+  sfx = "door_chime"
+  en = "ドアのベルがチリンと鳴る。蛍光灯、グリルの音、パンの棚の上で寝ているネコ。"
+
+  [[places.intro]]
+  speaker = "mia"
+  expression = "surprised"
+  action = "enter_right"
+  emote = "exclaim"
+  jp = "Hi, welcome… wait, what?! Airport friend!"
+  romaji = "ハイ、ウェルカム… ウェイト、ワット？！ エアポート フレンド！"
+  en = "いらっしゃい…え、うそ？！空港の子だ！"
+
+
+  [[places.choices]]
+  jp = "Mia! Hi! Good evening!"
+  romaji = "ミア！ハイ！グッド イーヴニング！"
+  en = "ミア！こんばんは！"
+
+  [[places.choices]]
+  jp = "Where are the sandwiches?"
+  romaji = "ウェア アー ザ サンドウィッチズ？"
+  en = "サンドイッチはどこですか？"
+
+  [[places.choices]]
+  jp = "Is there a phone?"
+  romaji = "イズ ゼア ア フォウン？"
+  en = "電話はありますか？"
+
+
+[[places]]
+id = "tompkins_park_night"
+name = "トンプキンス・スクエア公園（夜）"
+name_jp = "Tompkins Square Park — Night"
+aliases = ["park", "bench", "tompkins", "square", "こうえん", "公園", "ベンチ"]
+scene = "tompkins_park_night"
+clock = "11:40 PM"
+act = 2
+cast = []
+situation = """
+A quiet lamp-lit path under old elms, iron benches, an empty chess table. Earl (speaker "extra", speaker_name "アール"), an old street musician with a battered saxophone and a gentle Southern drawl, is packing up. He shares hot coffee from a thermos, speaks slow, warm English with no Japanese at all, and tells the player that the hostels on the Bowery are cheap — some let you work for your bed. He also says, kindly but seriously, that the park isn't the safest place to sleep. The player can still simply sleep on the bench.
+"""
+goal = "もう遅い。今夜はどこで過ごそう？"
+success = """
+The player talks with Earl long enough to learn about the Bowery hostels, or decides to sleep on the bench.
+"""
+goal_flags = ["knows_hostel"]
+on_enter_flags = []
+items_allowed = []
+max_yen_gain = 0
+max_yen_spend = 0
+reward_yen = 0
+reward_items = []
+recharge = 0
+
+candos = ["ec4_past"]
+
+  [[places.pack]]
+  jp = "park"
+  romaji = "パーク"
+  en = "公園"
+
+  [[places.pack]]
+  jp = "coffee"
+  romaji = "カーフィー"
+  en = "コーヒー"
+
+  [[places.pack]]
+  jp = "bench"
+  romaji = "ベンチ"
+  en = "ベンチ"
+
+  [[places.pack]]
+  jp = "sleep"
+  romaji = "スリープ"
+  en = "眠る"
+
+  [[places.pack]]
+  jp = "safe"
+  romaji = "セイフ"
+  en = "安全な"
+
+  [[places.events]]
+  flag = "slept_in_park"
+  when = "the player decides to sleep on the bench until morning"
+
+  [[places.exits]]
+  to = "hostel_lobby_nyc"
+  label = "アールが教えてくれたバワリー通りへ歩く"
+  requires_flags = ["knows_hostel"]
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "east_village_night"
+  label = "通りにもどる"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "tompkins_park_night"
+  transition = "fade"
+  en = "古いニレの木の下、街灯の小道。だれもいないチェスのテーブル。遠くでサイレン。"
+
+  [[places.intro]]
+  speaker = "extra"
+  speaker_name = "アール"
+  jp = "Evenin'. Cold night. Want some coffee? It's free."
+  romaji = "イーヴニン。コウルド ナイト。ウォント サム カーフィー？イッツ フリー。"
+  en = "こんばんは。寒い夜だね。コーヒー飲むかい？タダだよ。"
+
+  [[places.choices]]
+  jp = "Yes, please. Thank you."
+  romaji = "イエス、プリーズ。サンキュー。"
+  en = "はい、お願いします。ありがとう。"
+
+  [[places.choices]]
+  jp = "Is there a hostel near here?"
+  romaji = "イズ ゼア ア ホステル ニア ヒア？"
+  en = "この近くにホステルはありますか？"
+
+  [[places.choices]]
+  jp = "I sleep here… okay?"
+  romaji = "アイ スリープ ヒア…オウケイ？"
+  en = "ここで寝ても…いい？"
+
+[[places]]
+id = "hostel_lobby_nyc"
+name = "ホステル バワリー・バンクハウス ロビー"
+name_jp = "Bowery Bunkhouse — Lobby"
+aliases = ["hostel", "bunkhouse", "bowery", "guesthouse", "hotel", "ホステル", "やど", "宿", "ホテル", "ゲストハウス"]
+scene = "hostel_lobby_nyc"
+clock = "10:40 PM"
+act = 2
+cast = ["emily"]
+situation = """
+The Bowery Bunkhouse: up a steep staircase, a narrow lobby with a scuffed desk and a hand-written "ENGLISH ONLY!" sign. Emily, an Australian who spent a year in Osaka, works the desk. She may whisper one Japanese line, then sticks to the owner's English-only rule. Mr. Russo (speaker "extra", speaker_name "ルッソさん"), the gruff old Italian-American owner, listens from the back office with a cigar he never lights. With no money, the player must ask permission ("Can I stay here?") and offer to work for a bed ("I can clean", "I can help"). On later visits this is home base: Emily chats and teaches, and once the player has a job Russo grunts at them to bring the rent ($70 a week) to his apartment behind the desk.
+"""
+goal = "お金がない。なんとかここで泊めてもらえないかな。"
+success = """
+The player asks permission to stay ("Can I stay here?" or a polite request) and offers to help in exchange ("I can clean"). Mr. Russo grumbles yes and Emily hands over a key.
+"""
+goal_flags = ["has_bed"]
+on_enter_flags = []
+items_allowed = ["hostel_key"]
+max_yen_gain = 0
+max_yen_spend = 70
+reward_yen = 0
+reward_items = ["hostel_key"]
+recharge = 100
+
+candos = ["ec4_is_there", "ec3_request"]
+
+  [[places.pack]]
+  jp = "Can I stay here?"
+  romaji = "キャナイ ステイ ヒア？"
+  en = "ここに泊まってもいいですか？"
+
+  [[places.pack]]
+  jp = "money"
+  romaji = "マニー"
+  en = "お金"
+
+  [[places.pack]]
+  jp = "I don't have"
+  romaji = "アイ ドウント ハヴ"
+  en = "持っていません"
+
+  [[places.pack]]
+  jp = "I can clean"
+  romaji = "アイ キャン クリーン"
+  en = "そうじできます"
+
+  [[places.pack]]
+  jp = "I can help"
+  romaji = "アイ キャン ヘルプ"
+  en = "手伝えます"
+
+  [[places.pack]]
+  jp = "bed"
+  romaji = "ベッド"
+  en = "ベッド"
+
+  [[places.events]]
+  flag = "paid_rent"
+  when = "the player pays Mr. Russo the week's rent"
+
+  [[places.events]]
+  flag = "love_emily"
+  when = "a genuinely romantic moment with Emily happens and she clearly returns the feeling (only after several visits and high trust)"
+
+  [[places.exits]]
+  to = "hostel_room_nyc"
+  label = "自分のベッドへ"
+  requires_flags = ["has_bed"]
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "east_village_day"
+  label = "昼のイーストビレッジへ"
+  requires_flags = ["has_bed"]
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "russo_room"
+  label = "受付の奥、ルッソさんの部屋（家賃）"
+  requires_flags = ["has_job"]
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "east_village_night"
+  label = "イーストビレッジにもどる"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "hostel_lobby_nyc"
+  transition = "fade"
+  ambient = "night_bokeh"
+  en = "バワリー通り。急な階段をのぼると、小さなロビー。手書きの貼り紙：「ENGLISH ONLY!」"
+
+  [[places.intro]]
+  speaker = "emily"
+  expression = "happy"
+  action = "enter_left"
+  emote = "sparkle"
+  jp = "Oh, you're Mia's friend? G'day! Come in!"
+  romaji = "オウ、ユア ミアズ フレンド？ グダイ！カム イン！"
+  en = "あ、ミアの友だち？こんばんは！どうぞ入って！"
+
+  [[places.intro]]
+  speaker = "emily"
+  expression = "thinking"
+  action = "lean_in"
+  en = "（小声で）気をつけて、オーナーが聞いてるよ。ここは英語だけ。大丈夫、できるって。"
+
+
+  [[places.choices]]
+  jp = "Good evening. I have no money…"
+  romaji = "グッド イーヴニング。アイ ハヴ ノウ マニー…"
+  en = "こんばんは。お金がないんです…"
+
+  [[places.choices]]
+  jp = "Can I stay here?"
+  romaji = "キャナイ ステイ ヒア？"
+  en = "ここに泊まってもいいですか？"
+
+  [[places.choices]]
+  jp = "I can clean!"
+  romaji = "アイ キャン クリーン！"
+  en = "そうじできます！"
+
+
+[[places]]
+id = "hostel_room_nyc"
+name = "ドミトリー"
+name_jp = "Dorm Room"
+aliases = ["room", "bed", "bunk", "dorm", "sleep", "へや", "部屋", "ベッド", "寝る"]
+scene = "hostel_room_nyc"
+clock = "11:30 PM"
+act = 2
+cast = []
+situation = """
+Bunk 3 in a six-bed dorm: a mismatched blanket, a radiator that clanks like someone hitting a pipe with a spoon, a window over the rooftops where the Twin Towers glow — the same towers David pointed at from the train this morning. A sleepy roommate on the top bunk (speaker "extra", speaker_name "上の段の人"), a German backpacker named Jonas, mumbles "Good night" and turns the light off; he speaks slow, kind English and nothing else. The player is alone with the day. As they drift off, the narrator gives a dream fragment: an old letter with an address in careful English handwriting, a grandfather's low voice laughing, a street sign on the Bowery they can't quite read, a smell of espresso. They wake with one word in their head: "Russo". This is the first thread of the identity quest; later visits are quiet moments of rest and reflection (the player can talk to themselves about their day, in English, in the past tense).
+"""
+goal = "眠ろう。何か思い出せるかもしれない。"
+success = """
+After the player says anything at all (even "good night" to Jonas, or a few words to themselves about today), the dream fragment plays and they wake remembering the word "Russo".
+"""
+goal_flags = ["memory_letter"]
+on_enter_flags = []
+items_allowed = []
+max_yen_gain = 0
+max_yen_spend = 0
+reward_yen = 0
+reward_items = []
+recharge = 0
+
+candos = ["ec4_past", "ec0_okay"]
+
+  [[places.pack]]
+  jp = "Good night."
+  romaji = "グッ ナイト。"
+  en = "おやすみなさい"
+
+  [[places.pack]]
+  jp = "tired"
+  romaji = "タイアード"
+  en = "疲れた"
+
+  [[places.pack]]
+  jp = "sleep"
+  romaji = "スリープ"
+  en = "眠る"
+
+  [[places.pack]]
+  jp = "dream"
+  romaji = "ドリーム"
+  en = "夢"
+
+  [[places.pack]]
+  jp = "letter"
+  romaji = "レター"
+  en = "手紙"
+
+  [[places.pack]]
+  jp = "lights out"
+  romaji = "ライツ アウト"
+  en = "消灯"
+
+  [[places.exits]]
+  to = "hostel_lobby_nyc"
+  label = "ロビーへ降りる"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "east_village_day"
+  label = "朝の街へ"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "hostel_room_nyc"
+  transition = "fade"
+  ambient = "night_bokeh"
+  en = "三番ベッド。柄のばらばらな毛布。ラジエーターが、カン、カン、と鳴っている。"
+
+  [[places.intro]]
+  speaker = "narrator"
+  camera = "pan_right"
+  en = "窓の向こう、屋根の上に、二本のタワーが光っている。今朝、電車の中でデイビッドが指さしたビルだ。"
+
+  [[places.intro]]
+  speaker = "extra"
+  speaker_name = "上の段の人"
+  jp = "Hey… new roommate? Lights out, okay? Good night."
+  romaji = "ヘイ…ニュー ルームメイト？ライツ アウト、オウケイ？グッ ナイト。"
+  en = "やあ…新しいルームメイト？電気消すよ、いい？おやすみ。"
+
+  [[places.intro]]
+  speaker = "narrator"
+  transition = "blackout"
+  sfx = "bell"
+  en = "まぶたが重い。暗闇のどこかで、だれかが笑っている。なつかしい、低い声。"
+
+  [[places.choices]]
+  jp = "Good night."
+  romaji = "グッ ナイト。"
+  en = "おやすみなさい。"
+
+  [[places.choices]]
+  jp = "Okay. Thank you."
+  romaji = "オウケイ。サンキュー。"
+  en = "はい。ありがとう。"
+
+  [[places.choices]]
+  jp = "Today… I came to New York."
+  romaji = "トゥデイ…アイ ケイム トゥ ニューヨーク。"
+  en = "今日…ニューヨークに来たんだ。"
+
+
+[[places]]
+id = "east_village_day"
+name = "昼のイーストビレッジ"
+name_jp = "East Village — Daytime"
+aliases = ["daytime", "neighborhood", "neighbourhood", "st. marks", "st marks", "saint marks", "second avenue", "2nd avenue", "昼の街", "近所", "セントマークス", "二番街"]
+scene = "east_village_day"
+clock = "11:00 AM"
+act = 2
+cast = ["mia", "emily"]
+situation = """
+The East Village by day, a few blocks from the hostel: St. Marks Place and Second Avenue in late spring, 1998. Record shops and vintage stores with hand-painted signs, a Ukrainian diner, punk kids on the stoops, a man selling bootleg VHS tapes from a blanket, pigeons, a sticker-covered payphone, lampposts thick with flyers. Mia (on her way to class, Walkman on, coffee in hand) or Emily (on a break from the hostel desk, buying bagels) may be out and about — at most one of them at a time, or nobody. Passers-by (speaker "extra") are busy but friendly.
+Things to plant naturally: Ruby's Diner on Second Avenue has a cardboard "HELP WANTED" sign in the window. Flyers advertise "STREET FAIR — AVENUE A — SAT JUNE 13" and a revival musical at the Calloway Theatre on Broadway. Mia mentions a little coffee shop near NYU where she studies. If the player asks about work or money, whoever is around points them to Ruby's sign ("Help wanted — that means job!").
+This is the hub of the player's new life: perfect for lesson 5 English — describing things (It's so big / This is nice), saying what they like (I like…), and suggesting things (Let's…). Later visits are free conversation, practice and planning; when the story has moved on, characters mention the theatre, the fair or the café.
+"""
+goal = "仕事を見つけないと。それに…ここで生きていく毎日も。"
+success = """
+The player describes something around them or says what they like (any lesson 5 English), and notices or asks about the HELP WANTED sign; someone points them to Ruby's Diner. Later visits are free conversation.
+"""
+goal_flags = ["job_lead"]
+on_enter_flags = []
+items_allowed = []
+max_yen_gain = 0
+max_yen_spend = 3
+reward_yen = 0
+reward_items = []
+recharge = 0
+
+candos = ["ec5_like", "ec5_describe", "ec5_lets"]
+
+  [[places.pack]]
+  jp = "help wanted"
+  romaji = "ヘルプ ウォンティッド"
+  en = "従業員募集"
+
+  [[places.pack]]
+  jp = "job"
+  romaji = "ジャブ"
+  en = "仕事"
+
+  [[places.pack]]
+  jp = "nice"
+  romaji = "ナイス"
+  en = "いい・すてきな"
+
+  [[places.pack]]
+  jp = "I like"
+  romaji = "アイ ライク"
+  en = "〜が好き"
+
+  [[places.pack]]
+  jp = "Let's go"
+  romaji = "レッツ ゴウ"
+  en = "行こう"
+
+  [[places.pack]]
+  jp = "bagel"
+  romaji = "ベイグル"
+  en = "ベーグル"
+
+  [[places.pack]]
+  jp = "flyer"
+  romaji = "フライヤー"
+  en = "チラシ"
+
+  [[places.events]]
+  flag = "job_lead"
+  when = "someone points the player to the HELP WANTED sign at Ruby's Diner"
+
+  [[places.exits]]
+  to = "diner"
+  label = "ルビーズ・ダイナー（HELP WANTED）"
+  requires_flags = ["job_lead"]
+  min_lesson = 6
+
+  [[places.exits]]
+  to = "hostel_lobby_nyc"
+  label = "バワリー・バンクハウスに帰る"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "coffee_shop"
+  label = "NYUの近くの小さなコーヒーショップ"
+  requires_flags = ["has_job"]
+  min_lesson = 7
+
+  [[places.exits]]
+  to = "street_fair"
+  label = "アベニューAのストリートフェア"
+  requires_flags = ["has_job"]
+  min_lesson = 8
+
+  [[places.exits]]
+  to = "broadway_theatre"
+  label = "ブロードウェイの古い劇場"
+  requires_flags = ["has_job"]
+  min_lesson = 9
+
+  [[places.exits]]
+  to = "precinct"
+  label = "第9分署——警察から連絡があった"
+  requires_flags = ["bag_found"]
+  min_lesson = 7
+
+  [[places.exits]]
+  to = "clinic_nyc"
+  label = "ベス・イスラエル病院の外来"
+  requires_flags = ["got_backpack"]
+  min_lesson = 11
+
+  [[places.exits]]
+  to = "east_village_night"
+  label = "夜のアベニューAへ"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "east_village_day"
+  transition = "wake"
+  ambient = "clear"
+  sfx = "footsteps"
+  en = "朝のセントマークス・プレイス。レコード屋、古着屋、歩道に毛布を広げてビデオテープを売るおじさん。夜とはまるで別の街だ。"
+
+  [[places.intro]]
+  speaker = "narrator"
+  camera = "pan_left"
+  en = "電柱にはチラシがびっしり。「STREET FAIR — AVENUE A」「BROADWAY」…そして二番街のダイナーの窓に、段ボールの貼り紙：「HELP WANTED」。"
+
+  [[places.intro]]
+  speaker = "emily"
+  expression = "happy"
+  action = "enter_right"
+  emote = "sparkle"
+  jp = "Morning! Want a bagel? It's still warm!"
+  romaji = "モーニング！ウォント ア ベイグル？イッツ スティル ウォーム！"
+  en = "おはよう！ベーグル食べる？まだあったかいよ！"
+
+  [[places.intro]]
+  speaker = "emily"
+  expression = "thinking"
+  action = "lean_in"
+  jp = "So… no money, right? Look. Ruby's. Help wanted!"
+  romaji = "ソウ…ノウ マニー、ライト？ルック。ルービーズ。ヘルプ ウォンティッド！"
+  en = "で…お金ないんでしょ？ほら。ルビーズ。人を募集してる！"
+
+  [[places.choices]]
+  jp = "I like this street! It's so cool."
+  romaji = "アイ ライク ディス ストリート！イッツ ソウ クール。"
+  en = "この通り、好き！すごくかっこいい。"
+
+  [[places.choices]]
+  jp = "Job? Where?"
+  romaji = "ジャブ？ウェア？"
+  en = "仕事？どこ？"
+
+  [[places.choices]]
+  jp = "Let's go to Ruby's!"
+  romaji = "レッツ ゴウ トゥ ルービーズ！"
+  en = "ルビーズに行こう！"
+
+
+[[places]]
+id = "diner"
+name = "ルビーズ・ダイナー"
+name_jp = "Ruby's Diner"
+aliases = ["diner", "ruby", "restaurant", "job", "work", "ダイナー", "ルビー", "レストラン", "仕事", "しごと", "バイト"]
+scene = "diner"
+clock = "6:00 PM"
+act = 2
+cast = ["david"]
+situation = """
+Ruby's, a chrome-and-vinyl diner on Second Avenue with a cardboard "HELP WANTED" sign in the window: red booths, a long counter, a pie case, a jukebox playing old soul records. Ruby (speaker "extra", speaker_name "ルビー"), the loud, warm owner from the Bronx in her sixties, calls everyone "sweetie" and hires help if they can follow instructions. There's no paperwork question — she pays cash and doesn't ask about passports. The job interview is really a test of lesson 6 English: she gives requests and rules ("Please wipe the tables", "Don't touch the grill", "Don't be late"), and the player must ask permission ("Can I start today?", "Can I use this?") and describe a sequence ("I wipe the tables and then I wash the dishes"). Manny the cook (speaker "extra", speaker_name "マニー") only says "Order up!" and "Don't touch!".
+David turns out to be a regular who eats cherry pie at the counter after work every Friday; he is delighted the player made it and quietly vouches for them. Once hired, the player works shifts on later visits: taking orders ("Coffee, please — black"), refilling coffee, being told "please" and "don't". A shift pays $40 cash plus a few dollars in tips; Ruby feeds staff a free sandwich.
+"""
+goal = "この面接さえ乗りきれば、仕事が手に入る。"
+success = """
+The player handles the interview: asks permission or makes a request ("Can I…?", "Please…"), shows they understood at least one rule, and Ruby tosses them an apron ("You start tomorrow, sweetie. Six a.m. Don't be late."). On later visits, finishing a shift earns wages ($40 plus tips).
+"""
+goal_flags = ["has_job"]
+on_enter_flags = []
+items_allowed = ["sandwich"]
+max_yen_gain = 80
+max_yen_spend = 0
+reward_yen = 0
+reward_items = []
+recharge = 20
+
+candos = ["ec6_can_i", "ec6_please_do", "ec6_dont", "ec6_and_then"]
+
+  [[places.pack]]
+  jp = "Can I work here?"
+  romaji = "キャナイ ワーク ヒア？"
+  en = "ここで働いてもいいですか？"
+
+  [[places.pack]]
+  jp = "Please wipe the tables."
+  romaji = "プリーズ ワイプ ザ テイブルズ。"
+  en = "テーブルをふいてください。"
+
+  [[places.pack]]
+  jp = "Don't touch the grill."
+  romaji = "ドウント タッチ ザ グリル。"
+  en = "グリルにさわらないで。"
+
+  [[places.pack]]
+  jp = "and then"
+  romaji = "アンド ゼン"
+  en = "それから"
+
+  [[places.pack]]
+  jp = "order"
+  romaji = "オーダー"
+  en = "注文"
+
+  [[places.pack]]
+  jp = "refill"
+  romaji = "リフィル"
+  en = "おかわり"
+
+  [[places.pack]]
+  jp = "tips"
+  romaji = "ティップス"
+  en = "チップ"
+
+  [[places.pack]]
+  jp = "shift"
+  romaji = "シフト"
+  en = "勤務（シフト）"
+
+  [[places.events]]
+  flag = "love_david"
+  when = "a genuinely romantic moment with David happens and he clearly returns the feeling (only after several visits and high trust)"
+
+  [[places.exits]]
+  to = "east_village_day"
+  label = "二番街にもどる"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "hostel_lobby_nyc"
+  label = "ホステルに帰る"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "diner"
+  transition = "fade"
+  sfx = "door_chime"
+  en = "ルビーズ・ダイナー。赤いボックス席、銀色のカウンター、パイのショーケース。ジュークボックスから古いソウル。"
+
+  [[places.intro]]
+  speaker = "extra"
+  speaker_name = "ルビー"
+  jp = "You here about the sign, sweetie? Sit. Talk to me."
+  romaji = "ユー ヒア アバウト ザ サイン、スウィーティー？シット。トーク トゥ ミー。"
+  en = "貼り紙を見て来たの？座って。話してごらん。"
+
+  [[places.intro]]
+  speaker = "narrator"
+  camera = "pan_right"
+  en = "カウンターのはしで、見覚えのあるトレンチコートがチェリーパイを食べている。"
+
+  [[places.intro]]
+  speaker = "david"
+  expression = "surprised"
+  action = "enter_left"
+  emote = "exclaim"
+  jp = "Wait — the A train! You made it!"
+  romaji = "ウェイト — ジ エイ トレイン！ユー メイド イット！"
+  en = "あれ——A線の！無事に着いたんだね！"
+
+  [[places.intro]]
+  speaker = "extra"
+  speaker_name = "ルビー"
+  jp = "Rule one: don't touch the grill. Rule two: smile. Okay?"
+  romaji = "ルール ワン、ドウント タッチ ザ グリル。ルール トゥー、スマイル。オウケイ？"
+  en = "ルールその1、グリルにさわらない。その2、笑顔。いい？"
+
+  [[places.choices]]
+  jp = "Okay! Can I work here?"
+  romaji = "オウケイ！キャナイ ワーク ヒア？"
+  en = "はい！ここで働いてもいいですか？"
+
+  [[places.choices]]
+  jp = "Sorry, please speak slowly."
+  romaji = "ソーリー、プリーズ スピーク スロウリー。"
+  en = "すみません、ゆっくり話してください。"
+
+  [[places.choices]]
+  jp = "I wipe the tables, and then I wash the dishes."
+  romaji = "アイ ワイプ ザ テイブルズ、アンド ゼン アイ ウォッシュ ザ ディッシズ。"
+  en = "テーブルをふいて、それからお皿を洗います。"
+
+
+[[places]]
+id = "russo_room"
+name = "ルッソさんの部屋"
+name_jp = "Mr. Russo's Apartment"
+aliases = ["russo", "mr. russo", "mr russo", "apartment", "landlord", "owner", "private", "ルッソ", "大家", "おおや", "家賃", "やちん", "オーナー"]
+scene = "russo_room"
+clock = "4:00 PM"
+act = 3
+cast = []
+situation = """
+Behind the hostel desk, a door marked PRIVATE opens onto Mr. Russo's cramped apartment: a Formica table with a cigar box for rent money, a rotary phone, a stovetop espresso pot on a hot plate, a Sinatra record, lace curtains, and a whole wall of black-and-white photos in dime-store frames. Russo (speaker "extra", speaker_name "ルッソさん"), gruff, seventy-two, born on Mulberry Street, collects rent ($70 a week) and pretends not to care about anyone. He speaks short, slow, gravelly English, never any Japanese, and grumbles instead of smiling.
+When the player shows interest, he talks about the people in his photos — perfect for lesson 7 English (describing people and family): "This is my wife, Rosa. She's laughing. She has curly hair." "My brother. He's wearing his army uniform." He may ask "Your family? You have brothers, sisters?" — which the player can't fully answer yet, and that hurts a little.
+One photo shows two young men laughing on the front steps of this very building, written "1965": a skinny Italian kid and a young Japanese man in a suit two sizes too big. The Japanese man looks oddly familiar. If asked, Russo only says "Old friend. Long time ago." and changes the subject.
+If the player has the old letter (got_backpack) AND remembers who they are (remembered), the truth comes out here: the young man was the player's grandfather, who arrived in New York in 1965 lost and broke; Russo's mother gave him a bed upstairs and Russo found him work. They wrote letters for thirty years. The letter in the backpack — the grandfather's last — was meant for Russo. Russo reads it slowly, then goes and stands by the window for a long time. He may ask "Have you ever been here before? No? He always said you would come."
+"""
+goal = "家賃を払わなきゃ。それに…壁の写真の人たちはだれ？"
+success = """
+The player pays the rent and talks with Russo about at least one person in his photos (who they are, what they look like, what they're wearing or doing), which sparks a flicker of memory — a laugh, a suit that was too big. When the player has the letter and their memory, the reveal plays.
+"""
+goal_flags = ["paid_rent", "memory_photo"]
+on_enter_flags = []
+items_allowed = ["photo"]
+max_yen_gain = 0
+max_yen_spend = 70
+reward_yen = 0
+reward_items = []
+recharge = 20
+
+candos = ["ec7_family", "ec7_looks", "ec7_doing", "ec11_ever"]
+
+  [[places.pack]]
+  jp = "rent"
+  romaji = "レント"
+  en = "家賃"
+
+  [[places.pack]]
+  jp = "photo"
+  romaji = "フォウトウ"
+  en = "写真"
+
+  [[places.pack]]
+  jp = "Who is this?"
+  romaji = "フー イズ ディス？"
+  en = "この人はだれですか？"
+
+  [[places.pack]]
+  jp = "he's wearing"
+  romaji = "ヒーズ ウェアリング"
+  en = "彼は〜を着ている"
+
+  [[places.pack]]
+  jp = "young"
+  romaji = "ヤング"
+  en = "若い"
+
+  [[places.pack]]
+  jp = "family"
+  romaji = "ファミリー"
+  en = "家族"
+
+  [[places.pack]]
+  jp = "old friend"
+  romaji = "オウルド フレンド"
+  en = "古い友だち"
+
+  [[places.events]]
+  flag = "paid_rent"
+  when = "the player pays Mr. Russo the week's rent"
+
+  [[places.events]]
+  flag = "russo_revealed"
+  when = "the player has the old letter and remembers their past, shows Russo the letter, and Russo realises who their grandfather was"
+
+  [[places.exits]]
+  to = "hostel_lobby_nyc"
+  label = "ロビーにもどる"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "jfk_departures"
+  label = "空港へ——決める時が来た"
+  requires_flags = ["remembered", "russo_revealed"]
+  min_lesson = 12
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "russo_room"
+  transition = "fade"
+  en = "受付の奥、「PRIVATE」と書かれたドア。中はせまい部屋だ。ダイヤル式の電話、エスプレッソのポット、そして壁一面の白黒写真。"
+
+  [[places.intro]]
+  speaker = "extra"
+  speaker_name = "ルッソさん"
+  jp = "Rent day. Seventy dollars. In the box."
+  romaji = "レント デイ。セヴンティ ダラーズ。イン ザ バックス。"
+  en = "家賃の日だ。70ドル。箱に入れな。"
+
+  [[places.intro]]
+  speaker = "narrator"
+  camera = "zoom_in"
+  en = "壁の一枚に目がとまる。この建物の前の階段で、若い男がふたり笑っている。「1965」。片方は、大きすぎるスーツを着た日本人の青年だ。"
+
+  [[places.intro]]
+  speaker = "extra"
+  speaker_name = "ルッソさん"
+  jp = "That one? Old friend. Long time ago."
+  romaji = "ザット ワン？オウルド フレンド。ロング タイム アゴウ。"
+  en = "それか？古い友だちだ。ずっと昔のな。"
+
+  [[places.choices]]
+  jp = "Here is the rent. Thank you."
+  romaji = "ヒア イズ ザ レント。サンキュー。"
+  en = "家賃です。ありがとうございます。"
+
+  [[places.choices]]
+  jp = "Who is this man?"
+  romaji = "フー イズ ディス マン？"
+  en = "この男の人はだれですか？"
+
+  [[places.choices]]
+  jp = "He's wearing a big suit. He's laughing."
+  romaji = "ヒーズ ウェアリング ア ビッグ スート。ヒーズ ラフィング。"
+  en = "大きなスーツを着ていますね。笑ってる。"
+
+
+[[places]]
+id = "coffee_shop"
+name = "カフェ・オービット"
+name_jp = "Café Orbit"
+aliases = ["coffee shop", "coffee", "café", "cafe", "orbit", "espresso", "カフェ", "コーヒー", "喫茶店", "きっさてん"]
+scene = "coffee_shop"
+clock = "3:00 PM"
+act = 3
+cast = ["mia"]
+situation = """
+Café Orbit, a narrow 90s indie coffee shop near NYU on a rainy afternoon: thrift-store sofas, a chalkboard menu, exposed brick covered in poetry-night flyers, a chunky beige Macintosh by the register, a CD player looping trip-hop. The barista (speaker "extra", speaker_name "バリスタ"), a sleepy guy with a nose ring, says "What can I get you?" and nothing else. A cappuccino is $2.50.
+Mia is curled up on a sofa studying for a literature exam — by chance, or because the player asked her to meet. Away from the bodega she is relaxed and curious, and a little shy for once. Perfect for lesson 8 English: opinions (I think… / I don't think…), not liking things (I don't like…), agreeing (Me too / I agree), and passing on what others said (Emily said…). She complains the novel she's reading is boring, asks what the player thinks of New York, of the rain, of her pink hair. She admits her Osaka pen pal stopped writing and she still dreams of going to Japan; she asks the player to teach her one Japanese word — the player may, then she insists "Okay, okay — English only! Emily rule!" If the player has wages, they can treat her.
+"""
+goal = "雨の午後、ミアとふたり。うまく話せますように。"
+success = """
+The player shares at least one opinion (I think… / I don't…), or agrees or disagrees with Mia, and the two of them grow closer — she writes something on a napkin and slides it over.
+"""
+goal_flags = []
+on_enter_flags = []
+items_allowed = []
+max_yen_gain = 0
+max_yen_spend = 6
+reward_yen = 0
+reward_items = []
+recharge = 20
+
+candos = ["ec8_think", "ec8_dont_like", "ec8_agree", "ec7_doing"]
+
+  [[places.pack]]
+  jp = "I think"
+  romaji = "アイ シンク"
+  en = "〜と思う"
+
+  [[places.pack]]
+  jp = "Me too."
+  romaji = "ミー トゥー。"
+  en = "わたしも"
+
+  [[places.pack]]
+  jp = "I don't like"
+  romaji = "アイ ドウント ライク"
+  en = "〜は好きじゃない"
+
+  [[places.pack]]
+  jp = "boring"
+  romaji = "ボーリング"
+  en = "退屈な"
+
+  [[places.pack]]
+  jp = "rain"
+  romaji = "レイン"
+  en = "雨"
+
+  [[places.pack]]
+  jp = "cappuccino"
+  romaji = "カプチーノウ"
+  en = "カプチーノ"
+
+  [[places.pack]]
+  jp = "dream"
+  romaji = "ドリーム"
+  en = "夢"
+
+  [[places.events]]
+  flag = "love_mia"
+  when = "a genuinely warm, romantic moment with Mia happens and she clearly returns the feeling"
+
+  [[places.exits]]
+  to = "east_village_day"
+  label = "雨の街にもどる"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "coffee_shop"
+  transition = "crossfade"
+  ambient = "rain"
+  sfx = "door_chime"
+  en = "雨の午後。NYUの近くの小さなコーヒーショップ。ちぐはぐなソファ、黒板のメニュー、ゆったりした音楽。窓ガラスを雨つぶが流れていく。"
+
+  [[places.intro]]
+  speaker = "mia"
+  expression = "surprised"
+  action = "enter_right"
+  emote = "exclaim"
+  jp = "Oh! Hi! Sit, sit! I'm studying… kind of."
+  romaji = "オウ！ハイ！シット、シット！アイム スタディイング…カインド オヴ。"
+  en = "あ！やっほー！座って座って！勉強中…いちおうね。"
+
+  [[places.intro]]
+  speaker = "mia"
+  expression = "annoyed"
+  emote = "gloom"
+  jp = "This book is so boring. I think it's terrible! What do you think?"
+  romaji = "ディス ブック イズ ソウ ボーリング。アイ シンク イッツ テリブル！ワット ドゥー ユー シンク？"
+  en = "この本、ほんと退屈。ひどいと思う！あなたはどう思う？"
+
+  [[places.choices]]
+  jp = "I think it's interesting."
+  romaji = "アイ シンク イッツ インタレスティング。"
+  en = "おもしろいと思うけど。"
+
+  [[places.choices]]
+  jp = "Me too! I don't like it."
+  romaji = "ミー トゥー！アイ ドウント ライク イット。"
+  en = "わたしも！好きじゃない。"
+
+  [[places.choices]]
+  jp = "I think you're very kind."
+  romaji = "アイ シンク ユア ヴェリー カインド。"
+  en = "ミアはすごくやさしいと思う。"
+
+
+[[places]]
+id = "street_fair"
+name = "アベニューAのストリートフェア"
+name_jp = "Avenue A Street Fair"
+aliases = ["street fair", "fair", "block party", "festival", "お祭り", "おまつり", "祭り", "フェア", "ブロックパーティー"]
+scene = "street_fair"
+clock = "7:30 PM"
+act = 3
+cast = ["emily", "mia"]
+situation = """
+A Saturday in June: Avenue A is closed to traffic for a block party. Striped tents sell sausage-and-peppers, powdered zeppole and lemon ice; a salsa band plays on a flatbed truck; somebody opened a fire hydrant and kids shriek in the spray; tie-dye tables, a DJ with a boombox, string lights between the fire escapes. Earl the saxophonist (speaker "extra", speaker_name "アール") plays on the corner by the park and waves. Food costs $2–$5.
+Emily and Mia came together and drag the player along. It's the first warm night of the year and everyone is a little giddy. Perfect for lesson 8–9 English: telling each other what they did (Yesterday I…, Did you…?), reasons (because), "Please don't…" ("Please don't drop it!", "Please don't go yet!"), and — on later visits — comparisons ("Which is better, zeppole or lemon ice?"). Emily says she might leave New York at the end of summer to keep travelling; Mia pretends not to care, and clearly does. As the sun goes down the band slows to a ballad.
+"""
+goal = "音楽と屋台と、ふたりの友だち。今夜は楽しもう。"
+success = """
+The player asks or answers a question about the past (Did you…? / Yesterday I…) or says "please don't…", and shares a real moment with Emily or Mia as the string lights come on.
+"""
+goal_flags = []
+on_enter_flags = []
+items_allowed = []
+max_yen_gain = 0
+max_yen_spend = 10
+reward_yen = 0
+reward_items = []
+recharge = 0
+
+candos = ["ec8_please_dont", "ec9_yesterday", "ec9_did_you", "ec10_compare"]
+
+  [[places.pack]]
+  jp = "Did you…?"
+  romaji = "ディッジュー…？"
+  en = "〜しましたか？"
+
+  [[places.pack]]
+  jp = "yesterday"
+  romaji = "イェスタデイ"
+  en = "きのう"
+
+  [[places.pack]]
+  jp = "because"
+  romaji = "ビコーズ"
+  en = "〜だから"
+
+  [[places.pack]]
+  jp = "Please don't…"
+  romaji = "プリーズ ドウント…"
+  en = "〜しないで"
+
+  [[places.pack]]
+  jp = "zeppole"
+  romaji = "ゼポリー"
+  en = "ゼッポレ（揚げドーナツ）"
+
+  [[places.pack]]
+  jp = "band"
+  romaji = "バンド"
+  en = "バンド"
+
+  [[places.pack]]
+  jp = "better"
+  romaji = "ベター"
+  en = "もっといい"
+
+  [[places.events]]
+  flag = "love_emily"
+  when = "a genuinely romantic moment with Emily happens and she clearly returns the feeling"
+
+  [[places.events]]
+  flag = "love_mia"
+  when = "a genuinely romantic moment with Mia happens and she clearly returns the feeling"
+
+  [[places.exits]]
+  to = "east_village_day"
+  label = "人ごみをぬけて帰る"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "street_fair"
+  transition = "fade"
+  ambient = "clear"
+  en = "六月の土曜日。アベニューAが車両通行止めになって、通り全体がお祭りだ。サルサのバンド、ソーセージの煙、消火栓の水しぶきではしゃぐ子どもたち。"
+
+  [[places.intro]]
+  speaker = "emily"
+  expression = "happy"
+  action = "enter_left"
+  emote = "music"
+  jp = "There you are! Come on, the band is amazing!"
+  romaji = "ゼア ユー アー！カモン、ザ バンド イズ アメイズィング！"
+  en = "いたいた！早く、バンドが最高なの！"
+
+  [[places.intro]]
+  speaker = "mia"
+  expression = "happy"
+  action = "hop"
+  jp = "Did you eat yet? Try this! Wait — please don't drop it!"
+  romaji = "ディッジュー イート イェット？トライ ディス！ウェイト — プリーズ ドウント ドロップ イット！"
+  en = "もう何か食べた？これ食べてみて！あ、待って——落とさないでね！"
+
+  [[places.intro]]
+  speaker = "narrator"
+  sfx = "footsteps"
+  en = "粉砂糖まみれの揚げドーナツ。遠くの角で、アールのサックスが鳴っている。"
+
+  [[places.choices]]
+  jp = "Thank you! Please don't worry."
+  romaji = "サンキュー！プリーズ ドウント ウォーリー。"
+  en = "ありがとう！心配しないで。"
+
+  [[places.choices]]
+  jp = "Yesterday I worked at the diner."
+  romaji = "イェスタデイ アイ ワークト アット ザ ダイナー。"
+  en = "きのうはダイナーで働いたよ。"
+
+  [[places.choices]]
+  jp = "Did you come here last year?"
+  romaji = "ディッジュー カム ヒア ラスト イヤー？"
+  en = "去年もここに来た？"
+
+
+[[places]]
+id = "broadway_theatre"
+name = "カロウェイ劇場（ブロードウェイ）"
+name_jp = "The Calloway Theatre — Broadway"
+aliases = ["broadway", "theater", "theatre", "musical", "calloway", "times square", "劇場", "げきじょう", "ブロードウェイ", "ミュージカル", "タイムズスクエア"]
+scene = "broadway_theatre"
+clock = "7:00 PM"
+act = 3
+cast = ["david"]
+situation = """
+David's firm gave him two tickets to a revival of an old musical at the Calloway, a gilded 1920s theatre just off Times Square (1998: the square freshly cleaned up, giant billboards, tourists everywhere). The red-velvet lobby has a marble staircase, chandeliers and a tiny bar selling drinks in plastic cups ($6 — David insists on paying). An usher (speaker "extra", speaker_name "案内係") hands out Playbills and says "Enjoy the show!".
+At intermission, and later outside the stage door, David explains — formally at first, then less so — what happened in act one: who loved whom, who left, why. Perfect for lesson 9–10 English: past simple storytelling, because, didn't / haven't … yet ("I haven't seen a musical before"), the man in the …, and comparisons ("better than the movie", "the best song"). In the dark, between songs, he admits his grandparents saw this same show in 1955 and loved it; he never told anyone, because he always felt he wasn't "Japanese enough" for their memories. He asks the player about their own grandparents — which hits a nerve the player can't yet explain.
+"""
+goal = "デイビッドとブロードウェイの夜。話についていけますように。"
+success = """
+The player talks about the show with a past-tense or because sentence (or a comparison), and the evening ends warmly under the marquee lights.
+"""
+goal_flags = []
+on_enter_flags = []
+items_allowed = []
+max_yen_gain = 0
+max_yen_spend = 0
+reward_yen = 0
+reward_items = []
+recharge = 0
+
+candos = ["ec9_because", "ec9_didnt", "ec10_compare", "ec10_best"]
+
+  [[places.pack]]
+  jp = "show"
+  romaji = "ショウ"
+  en = "ショー"
+
+  [[places.pack]]
+  jp = "intermission"
+  romaji = "インターミッション"
+  en = "休憩時間"
+
+  [[places.pack]]
+  jp = "because"
+  romaji = "ビコーズ"
+  en = "〜だから"
+
+  [[places.pack]]
+  jp = "I didn't…"
+  romaji = "アイ ディドゥント…"
+  en = "〜しなかった"
+
+  [[places.pack]]
+  jp = "better than"
+  romaji = "ベター ザン"
+  en = "〜よりいい"
+
+  [[places.pack]]
+  jp = "the best"
+  romaji = "ザ ベスト"
+  en = "いちばん"
+
+  [[places.pack]]
+  jp = "Playbill"
+  romaji = "プレイビル"
+  en = "（劇場の）プログラム"
+
+  [[places.events]]
+  flag = "love_david"
+  when = "a genuinely romantic moment with David happens and he clearly returns the feeling"
+
+  [[places.exits]]
+  to = "east_village_day"
+  label = "夜の地下鉄でイーストビレッジに帰る"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "broadway_theatre"
+  transition = "fade"
+  ambient = "night_bokeh"
+  en = "タイムズスクエアのネオンをぬけて、金色の古い劇場へ。赤いビロードのロビー、天井にはシャンデリア。"
+
+  [[places.intro]]
+  speaker = "david"
+  expression = "embarrassed"
+  action = "enter_right"
+  emote = "blush"
+  jp = "My boss gave me two tickets. So… you're my guest tonight."
+  romaji = "マイ ボス ゲイヴ ミー トゥー ティケッツ。ソウ…ユア マイ ゲスト トゥナイト。"
+  en = "上司がチケットを二枚くれたんだ。だから…今夜は君が僕のお客さん。"
+
+  [[places.intro]]
+  speaker = "narrator"
+  transition = "blackout"
+  sfx = "bell"
+  en = "幕が上がる。歌、ダンス、拍手。——そして、休憩時間。"
+
+  [[places.intro]]
+  speaker = "david"
+  expression = "thinking"
+  action = "lean_in"
+  jp = "So… did you like act one? The girl cried because her father left."
+  romaji = "ソウ…ディッジュー ライク アクト ワン？ザ ガール クライド ビコーズ ハー ファーザー レフト。"
+  en = "で…第一幕、どうだった？父親が出ていったから、あの子は泣いたんだよ。"
+
+  [[places.choices]]
+  jp = "Yes! I liked it because the songs were beautiful."
+  romaji = "イエス！アイ ライクト イット ビコーズ ザ ソングズ ワー ビューティフル。"
+  en = "うん！歌がきれいだったから、気に入った。"
+
+  [[places.choices]]
+  jp = "I didn't understand the story…"
+  romaji = "アイ ディドゥント アンダスタンド ザ ストーリー…"
+  en = "話がわからなかった…"
+
+  [[places.choices]]
+  jp = "It's better than the movie!"
+  romaji = "イッツ ベター ザン ザ ムーヴィー！"
+  en = "映画よりいいね！"
+
+
+[[places]]
+id = "precinct"
+name = "ニューヨーク市警 第9分署"
+name_jp = "NYPD 9th Precinct"
+aliases = ["precinct", "police station", "station house", "nypd", "9th precinct", "ninth precinct", "警察署", "けいさつしょ", "分署", "ぶんしょ"]
+scene = "precinct"
+clock = "8:30 AM"
+act = 4
+cast = ["rachel", "danny"]
+situation = """
+Officer Kim called the hostel: NYPD officers in the East Village arrested a man selling stolen luggage out of a van on Avenue B, and one black backpack matched her report number 98-0418. She came over from JFK in person, on her day off, and brought Danny — he saw the man shoulder past the player at the top of the escalator and is the witness. The old precinct house on East 5th Street has a tall wooden front desk, green walls, a radiator, ringing phones and bad coffee. The desk sergeant (speaker "extra", speaker_name "巡査部長"), a heavy man with a grey mustache, says "Sign here" and "Next".
+Rachel shows a folder of photos and asks the player to describe the man — lesson 7 and 9 English: "What was he wearing?", "Was he tall? Short?", "Hair? Glasses?" The right answer: grey cap, red jacket, tall, thin, a little beard. "The man in the red jacket" also works. Danny can't help himself and cheers when the player gets a detail right ("Dude! You're talking!").
+Then she brings out two bags. The first is a blue duffel — not theirs ("Is this yours?" — the player should say no). The second is their black backpack. Inside: their passport (full name and photo — strange to see), uncashed traveler's cheques, and an old envelope addressed in careful English: "Mr. A. Russo, The Bowery, New York". She explains, slowly, that with the passport back the consulate visit is easy now.
+"""
+goal = "かばんが見つかった！取った男のことを説明しなきゃ。"
+success = """
+The player describes the thief with at least one sentence that matches (grey cap, red jacket — "He was wearing…", "He has…", "the man in…"), refuses the wrong bag and claims the right backpack. The passport tells them their full name; the old letter is addressed to Mr. Russo on the Bowery.
+"""
+goal_flags = ["got_backpack"]
+on_enter_flags = []
+items_allowed = ["backpack", "passport", "cheques", "letter"]
+max_yen_gain = 0
+max_yen_spend = 0
+reward_yen = 0
+reward_items = ["backpack", "passport", "cheques", "letter"]
+recharge = 30
+
+candos = ["ec7_wearing", "ec7_looks", "ec2_not_mine", "ec9_yesterday"]
+
+  [[places.pack]]
+  jp = "He was wearing…"
+  romaji = "ヒー ワズ ウェアリング…"
+  en = "〜を着ていました"
+
+  [[places.pack]]
+  jp = "grey cap"
+  romaji = "グレイ キャップ"
+  en = "グレーの帽子"
+
+  [[places.pack]]
+  jp = "red jacket"
+  romaji = "レッド ジャケット"
+  en = "赤いジャケット"
+
+  [[places.pack]]
+  jp = "tall"
+  romaji = "トール"
+  en = "背が高い"
+
+  [[places.pack]]
+  jp = "Is this yours?"
+  romaji = "イズ ディス ユアズ？"
+  en = "これはあなたのですか？"
+
+  [[places.pack]]
+  jp = "That's him!"
+  romaji = "ザッツ ヒム！"
+  en = "この人です！"
+
+  [[places.pack]]
+  jp = "letter"
+  romaji = "レター"
+  en = "手紙"
+
+  [[places.exits]]
+  to = "east_village_day"
+  label = "イーストビレッジの通りにもどる"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "clinic_nyc"
+  label = "ベス・イスラエル病院——頭を診てもらおう"
+  requires_flags = []
+  min_lesson = 11
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "precinct"
+  transition = "fade"
+  ambient = "clear"
+  sfx = "phone"
+  en = "午前8時30分。イースト5丁目の第9分署。高い木のカウンター、鳴りやまない電話、まずそうなコーヒー。"
+
+  [[places.intro]]
+  speaker = "danny"
+  expression = "happy"
+  action = "enter_left"
+  emote = "sparkle"
+  jp = "Hey! Airport buddy! You look good! You okay now?"
+  romaji = "ヘイ！エアポート バディ！ユー ルック グッド！ユー オウケイ ナウ？"
+  en = "よう！空港の！元気そうじゃん！もう大丈夫？"
+
+  [[places.intro]]
+  speaker = "rachel"
+  expression = "neutral"
+  action = "enter_right"
+  jp = "Good morning. Please look at these photos."
+  romaji = "グッド モーニング。プリーズ ルック アット ズィーズ フォウトウズ。"
+  en = "おはようございます。この写真を見てください。"
+
+  [[places.intro]]
+  speaker = "rachel"
+  expression = "thinking"
+  jp = "The man at the escalator. What was he wearing?"
+  romaji = "ザ マン アット ズィ エスカレイター。ワット ワズ ヒー ウェアリング？"
+  en = "エスカレーターの男。何を着ていましたか？"
+
+  [[places.choices]]
+  jp = "He was wearing a grey cap."
+  romaji = "ヒー ワズ ウェアリング ア グレイ キャップ。"
+  en = "グレーの帽子をかぶっていました。"
+
+  [[places.choices]]
+  jp = "He's wearing a red jacket."
+  romaji = "ヒーズ ウェアリング ア レッド ジャケット。"
+  en = "赤いジャケットを着ています。"
+
+  [[places.choices]]
+  jp = "That's him!"
+  romaji = "ザッツ ヒム！"
+  en = "この人です！"
+
+
+[[places]]
+id = "clinic_nyc"
+name = "ベス・イスラエル病院 外来"
+name_jp = "Beth Israel Walk-in Clinic"
+aliases = ["clinic", "hospital", "doctor", "beth israel", "病院", "びょういん", "クリニック", "医者", "いしゃ"]
+scene = "clinic_nyc"
+clock = "2:00 PM"
+act = 4
+cast = []
+situation = """
+The walk-in clinic at Beth Israel, near Union Square: plastic chairs, a reception window, an old CRT TV on a bracket playing the afternoon news. The receptionist (speaker "extra", speaker_name "受付") asks for a name — and for the first time the player reads it aloud from their own passport. Dr. Okafor (speaker "extra", speaker_name "オカフォー先生"), Nigerian-born, trained in London, calm and unhurried, examines the player's head, shines a penlight in their eyes and draws on a paper pad as she talks. She speaks slow, precise English and no Japanese. There is no charge: she waves it off ("The clinic has a fund. Don't worry.").
+Explaining symptoms is lesson 12 English: "My head hurts", "I feel dizzy", "I worked too much", "Maybe…/Probably…", and past tense with because ("I fell because the escalator was wet"). The doctor advises with "You should rest", "You shouldn't work too much", "You have to come back if…". As they talk, the fog lifts: the player remembers who they are and why they came to New York — to deliver their late grandfather's last letter, by hand, to his old friend on the Bowery. The narrator plays the memory: the grandfather's hospital bed in Japan, his hand pressing the envelope into theirs, "Russo. He will know you."
+"""
+goal = "何があったのか、お医者さんに伝えなきゃ。そうすれば思い出せるかも。"
+success = """
+The player explains how they feel or what happened (I feel… / My head hurts / I fell because… / too much / maybe), the doctor reassures them with some advice ("You should…"), and their memory returns.
+"""
+goal_flags = ["remembered"]
+on_enter_flags = []
+items_allowed = []
+max_yen_gain = 0
+max_yen_spend = 0
+reward_yen = 0
+reward_items = []
+recharge = 30
+
+candos = ["ec12_feel", "ec12_too_much", "ec12_should", "ec12_maybe"]
+
+  [[places.pack]]
+  jp = "I feel…"
+  romaji = "アイ フィール…"
+  en = "〜な感じがする"
+
+  [[places.pack]]
+  jp = "My head hurts."
+  romaji = "マイ ヘッド ハーツ。"
+  en = "頭が痛い"
+
+  [[places.pack]]
+  jp = "dizzy"
+  romaji = "ディズィー"
+  en = "めまいがする"
+
+  [[places.pack]]
+  jp = "You should rest."
+  romaji = "ユー シュッド レスト。"
+  en = "休んだほうがいい"
+
+  [[places.pack]]
+  jp = "too much"
+  romaji = "トゥー マッチ"
+  en = "〜すぎる"
+
+  [[places.pack]]
+  jp = "maybe"
+  romaji = "メイビー"
+  en = "たぶん"
+
+  [[places.pack]]
+  jp = "memory"
+  romaji = "メモリー"
+  en = "記憶"
+
+  [[places.exits]]
+  to = "russo_room"
+  label = "ルッソさんのところへ——手紙を持って"
+  requires_flags = ["remembered"]
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "east_village_day"
+  label = "イーストビレッジにもどる"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "clinic_nyc"
+  transition = "fade"
+  en = "ベス・イスラエル病院の外来。プラスチックの椅子、受付の小窓、天井近くのテレビが午後のニュースを流している。"
+
+  [[places.intro]]
+  speaker = "extra"
+  speaker_name = "受付"
+  jp = "Name, please? … Okay. Please sit. The doctor is coming."
+  romaji = "ネイム、プリーズ？…オウケイ。プリーズ シット。ザ ダクター イズ カミング。"
+  en = "お名前は？…はい。座ってお待ちください。先生がすぐ来ます。"
+
+  [[places.intro]]
+  speaker = "narrator"
+  camera = "zoom_in"
+  en = "はじめて、パスポートの名前を自分の声で読みあげた。少しだけ、知らない人の名前みたいだった。"
+
+  [[places.intro]]
+  speaker = "extra"
+  speaker_name = "オカフォー先生"
+  jp = "Hello. I'm Dr. Okafor. So — how do you feel today?"
+  romaji = "ハロウ。アイム ダクター オウカフォー。ソウ — ハウ ドゥー ユー フィール トゥデイ？"
+  en = "こんにちは、オカフォーです。さて、今日の具合はどうですか？"
+
+  [[places.choices]]
+  jp = "My head hurts. I feel dizzy."
+  romaji = "マイ ヘッド ハーツ。アイ フィール ディズィー。"
+  en = "頭が痛いです。めまいがします。"
+
+  [[places.choices]]
+  jp = "I fell because the escalator was wet."
+  romaji = "アイ フェル ビコーズ ズィ エスカレイター ワズ ウェット。"
+  en = "エスカレーターがぬれていて、転んだんです。"
+
+  [[places.choices]]
+  jp = "Maybe I worked too much."
+  romaji = "メイビー アイ ワークト トゥー マッチ。"
+  en = "たぶん、働きすぎました。"
+
+
+[[places]]
+id = "jfk_departures"
+name = "JFK空港 出発ロビー"
+name_jp = "JFK — Departures"
+aliases = ["airport", "departures", "flight", "jfk", "空港", "くうこう", "出発", "飛行機"]
+scene = "jfk_departures"
+clock = "6:00 PM"
+act = 4
+cast = ["danny", "mia", "emily", "david"]
+situation = """
+Golden hour at JFK, the same terminal where it all began. The flip-board clatters; planes taxi beyond the glass; far off on the horizon, Manhattan and the Twin Towers. The ticket home is in the player's hand, the backpack on their shoulder, the grandfather's letter delivered at last.
+Everyone the player met came to see them off — or to ask them to stay. Danny, on duty, sneaks over from his post ("Same airport, totally different person!"). Mia holds a sign she made in shaky hiragana. Emily, her own backpack ready for the road, gives tough-love advice ("You should do what scares you, mate"). David brought a cherry pie from Ruby's in a box and is trying very hard to be formal. Mr. Russo didn't come — he "doesn't do airports" — but sent the 1965 photo in an envelope with one line: "For the family. Come back."
+This is the finale. The player decides, in English, whether to go home ("I have to go home", "I want to see my family", "I'm going to come back") or to stay ("I'm going to stay", "I want to live here", "Maybe I should stay"). Characters may ask "Are you going to…?", "Have you ever thought about…?". Whatever they choose, they say goodbye and thank everyone properly — the director should give each friend a moment.
+"""
+goal = "帰りの航空券は手の中にある。帰る？それとも、残る？"
+success = """
+The player clearly states their decision in English (going home or staying) and says goodbye or thank you to their friends.
+"""
+goal_flags = []
+on_enter_flags = []
+items_allowed = ["photo"]
+max_yen_gain = 0
+max_yen_spend = 0
+reward_yen = 0
+reward_items = []
+recharge = 0
+
+candos = ["ec11_want_to", "ec10_going_to", "ec12_should", "ec8_think"]
+
+  [[places.pack]]
+  jp = "I have to go home."
+  romaji = "アイ ハフ トゥ ゴウ ホウム。"
+  en = "帰らなきゃ"
+
+  [[places.pack]]
+  jp = "I'm going to stay."
+  romaji = "アイム ゴウイング トゥ ステイ。"
+  en = "残るつもりです"
+
+  [[places.pack]]
+  jp = "I want to come back."
+  romaji = "アイ ウォント トゥ カム バック。"
+  en = "また来たい"
+
+  [[places.pack]]
+  jp = "goodbye"
+  romaji = "グッドバイ"
+  en = "さようなら"
+
+  [[places.pack]]
+  jp = "I'll miss you."
+  romaji = "アイル ミス ユー。"
+  en = "さびしくなるよ"
+
+  [[places.pack]]
+  jp = "ticket"
+  romaji = "ティケット"
+  en = "航空券"
+
+  [[places.events]]
+  flag = "ending_home"
+  when = "the player decides to fly home"
+
+  [[places.events]]
+  flag = "ending_stay"
+  when = "the player decides to stay in New York"
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "jfk_departures"
+  transition = "fade"
+  ambient = "dust"
+  en = "JFK空港、出発ロビー。夕日がガラスを金色に染めている。パタパタと回る出発案内板。地平線にはマンハッタンと、二本のタワー。"
+
+  [[places.intro]]
+  speaker = "narrator"
+  en = "手には、帰りの航空券。そして、みんながいる。"
+
+  [[places.intro]]
+  speaker = "danny"
+  expression = "happy"
+  action = "enter_left"
+  emote = "sparkle"
+  jp = "Hey! Same airport, totally different person! Look at you!"
+  romaji = "ヘイ！セイム エアポート、トウタリー ディファレント パーソン！ルック アット ユー！"
+  en = "よう！同じ空港なのに、まるで別人だ！すごいな！"
+
+  [[places.intro]]
+  speaker = "mia"
+  expression = "sad"
+  action = "enter_right"
+  emote = "gloom"
+  jp = "So… are you going to go? Or… are you going to stay?"
+  romaji = "ソウ…アー ユー ゴウイング トゥ ゴウ？オア…アー ユー ゴウイング トゥ ステイ？"
+  en = "それで…帰っちゃうの？それとも…残るの？"
+
+  [[places.choices]]
+  jp = "I have to go home. But I want to come back."
+  romaji = "アイ ハフ トゥ ゴウ ホウム。バット アイ ウォント トゥ カム バック。"
+  en = "帰らなきゃ。でも、また来たい。"
+
+  [[places.choices]]
+  jp = "I'm going to stay in New York."
+  romaji = "アイム ゴウイング トゥ ステイ イン ニューヨーク。"
+  en = "ニューヨークに残るつもり。"
+
+  [[places.choices]]
+  jp = "Thank you, everyone. Really."
+  romaji = "サンキュー、エヴリワン。リアリー。"
+  en = "みんな、ありがとう。本当に。"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Endings, chosen by the flag the finale sets.
+# ─────────────────────────────────────────────────────────────────────────────
+
+[[endings]]
+flag = "ending_home"
+title = "帰国"
+
+  [[endings.beats]]
+  speaker = "narrator"
+  transition = "fade"
+  ambient = "petals"
+  en = "飛行機がジャマイカ湾の上を上昇していく。シートベルトのサインが読める。今は、いろんなものが読める。"
+
+  [[endings.beats]]
+  speaker = "narrator"
+  en = "かばんの中には、1965年の若い男性ふたりの写真。そして新しい一枚——JFKでまぶしそうに笑う五人の写真。"
+
+  [[endings.beats]]
+  speaker = "narrator"
+  camera = "zoom_out"
+  en = "おじいちゃんの手紙を届けに来た。答えと、また来る理由を持って帰る。"
+
+[[endings]]
+flag = "ending_stay"
+title = "ニューヨークに残る"
+
+  [[endings.beats]]
+  speaker = "narrator"
+  transition = "fade"
+  ambient = "petals"
+  en = "航空券をふたつに破る。ミアが歓声をあげる。ルッソさんは「家賃は金曜だぞ」とぶつぶつ言う。"
+
+  [[endings.beats]]
+  speaker = "narrator"
+  en = "おじいちゃんもむかし、若くて迷子で、この街に来た。そして誰かに助けられた。今度は自分が、助ける番だ。"
+
+  [[endings.beats]]
+  speaker = "narrator"
+  camera = "zoom_out"
+  en = "ニューヨークの灯りがともる。ここが、新しいふるさとだ。"

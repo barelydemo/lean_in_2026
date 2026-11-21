@@ -1,0 +1,276 @@
+"use client";
+
+import { createContext, useContext } from "react";
+
+/**
+ * Interface strings in the learner's own language. The course's target
+ * language never appears here — that comes from the story content.
+ */
+const STRINGS = {
+  en: {
+    // landing
+    startTrip: "Start your trip",
+    continue: "Continue",
+    namePlaceholder: "The name on your passport",
+    land: "Land",
+    boarding: "Boarding…",
+    scrollDown: "Scroll down",
+    seasonOpen: "Season 1:",
+    open: "Open",
+    iWantToLearn: "I want to learn",
+    notTextbook: "Not your usual textbook",
+    notTextbookBody: "A story about one very bad day abroad — and the language you need to survive it.",
+    features: [
+      { title: "Speak first, tap second", body: "Hold the mic and talk to people. Characters hear you, react, and answer out loud. Stuck? Your dictionary can suggest replies." },
+      { title: "A curriculum hiding in a story", body: "Each lesson is a short list of things you can do. They tick off only when you actually do them, out loud, with someone in the story." },
+      { title: "Every word moves the scene", body: "Say the right thing and the officer nods, the train doors open, the shopkeeper laughs. Miss and you get a gentle nudge — plus how a local would say it." },
+    ],
+    gotItAcross: "Got it across! Here's how a local would put it:",
+    footer: "Original story and characters. The Japanese course follows the Genki I grammar order; not affiliated with its publisher.",
+    // HUD
+    map: "Map",
+    notebook: "Notebook",
+    settings: "Settings",
+    lesson: "Lesson",
+    iCan: "I can…",
+    canDoProgress: (done: number, total: number) => `${done}/${total} done`,
+    lessonGrammarDone: "✓ ready — keep talking to finish",
+    toPass: (n: number, min: number) => `${n}/${min} to pass`,
+    // reply dock
+    holdToTalk: "Hold the mic or Space to talk · 1–3 picks a reply",
+    typeYourReply: "Type your reply · 1–3 picks a suggestion",
+    speakNow: "Speak — release to send",
+    listeningBack: "Listening back…",
+    typeInstead: "Type instead",
+    typePlaceholder: "Say something… (any language works)",
+    stuckHint: (cost: number) => `Stuck? Ask your dictionary for ideas · ${cost}%`,
+    batteryTooLow: "The dictionary's battery is too low — trust your gut",
+    go: "Go",
+    // dialogue
+    showTranslation: "Show translation",
+    // dictionary
+    dictTip: "Your dictionary. S looks up each word you just heard. T: say what you want in your language and it gives you the line. H suggests replies.",
+    lookUp: "Look up",
+    phrases: "Phrases",
+    hints: "Open",
+    sayIt: "Say…",
+    kinds: { noun: "noun", verb: "verb", adjective: "adj.", adverb: "adv.", particle: "particle", copula: "is / am", question: "question", expression: "phrase", name: "name", number: "number", article: "article", pronoun: "pronoun", preposition: "prep.", other: "" },
+    close: "Close",
+    again: "Again",
+    piece: "Piece it together — what do you think they mean?",
+    tapToClose: "tap to close",
+    howDoISay: "how do I say…?",
+    askPlaceholder: "In your language: what do you want to say? (or hold Space)",
+    listening: "Listening…",
+    sayThis: "Say this",
+    readAloud: "Read it aloud: hold Space after closing this — or send it as is.",
+    sendIt: "Say it",
+    // coach
+    senseiNote: "Sensei's note",
+    moreNatural: "More natural",
+    wordOwned: "Word owned — it's yours now",
+    canDoUnlocked: "New can-do",
+    usedWords: "Words you used",
+    verdict: { great: "Perfect", good: "Nice", understood: "Got the meaning across", not_understood: "Not quite", english: "Try it in the language" },
+    // map
+    youAreHere: "You are here",
+    whereTo: "Where to? Pick a place — or just tell the people here where you want to go.",
+    beenThere: "been there",
+    nowhere: "Nowhere left to go. This is it.",
+    // cards
+    clickToContinue: "Click to continue",
+    lessonComplete: (n: number) => `Lesson ${n} complete`,
+    whatYouCanDo: "What you can do now",
+    next: "Next",
+    journal: "Travel journal",
+    wellDone: (name: string) => `Well done, ${name}. The end — for now.`,
+    // notebook
+    tabWords: "words",
+    tabCurriculum: "curriculum",
+    tabPhrases: "phrases",
+    tabJournal: "journal",
+    tabBacklog: "backlog",
+    wordsIntro: (owned: number, total: number) =>
+      `Words you've looked up. Use one yourself on three separate occasions and it's owned — ${owned} of ${total} so far.`,
+    noWords: "Press S in a conversation to look up what you hear.",
+    owned: "✓ owned",
+    uses: (n: number) => `used ${n}×`,
+    curriculumIntro: "Your lessons. Each one is a set of things you can do — they tick off when you actually do them.",
+    locked: "locked",
+    now: "now",
+    noPhrases: "Phrases you pick up will collect here.",
+    noJournal: "Do what you set out to do somewhere, and you'll write your first entry.",
+    entry: (n: number) => `Entry ${n}`,
+    // settings
+    translationHelp: "Translation help",
+    translatorOnly: "Dictionary only",
+    alwaysTranslate: "Always translate",
+    textSpeed: "Text speed",
+    slow: "Slow",
+    normal: "Normal",
+    fast: "Fast",
+    playback: "Playback",
+    voicesOn: "🔊 Voices on",
+    voicesOff: "🔇 Voices off",
+    auto: "Auto ▶︎",
+    clickAdvance: "Click to advance",
+    volume: "Volume",
+    music: "Music",
+    ambience: "Ambience",
+    effects: "Effects",
+    voices: "Voices",
+    newGame: "Start a new game",
+    // errors / hints
+    turnLimit: "Take a breather — you've hit the turn limit for now.",
+    hiccup: "The connection hiccupped. Try saying that again.",
+    holdWhileSpeaking: "Hold the button while you speak.",
+    didntCatch: "Didn't catch that — try again a little louder.",
+    couldntHear: "Couldn't hear that. Try again, or type instead.",
+    micBlocked: "Microphone blocked — allow it in your browser's address bar, or type instead.",
+    batteryDead: "The dictionary's batteries are flat.",
+    glitched: "The dictionary glitched. Try again.",
+    lostTheWay: "You couldn't find the way. Try again.",
+    cantReach: "Can't reach the game server. Is it running?",
+  },
+  ja: {
+    startTrip: "旅をはじめる",
+    continue: "つづきから",
+    namePlaceholder: "パスポートの名前",
+    land: "着陸",
+    boarding: "搭乗中…",
+    scrollDown: "スクロール",
+    seasonOpen: "シーズン1：",
+    open: "公開中",
+    iWantToLearn: "学びたい言語",
+    notTextbook: "ふつうの教科書じゃない",
+    notTextbookBody: "海外での最悪な一日と、それを生き抜くための言葉の物語。",
+    features: [
+      { title: "まず話す、タップはそのあと", body: "マイクを押して話しかけよう。キャラクターはあなたの言葉を聞き、反応し、声で答える。困ったら辞書が返事を提案してくれる。" },
+      { title: "物語にかくれたカリキュラム", body: "レッスンは「できること」の短いリスト。物語の中で実際に声に出してできたときだけチェックがつく。" },
+      { title: "ひとことで場面が動く", body: "正しく言えば警官はうなずき、電車のドアが開き、店員が笑う。外れてもやさしいヒントと、ネイティブの言い方がもらえる。" },
+    ],
+    gotItAcross: "通じた！ネイティブならこう言う：",
+    footer: "オリジナルの物語とキャラクター。日本語コースは『げんき I』の文法順に準拠（出版社とは無関係）。",
+    map: "地図",
+    notebook: "ノート",
+    settings: "設定",
+    lesson: "レッスン",
+    iCan: "できること",
+    canDoProgress: (done: number, total: number) => `${done}/${total} 達成`,
+    lessonGrammarDone: "✓ あと少し — 会話を続けよう",
+    toPass: (n: number, min: number) => `合格まで ${n}/${min}`,
+    holdToTalk: "マイクかスペースを長押しで話す · 1–3で返事を選ぶ",
+    typeYourReply: "返事を入力 · 1–3で候補を選ぶ",
+    speakNow: "話してください — 離すと送信",
+    listeningBack: "聞き取り中…",
+    typeInstead: "文字で入力",
+    typePlaceholder: "話しかけてみよう…（どの言語でもOK）",
+    stuckHint: (cost: number) => `困った？辞書にヒントを聞く · ${cost}%`,
+    batteryTooLow: "辞書の電池がほとんどない — 自分の勘を信じて",
+    go: "行く",
+    showTranslation: "訳を見る",
+    dictTip: "電子辞書です。S：聞いた言葉を調べる。T：言いたいことを日本語で入れると、言い方を教えてくれる。H：返事のヒント。",
+    lookUp: "調べる",
+    phrases: "会話",
+    hints: "表示中",
+    sayIt: "言い方",
+    kinds: { noun: "名詞", verb: "動詞", adjective: "形容詞", adverb: "副詞", particle: "助詞", copula: "be動詞", question: "疑問詞", expression: "表現", name: "名前", number: "数", article: "冠詞", pronoun: "代名詞", preposition: "前置詞", other: "" },
+    close: "閉じる",
+    again: "もう一度",
+    piece: "つなげて考えてみよう — 何と言っている？",
+    tapToClose: "タップで閉じる",
+    howDoISay: "どう言えばいい？",
+    askPlaceholder: "日本語で：何と言いたい？（スペース長押しでもOK）",
+    listening: "聞いています…",
+    sayThis: "こう言おう",
+    readAloud: "声に出して読もう：閉じてからスペースを長押し。そのまま送ってもOK。",
+    sendIt: "これを言う",
+    senseiNote: "先生のひとこと",
+    moreNatural: "より自然な言い方",
+    wordOwned: "単語をマスター — もう自分のもの",
+    canDoUnlocked: "新しく「できる」こと",
+    usedWords: "使った単語",
+    verdict: { great: "完璧", good: "いいね", understood: "伝わった", not_understood: "もう少し", english: "その言語で言ってみよう" },
+    youAreHere: "現在地",
+    whereTo: "どこへ行く？場所を選ぶか、ここにいる人に行き先を伝えよう。",
+    beenThere: "行ったことがある",
+    nowhere: "もう行く場所はない。ここが最後だ。",
+    clickToContinue: "クリックで続く",
+    lessonComplete: (n: number) => `レッスン ${n} 修了`,
+    whatYouCanDo: "できるようになったこと",
+    next: "次",
+    journal: "旅日記",
+    wellDone: (name: string) => `おつかれさま、${name}。ひとまず、おしまい。`,
+    tabWords: "単語",
+    tabCurriculum: "カリキュラム",
+    tabPhrases: "フレーズ",
+    tabJournal: "日記",
+    tabBacklog: "履歴",
+    wordsIntro: (owned: number, total: number) => `調べた単語。別々の場面で3回使うとマスター — 現在 ${owned}/${total}。`,
+    noWords: "会話中にSを押すと、聞いた言葉を調べられます。",
+    owned: "✓ マスター",
+    uses: (n: number) => `${n}回使用`,
+    curriculumIntro: "あなたのレッスン。「できること」を実際にやると、チェックが付きます。",
+    locked: "未解放",
+    now: "いまここ",
+    noPhrases: "覚えたフレーズがここにたまります。",
+    noJournal: "どこかで目的を果たすと、最初の日記が書けます。",
+    entry: (n: number) => `${n}日目の記録`,
+    translationHelp: "翻訳サポート",
+    translatorOnly: "辞書だけ",
+    alwaysTranslate: "常に訳を表示",
+    textSpeed: "文字の速さ",
+    slow: "遅い",
+    normal: "ふつう",
+    fast: "速い",
+    playback: "再生",
+    voicesOn: "🔊 音声オン",
+    voicesOff: "🔇 音声オフ",
+    auto: "オート ▶︎",
+    clickAdvance: "クリックで進む",
+    volume: "音量",
+    music: "音楽",
+    ambience: "環境音",
+    effects: "効果音",
+    voices: "声",
+    newGame: "最初からはじめる",
+    turnLimit: "ひと休みしよう — しばらく話せる回数の上限です。",
+    hiccup: "通信が途切れました。もう一度言ってみて。",
+    holdWhileSpeaking: "話している間はボタンを押し続けて。",
+    didntCatch: "聞き取れませんでした — もう少し大きな声で。",
+    couldntHear: "聞こえませんでした。もう一度か、文字で入力して。",
+    micBlocked: "マイクがブロックされています — アドレスバーで許可するか、文字で入力して。",
+    batteryDead: "辞書の電池が切れた。",
+    glitched: "辞書の調子が悪い。もう一度。",
+    lostTheWay: "道がわからなかった。もう一度。",
+    cantReach: "ゲームサーバーにつながりません。起動していますか？",
+  },
+};
+
+export type Lang = keyof typeof STRINGS;
+export type Strings = (typeof STRINGS)["en"];
+
+export function strings(lang: string): Strings {
+  return (STRINGS as unknown as Record<string, Strings>)[lang] ?? STRINGS.en;
+}
+
+/** The learner's language and course details, for any component. */
+export interface I18n {
+  lang: Lang;
+  target: string;
+  currency: string;
+  t: Strings;
+}
+
+const Ctx = createContext<I18n>({ lang: "en", target: "ja", currency: "¥", t: STRINGS.en });
+
+export const I18nProvider = Ctx.Provider;
+
+export function useI18n(): I18n {
+  return useContext(Ctx);
+}
+
+export function makeI18n(learner: string, target: string, currency: string): I18n {
+  const lang = (learner in STRINGS ? learner : "en") as Lang;
+  return { lang, target, currency, t: strings(lang) };
+}

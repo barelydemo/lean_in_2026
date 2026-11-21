@@ -1,0 +1,4221 @@
+# Lexical — "Lost in Japan"
+#
+# All story, cast and curriculum content lives here so writers can edit it
+# without touching Rust. The server validates this file at startup.
+#
+# Curriculum: chapters follow the grammar progression of Genki I
+# (lessons 0–7). Situations, dialogue and examples are original; only the
+# ordering of grammar topics follows the textbook.
+
+
+title = "Lost in Japan"
+title_jp = "迷子の日本"
+start_place = "arrivals_hall"
+
+# Field convention for every course file: `jp`/`name_jp`/`title_jp` hold the
+# TARGET language, `en`/`name`/`title` the LEARNER's language, `romaji` the
+# reading aid. Here: Japanese / English / Hepburn romaji.
+[course]
+id = "ja"
+target_lang = "ja"
+learner_lang = "en"
+target_name = "Japanese"
+learner_name = "English"
+reading = "Hepburn romaji with spaces between words"
+label = "Learn Japanese"
+tagline = "Lost in Japan · Narita, 1998"
+currency = "¥"
+locked_lesson = "I'm not ready yet — I need more Japanese first (Lesson {lesson})."
+locked_unknown = "I don't know how to get there yet."
+premise = """
+It is spring 1998. No smartphones, no internet translation, no mobile phone for a tourist: people use payphones with telephone cards, paper maps, pocket diaries and traveler's cheques. Keep every detail period-true (Tokyo Tower, not Skytree; CDs and pagers; city-pop on shop radios). Money is yen.
+The player landed at Narita on a Saturday morning, slipped on a wet escalator, hit their head, and woke to find their backpack — passport, wallet, traveler's cheques — stolen. No money, no guidebook, no Japanese at all. A lost passport means going to their embassy in Tokyo, which is closed until Monday — so first they have to get into the city and survive the weekend. Over one long day and the next morning, the people they meet help them recover. The thief was a man in a grey cap and a red jacket who shouldered past them at the top of the escalator.
+The curriculum follows the Genki I grammar sequence (lessons 0–12).
+"""
+
+[course.landing]
+title = "Lost in Japan.\nTalk your way home."
+body = "Narita, 1998. No smartphone, no translator app — and now no passport, no wallet, no Japanese. Just a battered pocket dictionary and your voice. Every word you learn moves the story forward."
+scene = "narita_exterior"
+place = "Narita Airport"
+clock = "Apr 1998 · 7:42 AM"
+character = "aiko"
+feature_scenes = ["konbini_night", "koban", "station_concourse"]
+lines = [
+  { jp = "だいじょうぶですか？", romaji = "daijoubu desu ka?", en = "Are you okay?" },
+  { jp = "すみません…かばんがありません！", romaji = "sumimasen... kaban ga arimasen!", en = "Sorry… my bag is gone!" },
+  { jp = "おにぎりはどこにありますか？", romaji = "onigiri wa doko ni arimasu ka?", en = "Where are the rice balls?" },
+  { jp = "レジのとなりにありますよ！", romaji = "reji no tonari ni arimasu yo!", en = "Next to the register!" },
+  { jp = "うえのまで、いくらですか。", romaji = "ueno made, ikura desu ka.", en = "How much is it to Ueno?" },
+]
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Cast
+# ─────────────────────────────────────────────────────────────────────────────
+
+[[cast]]
+id = "kenji"
+name = "Kenji Tanaka"
+name_jp = "田中 健二"
+role = "Narita airport security guard"
+age = 26
+sprite = "/characters/Kenji_Tanaka.png"
+color = "#60a5fa"
+voice = "TX3LPaxmHKxFdv7VOQHJ"
+english = "a few words, badly"
+looks = "Short spiky black hair, warm hazel eyes, tall and broad. Navy airport security jacket over a black tee."
+personality = "Big-brother energy. Calm in a crisis, quietly funny, takes his duty seriously but bends rules to help people."
+speech_style = "Short, friendly, plain Japanese. Slows down and repeats key words when he sees you're lost."
+backstory = "Grew up in a fishing town in Chiba and joined airport security because he likes helping travellers on the worst day of their trip. Studied English for six years at school and remembers almost none of it, which embarrasses him."
+helps = "Points, mimes, and repeats one key word slowly and loudly. Draws arrows in the air. Checks you're okay with a thumbs-up and a questioning look."
+english_words = ["okay", "bag", "police", "here", "there", "go", "sorry", "head", "no problem"]
+
+[[cast]]
+id = "aiko"
+name = "Aiko Nakamura"
+name_jp = "中村 愛子"
+role = "university student, part-timer at a Ueno konbini"
+age = 20
+sprite = "/characters/Aiko_Nakamura.png"
+color = "#f472b6"
+voice = "cgSgspJ2msm6clMCkdW9"
+english = "studied it in school, too shy to use it"
+looks = "Shoulder-length dark hair with bright pink tips, big brown eyes, oversized pastel sweater, pleated skirt."
+personality = "Bubbly, curious, endlessly kind, a little scatterbrained. Gets genuinely excited when you manage a sentence."
+speech_style = "Energetic casual Japanese with fillers like えっと and すごい！ Praises effort loudly."
+backstory = "Second-year literature student who spent a summer in Melbourne and secretly loved it. Saving for another trip by working night shifts at a konbini in Ueno. Desperately wants to practise English but freezes up and giggles instead."
+helps = "Acts things out with big gestures, holds objects up, writes simple hiragana on her hand or a receipt, and claps when you get a word right."
+english_words = ["hello", "name", "my", "you", "yes", "good", "Japan", "where", "friend", "cute"]
+
+[[cast]]
+id = "yumi"
+name = "Officer Yumi Sato"
+name_jp = "佐藤 由美 巡査"
+role = "police officer at the Narita kōban"
+age = 29
+sprite = "/characters/Yumi_Sato.png"
+color = "#a78bfa"
+voice = "FGY2WhTYpPnrIDTdsKH5"
+english = "none at all"
+looks = "Sleek black bob, sharp amber eyes behind thin silver glasses, crisp uniform blouse."
+personality = "Precise, by-the-book, dry humor. Doesn't baby anyone, but is fiercely fair and patient with honest effort."
+speech_style = "Polite です／ます Japanese. Asks one clear question at a time and waits. Repeats the question more simply if needed."
+backstory = "Eight years in the police, the last three at the Narita kōban. Has handled hundreds of lost tourists and believes patience is a professional skill. Speaks no English at all and refuses to pretend she does."
+helps = "Uses a laminated picture board of common items, sketches on a notepad, points at the wall map, and asks one slow question at a time with exaggerated pauses."
+english_words = []
+
+[[cast]]
+id = "hiroshi"
+name = "Hiroshi Yamamoto"
+name_jp = "山本 博"
+role = "salaryman commuting into Tokyo"
+age = 31
+sprite = "/characters/Hiroshi_Yamamoto.png"
+color = "#34d399"
+voice = "JBFqnCBsd6RMkjVDRZzb"
+english = "reads it fine, freezes when speaking"
+looks = "Neatly combed dark-brown hair, black-framed glasses, slim, crisp white shirt and loosened tie."
+personality = "Reserved and formal at first, secretly a softie. Loves explaining small cultural details once he warms up."
+speech_style = "Formal, careful Japanese. Corrects gently by repeating your sentence back the right way."
+backstory = "Salaryman at a trading company, reads English contracts every day but has never had a spoken conversation in it. Commutes from Narita every morning and is quietly kind to anyone who looks lost."
+helps = "Writes short English words and numbers in his pocket diary and shows you the page, counts yen out on his palm, and gives small formal nods to show you're on the right track."
+english_words = ["ticket", "money", "yen", "train", "Ueno", "Tokyo", "station", "number", "please"]
+
+[[cast]]
+id = "emily"
+name = "Emily Carter"
+name_jp = "エミリー・カーター"
+role = "Australian backpacker working at an Asakusa hostel"
+age = 23
+sprite = "/characters/Emily_Carter.png"
+color = "#fbbf24"
+voice = "EXAVITQu4vr4xnSDxMaL"
+english = "native (Australian)"
+looks = "Wavy chestnut hair in a loose ponytail, bright green eyes, freckles, light-blue hoodie and sneakers."
+personality = "Optimistic, adventurous, has been exactly where you are. Tough love: she will not let you lean on English."
+speech_style = "Mostly simple Japanese with the odd Aussie English aside. Enforces the hostel's 'Japanese only' house rule with a grin."
+backstory = "Australian backpacker, three months into a working holiday, paying her bed by working the hostel desk. Arrived knowing nothing — just like you — and is proud of how far she's come."
+helps = "Fluent in English but bound by the owner's Japanese-only house rule: at most one whispered English line, then she mimes, hints and coaches you in simple Japanese."
+english_words = ["(fluent — but the house rule allows one whispered English line per chapter)"]
+
+# ─────────────────────────────────────────────────────────────────────────────
+# The hint device: a battered electronic dictionary (it's 1998 — nothing
+# translates sentences for you). It looks words up; it runs on AA batteries,
+# which are the player's budget for help. Chapters can recharge it.
+# ─────────────────────────────────────────────────────────────────────────────
+
+[device]
+name = "Jisho PJ-98"
+name_jp = "電子辞書"
+start_battery = 100
+scan_cost = 3
+hint_cost = 5
+# English → Japanese phrase lookup ("how do I say…?")
+translate_cost = 4
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Items the player can carry
+# ─────────────────────────────────────────────────────────────────────────────
+
+[[items]]
+id = "theft_report"
+name = "Theft report no. 2-0417"
+name_jp = "遺失届 受理番号"
+icon = "📄"
+
+[[items]]
+id = "train_ticket"
+name = "Ticket to Ueno"
+name_jp = "上野までのきっぷ"
+icon = "🎫"
+
+[[items]]
+id = "hiroshi_card"
+name = "Hiroshi's business card"
+name_jp = "山本さんの名刺"
+icon = "💼"
+
+[[items]]
+id = "onigiri"
+name = "Salmon onigiri"
+name_jp = "しゃけおにぎり"
+icon = "🍙"
+
+[[items]]
+id = "telephone_card"
+name = "Telephone card (50 units)"
+name_jp = "テレホンカード"
+icon = "💳"
+
+[[items]]
+id = "batteries"
+name = "Two AA batteries"
+name_jp = "単三電池"
+icon = "🔋"
+
+[[items]]
+id = "hostel_address"
+name = "Aiko's note: Hostel Sakura"
+name_jp = "ホステル桜の住所"
+icon = "📝"
+
+[[items]]
+id = "hostel_key"
+name = "Dorm key, bunk 3"
+name_jp = "ドミトリーのかぎ"
+icon = "🔑"
+
+[[items]]
+id = "backpack"
+name = "Your backpack"
+name_jp = "リュック"
+icon = "🎒"
+
+[[items]]
+id = "passport"
+name = "Passport"
+name_jp = "パスポート"
+icon = "🛂"
+
+[[items]]
+id = "cheques"
+name = "Traveler's cheques (uncashed)"
+name_jp = "トラベラーズチェック"
+icon = "📱"
+
+[[items]]
+id = "terminal_map"
+name = "Terminal map, with arrows drawn in pen"
+name_jp = "ターミナルの地図"
+icon = "🗺️"
+
+[[items]]
+id = "apron"
+name = "Izakaya Tanuki apron"
+name_jp = "たぬきのエプロン"
+icon = "🧑‍🍳"
+
+[[items]]
+id = "letter"
+name = "An old letter, addressed in Japanese"
+name_jp = "古い手紙"
+icon = "✉️"
+
+[[items]]
+id = "photo"
+name = "Black-and-white photo of two young men"
+name_jp = "古い写真"
+icon = "🖼️"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Scenes (visuals are rendered by the web client from the id)
+# ─────────────────────────────────────────────────────────────────────────────
+
+[[scenes]]
+id = "narita_arrivals"
+name = "Narita Airport — Arrivals Hall"
+name_jp = "成田空港 到着ロビー"
+description = "Bright, polished arrivals hall. Escalators, baggage carousels, bilingual signs, announcements in a calm voice."
+music = "morning"
+ambience = "airport"
+
+[[scenes]]
+id = "narita_exterior"
+name = "Narita Airport — Outside Terminal 1"
+name_jp = "成田空港 第1ターミナル前"
+description = "Bus bays and taxi lanes under a wide canopy. Morning light, rolling suitcases, a vending machine glowing nearby."
+music = "morning"
+ambience = "curbside"
+
+[[scenes]]
+id = "koban"
+name = "Airport Police Box"
+name_jp = "空港 交番"
+description = "A tiny police box: one desk, a map of the area, a lost-property shelf, a red lamp above the door."
+music = "careful"
+ambience = "koban"
+
+[[scenes]]
+id = "station_concourse"
+name = "Narita Airport Station"
+name_jp = "成田空港駅"
+description = "Underground station concourse. Ticket machines with a wall-sized fare map, ticket gates chiming, departure boards."
+music = "journey"
+ambience = "station"
+
+[[scenes]]
+id = "train_interior"
+name = "Keisei Line — Train to Ueno"
+name_jp = "京成線 上野行き"
+description = "Long bench seats, hanging straps, rice fields then suburbs sliding past the windows, quiet passengers."
+music = "journey"
+ambience = "train"
+
+[[scenes]]
+id = "konbini_night"
+name = "Konbini in Ueno — Night"
+name_jp = "上野のコンビニ（夜）"
+description = "A 24-hour convenience store glowing white against the dark street. Onigiri shelves, a hot-food case, a door chime."
+music = "night"
+ambience = "konbini"
+
+[[scenes]]
+id = "ueno_street_night"
+name = "Ueno Street — Night"
+name_jp = "上野の夜道"
+description = "Neon signs, an elevated train line rumbling overhead, izakaya lanterns, late commuters."
+music = "night"
+ambience = "city_night"
+
+[[scenes]]
+id = "hostel_lobby"
+name = "Hostel Sakura — Lobby"
+name_jp = "ホステル桜 ロビー"
+description = "A narrow, cozy hostel lobby in Asakusa. Wooden counter, shoe lockers, a hand-written 'Japanese only!' sign."
+music = "cozy"
+ambience = "hostel"
+
+[[scenes]]
+id = "hostel_room"
+name = "Hostel Sakura — Dorm Room"
+name_jp = "ホステル桜 ドミトリー"
+description = "Bunk beds with curtains, paper lanterns, a window showing Tokyo Tower lit up orange in the distance."
+music = "cozy"
+ambience = "hostel"
+
+[[scenes]]
+id = "police_station"
+name = "Narita Police Station"
+name_jp = "成田警察署"
+description = "A larger police station. Counter windows, plastic chairs, a folder of suspect photos on a desk."
+music = "careful"
+ambience = "police_station"
+
+[[scenes]]
+id = "info_counter"
+name = "Narita — Information Counter"
+name_jp = "成田空港 案内所"
+description = "A tidy airport information counter with brochure racks and a big terminal map on the wall."
+music = "morning"
+ambience = "airport"
+
+[[scenes]]
+id = "ueno_park_night"
+name = "Ueno Park — Night"
+name_jp = "上野公園（夜）"
+description = "A quiet lamp-lit park path, cherry trees, a lone bench, a pond reflecting city glow."
+music = "night"
+ambience = "park"
+
+[[scenes]]
+id = "asakusa_street"
+name = "Asakusa — Shopping Street"
+name_jp = "浅草 仲見世"
+description = "A bustling old shopping street by day, temple gate in the distance, noren curtains, a parked rickshaw, a green payphone."
+music = "morning"
+ambience = "curbside"
+
+[[scenes]]
+id = "izakaya"
+name = "Izakaya Tanuki"
+name_jp = "居酒屋たぬき"
+description = "A small warm izakaya: wooden counter, hanging lanterns, sake bottles, steam from the kitchen."
+music = "night"
+ambience = "izakaya"
+
+[[scenes]]
+id = "mori_room"
+name = "Mr. Mori's Office"
+name_jp = "森さんの部屋"
+description = "A tatami office behind the hostel: low table, old black-and-white photos on the wall, a rotary phone."
+music = "cozy"
+ambience = "hostel"
+
+[[scenes]]
+id = "cafe"
+name = "Kissaten Lamp"
+name_jp = "喫茶ランプ"
+description = "A retro coffee shop with wooden booths, stained-glass lamps and a siphon coffee maker; rain on the window."
+music = "cozy"
+ambience = "cafe"
+
+[[scenes]]
+id = "matsuri"
+name = "Summer Festival"
+name_jp = "夏祭り"
+description = "Rows of lantern-lit food stalls at dusk, yukata, paper fans, fireworks starting overhead."
+music = "journey"
+ambience = "festival"
+
+[[scenes]]
+id = "kabuki_theatre"
+name = "Kabuki Theatre"
+name_jp = "歌舞伎座"
+description = "A grand theatre: red and gold curtain, wooden balconies, a hushed, expectant audience."
+music = "careful"
+ambience = "theatre"
+
+[[scenes]]
+id = "clinic"
+name = "Ishida Clinic"
+name_jp = "石田クリニック"
+description = "A small neighbourhood clinic waiting room: vinyl benches, a reception window, an old CRT TV."
+music = "careful"
+ambience = "clinic"
+
+[[scenes]]
+id = "narita_departures"
+name = "Narita — Departures"
+name_jp = "成田空港 出発ロビー"
+description = "The departures hall at golden hour: check-in counters, a clattering flip-board, planes beyond the glass."
+music = "finale"
+ambience = "airport"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Audio
+#
+# The web client synthesises music, ambience and effects procedurally, so the
+# game always has copyright-free sound. With an ElevenLabs key,
+# `lexical-server generate-audio` renders these prompts once into DATA_DIR/audio
+# and the client prefers the generated files.
+# ─────────────────────────────────────────────────────────────────────────────
+
+[audio]
+title_music = "title"
+epilogue_music = "finale"
+
+  [[audio.music]]
+  id = "title"
+  prompt = "Gentle instrumental theme for a cosy anime-style adventure game set in Japan. Warm felt piano, soft strings, light acoustic guitar, a touch of glockenspiel. Hopeful and curious. 92 BPM. No vocals."
+
+  [[audio.music]]
+  id = "morning"
+  prompt = "Airy lo-fi instrumental for a bright, slightly jet-lagged morning at a big airport. Soft electric piano, brushed drums, warm bass, gentle chimes. Optimistic but a little dazed. 84 BPM. No vocals."
+
+  [[audio.music]]
+  id = "careful"
+  prompt = "Quiet, lightly tense instrumental for a scene in a small police station. Pizzicato strings, muted marimba, soft clarinet, sparse percussion. Curious and careful, not scary. 90 BPM. No vocals."
+
+  [[audio.music]]
+  id = "journey"
+  prompt = "Steady, gently rhythmic instrumental for a train journey through Japanese suburbs. Acoustic guitar, glockenspiel, light shaker groove, soft bass. A feeling of travelling forward. 100 BPM. No vocals."
+
+  [[audio.music]]
+  id = "night"
+  prompt = "Nostalgic 1980s city-pop style instrumental for a neon-lit Tokyo night. Mellow synth pads, clean electric guitar, slap bass, soft drum machine. Warm, a little lonely. 96 BPM. No vocals."
+
+  [[audio.music]]
+  id = "cozy"
+  prompt = "Cosy acoustic instrumental for a lantern-lit hostel at night. Nylon-string guitar, soft piano, wooden percussion, light rain-like textures. Safe and warm. 78 BPM. No vocals."
+
+  [[audio.music]]
+  id = "finale"
+  prompt = "Uplifting instrumental finale. Piano and strings swelling gently, light percussion, a sense of relief, gratitude and new friendship. 88 BPM. No vocals."
+
+  [[audio.ambience]]
+  id = "airport"
+  prompt = "Large airport terminal ambience: distant crowd murmur, rolling suitcases, footsteps on polished floors, soft distant chime. No intelligible speech."
+
+  [[audio.ambience]]
+  id = "curbside"
+  prompt = "Outside an airport terminal: buses idling, light traffic passing, a few birds, gentle wind. No speech."
+
+  [[audio.ambience]]
+  id = "koban"
+  prompt = "Quiet small police box interior: wall clock ticking, faint street traffic outside, occasional distant car."
+
+  [[audio.ambience]]
+  id = "station"
+  prompt = "Underground train station concourse: ticket gate beeps, footsteps, distant train arriving, muffled announcements without words."
+
+  [[audio.ambience]]
+  id = "train"
+  prompt = "Inside a moving commuter train: steady rhythmic wheel clatter on rails, gentle motor hum, quiet carriage."
+
+  [[audio.ambience]]
+  id = "city_night"
+  prompt = "Tokyo shopping street at night: distant traffic, an elevated train rumbling past overhead, faint crowd and shop noise."
+
+  [[audio.ambience]]
+  id = "konbini"
+  prompt = "Convenience store interior: refrigerators humming, fluorescent light buzz, faint muffled background music."
+
+  [[audio.ambience]]
+  id = "hostel"
+  prompt = "Quiet cosy room at night: soft crickets outside, distant city hum, an occasional creak of wood."
+
+  [[audio.ambience]]
+  id = "police_station"
+  prompt = "Police station waiting area: phones ringing in the distance, keyboard typing, quiet murmur, footsteps."
+
+  [[audio.ambience]]
+  id = "park"
+  prompt = "City park at night: soft wind in trees, distant traffic hum, occasional insect chirps, a faraway train."
+
+  [[audio.ambience]]
+  id = "izakaya"
+  prompt = "Small busy Japanese pub: warm chatter without intelligible words, clinking glasses, sizzling grill, kitchen bustle."
+
+  [[audio.ambience]]
+  id = "cafe"
+  prompt = "Quiet retro coffee shop on a rainy day: rain on windows, soft cup clinks, a coffee siphon bubbling."
+
+  [[audio.ambience]]
+  id = "festival"
+  prompt = "Summer festival at dusk: crowd murmur, distant taiko drums, sizzling food stalls, occasional fireworks pops."
+
+  [[audio.ambience]]
+  id = "theatre"
+  prompt = "Theatre hall before a show: hushed audience murmur, rustling programmes, a single wooden clapper in the distance."
+
+  [[audio.ambience]]
+  id = "clinic"
+  prompt = "Small clinic waiting room: quiet air conditioning hum, a muffled TV, a clock ticking, a door sliding."
+
+  [[audio.sfx]]
+  id = "door_chime"
+  prompt = "Bright two-tone electronic shop door chime, short and friendly."
+
+  [[audio.sfx]]
+  id = "train_doors"
+  prompt = "Train doors: short warning beep then pneumatic doors sliding shut."
+
+  [[audio.sfx]]
+  id = "radio"
+  prompt = "Handheld police radio crackle and short static burst with a beep."
+
+  [[audio.sfx]]
+  id = "phone"
+  prompt = "Old landline telephone ringing twice."
+
+  [[audio.sfx]]
+  id = "stamp"
+  prompt = "Rubber stamp pressed firmly onto paper on a desk."
+
+  [[audio.sfx]]
+  id = "coins"
+  prompt = "A few Japanese coins dropped into a hand, light metallic clinks."
+
+  [[audio.sfx]]
+  id = "footsteps"
+  prompt = "Quick footsteps on a hard tiled floor, a few steps."
+
+  [[audio.sfx]]
+  id = "thud"
+  prompt = "Person slipping and falling hard onto a polished floor, heavy thud."
+
+  [[audio.sfx]]
+  id = "whoosh"
+  prompt = "Fast soft cinematic whoosh."
+
+  [[audio.sfx]]
+  id = "bell"
+  prompt = "Single soft temple bell strike with long gentle decay."
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Curriculum: Genki I, lessons 0–12, in order. This is the player's own
+# progress track; wherever they are, conversations drill the current lesson.
+# ─────────────────────────────────────────────────────────────────────────────
+
+[[lessons]]
+index = 0
+title = "Greetings"
+title_jp = "あいさつ"
+topic = "Greetings & survival expressions"
+min_grammar = 2
+min_turns = 3
+
+  [[lessons.grammar]]
+  id = "g0_daijoubu"
+  pattern = "大丈夫です"
+  meaning = "I'm okay / it's fine (and 大丈夫ですか？ = are you okay?)"
+  example_jp = "はい、大丈夫です。"
+  example_romaji = "Hai, daijoubu desu."
+  example_en = "Yes, I'm okay."
+
+  [[lessons.grammar]]
+  id = "g0_sumimasen"
+  pattern = "すみません"
+  meaning = "Excuse me / I'm sorry — the most useful word in Japan"
+  example_jp = "すみません、ありがとうございます。"
+  example_romaji = "Sumimasen, arigatou gozaimasu."
+  example_en = "Sorry — thank you so much."
+
+  [[lessons.grammar]]
+  id = "g0_hai_iie"
+  pattern = "はい / いいえ"
+  meaning = "Yes / no"
+  example_jp = "いいえ、わかりません。"
+  example_romaji = "Iie, wakarimasen."
+  example_en = "No, I don't understand."
+
+  [[lessons.grammar]]
+  id = "g0_wakarimasen"
+  pattern = "わかりません"
+  meaning = "I don't understand"
+  example_jp = "すみません、わかりません。"
+  example_romaji = "Sumimasen, wakarimasen."
+  example_en = "Sorry, I don't understand."
+
+  [[lessons.grammar]]
+  id = "g0_arigatou"
+  pattern = "ありがとうございます"
+  meaning = "Thank you (polite)"
+  example_jp = "どうもありがとうございます。"
+  example_romaji = "Doumo arigatou gozaimasu."
+  example_en = "Thank you very much."
+
+
+  [[lessons.vocab]]
+  jp = "かばん"
+  romaji = "kaban"
+  en = "bag"
+
+  [[lessons.vocab]]
+  jp = "ない / ありません"
+  romaji = "nai / arimasen"
+  en = "(it's) not here / there isn't"
+
+  [[lessons.vocab]]
+  jp = "あたま"
+  romaji = "atama"
+  en = "head"
+
+
+  [[lessons.candos]]
+  id = "l0_okay"
+  text = "I can say I'm okay"
+  example = "だいじょうぶです。"
+  example_reading = "Daijoubu desu."
+  match_all = [["だいじょうぶ", "大丈夫", "daijoubu", "daijobu", "daijyoubu"]]
+
+  [[lessons.candos]]
+  id = "l0_sorry"
+  text = "I can say excuse me / sorry"
+  example = "すみません。"
+  example_reading = "Sumimasen."
+  match_all = [["すみません", "すいません", "sumimasen", "suimasen"]]
+
+  [[lessons.candos]]
+  id = "l0_thanks"
+  text = "I can say thank you"
+  example = "ありがとうございます。"
+  example_reading = "Arigatou gozaimasu."
+  match_all = [["ありがとう", "arigatou", "arigato"]]
+
+  [[lessons.candos]]
+  id = "l0_dont_understand"
+  text = "I can say I don't understand"
+  example = "わかりません。"
+  example_reading = "Wakarimasen."
+  match_all = [["わかりません", "わからない", "wakarimasen", "wakaranai"]]
+
+[[lessons]]
+index = 1
+title = "New Friends"
+title_jp = "あたらしいともだち"
+topic = "X は Y です, questions with か, の"
+min_grammar = 2
+min_turns = 3
+
+  [[lessons.grammar]]
+  id = "g1_x_wa_y_desu"
+  pattern = "X は Y です"
+  meaning = "X is Y — the backbone sentence of Japanese"
+  example_jp = "わたしはマヤです。"
+  example_romaji = "Watashi wa Maya desu."
+  example_en = "I'm Maya."
+
+  [[lessons.grammar]]
+  id = "g1_ka_question"
+  pattern = "〜か"
+  meaning = "Add か to the end to make a question"
+  example_jp = "がくせいですか。"
+  example_romaji = "Gakusei desu ka."
+  example_en = "Are you a student?"
+
+  [[lessons.grammar]]
+  id = "g1_no_modifier"
+  pattern = "N の N"
+  meaning = "の links nouns: 'of', possession, or category"
+  example_jp = "にほんごのがくせいです。"
+  example_romaji = "Nihongo no gakusei desu."
+  example_en = "I'm a student of Japanese."
+
+  [[lessons.grammar]]
+  id = "g1_nationality"
+  pattern = "〜じん"
+  meaning = "Country + じん = a person from that country"
+  example_jp = "インドじんです。"
+  example_romaji = "Indo-jin desu."
+  example_en = "I'm Indian."
+
+
+  [[lessons.vocab]]
+  jp = "なまえ"
+  romaji = "namae"
+  en = "name"
+
+  [[lessons.vocab]]
+  jp = "がくせい"
+  romaji = "gakusei"
+  en = "student"
+
+  [[lessons.vocab]]
+  jp = "そうですか"
+  romaji = "sou desu ka"
+  en = "I see / is that so?"
+
+
+  [[lessons.candos]]
+  id = "l1_name"
+  text = "I can say my name"
+  example = "わたしは＿＿です。"
+  example_reading = "Watashi wa ___ desu."
+  match_all = [["わたし", "なまえ", "ぼく", "watashi", "namae", "boku"], ["です", "desu"]]
+
+  [[lessons.candos]]
+  id = "l1_from"
+  text = "I can say where I'm from"
+  example = "アメリカじんです。"
+  example_reading = "Amerika-jin desu."
+  match_all = [["じん", "人", "からきました", "から来ました", "*jin", "kara kimashita"]]
+
+  [[lessons.candos]]
+  id = "l1_ask"
+  text = "I can ask a simple question"
+  example = "がくせいですか。"
+  example_reading = "Gakusei desu ka."
+  match_all = [["ですか", "desu ka", "desuka"]]
+
+[[lessons]]
+index = 2
+title = "Shopping"
+title_jp = "かいもの"
+topic = "これ／それ／あれ, どこ, だれの, じゃありません, も"
+min_grammar = 3
+min_turns = 3
+
+  [[lessons.grammar]]
+  id = "g2_kore_sore_are"
+  pattern = "これ／それ／あれ"
+  meaning = "this (near me) / that (near you) / that over there"
+  example_jp = "それはわたしのじゃありません。"
+  example_romaji = "Sore wa watashi no ja arimasen."
+  example_en = "That's not mine."
+
+  [[lessons.grammar]]
+  id = "g2_dare_no"
+  pattern = "だれの／わたしの"
+  meaning = "whose / mine — the の from lesson 1 doing possession"
+  example_jp = "これはだれのかばんですか。"
+  example_romaji = "Kore wa dare no kaban desu ka."
+  example_en = "Whose bag is this?"
+
+  [[lessons.grammar]]
+  id = "g2_ja_arimasen"
+  pattern = "〜じゃありません"
+  meaning = "is not — the negative of です"
+  example_jp = "わたしのかばんじゃありません。"
+  example_romaji = "Watashi no kaban ja arimasen."
+  example_en = "It's not my bag."
+
+  [[lessons.grammar]]
+  id = "g2_mo"
+  pattern = "〜も"
+  meaning = "also / too — replaces は or が"
+  example_jp = "さいふもありません。"
+  example_romaji = "Saifu mo arimasen."
+  example_en = "My wallet is gone too."
+
+  [[lessons.grammar]]
+  id = "g2_doko"
+  pattern = "どこ"
+  meaning = "where"
+  example_jp = "こうばんはどこですか。"
+  example_romaji = "Kouban wa doko desu ka."
+  example_en = "Where is the police box?"
+
+
+  [[lessons.vocab]]
+  jp = "パスポート"
+  romaji = "pasupooto"
+  en = "passport"
+
+  [[lessons.vocab]]
+  jp = "さいふ"
+  romaji = "saifu"
+  en = "wallet"
+
+  [[lessons.vocab]]
+  jp = "かばん"
+  romaji = "kaban"
+  en = "bag"
+
+  [[lessons.vocab]]
+  jp = "ぬすまれました"
+  romaji = "nusumaremashita"
+  en = "(it) was stolen"
+
+
+  [[lessons.candos]]
+  id = "l2_lost"
+  text = "I can say what was stolen"
+  example = "パスポートがありません。"
+  example_reading = "Pasupooto ga arimasen."
+  match_all = [["パスポート", "さいふ", "かばん", "けいたい", "チェック", "pasupooto", "pasupoto", "saifu", "kaban", "passport", "wallet", "bag"], ["ありません", "ない", "ぬすまれ", "盗まれ", "なくし", "arimasen", "nai", "nusumare", "nakushi"]]
+
+  [[lessons.candos]]
+  id = "l2_not_mine"
+  text = "I can say 'that's not mine'"
+  example = "わたしのじゃありません。"
+  example_reading = "Watashi no ja arimasen."
+  match_all = [["じゃありません", "じゃない", "ではありません", "ja arimasen", "janai", "jya arimasen", "dewa arimasen"]]
+
+  [[lessons.candos]]
+  id = "l2_where"
+  text = "I can ask where something is"
+  example = "えきはどこですか。"
+  example_reading = "Eki wa doko desu ka."
+  match_all = [["どこ", "doko"]]
+
+[[lessons]]
+index = 3
+title = "Making a Date"
+title_jp = "デートのやくそく"
+topic = "ます verbs, に／へ, で, を, time"
+min_grammar = 3
+min_turns = 3
+
+  [[lessons.grammar]]
+  id = "g3_masu_verbs"
+  pattern = "〜ます／〜ません"
+  meaning = "polite present: いきます (go), かえります (return), かいます (buy)"
+  example_jp = "とうきょうにいきます。"
+  example_romaji = "Toukyou ni ikimasu."
+  example_en = "I'm going to Tokyo."
+
+  [[lessons.grammar]]
+  id = "g3_ni_e_destination"
+  pattern = "place に／へ いきます"
+  meaning = "に or へ marks where you're heading"
+  example_jp = "うえのへいきます。"
+  example_romaji = "Ueno e ikimasu."
+  example_en = "I'm going to Ueno."
+
+  [[lessons.grammar]]
+  id = "g3_de_means_place"
+  pattern = "〜で"
+  meaning = "で marks how (by train) or where an action happens"
+  example_jp = "でんしゃでいきます。"
+  example_romaji = "Densha de ikimasu."
+  example_en = "I'll go by train."
+
+  [[lessons.grammar]]
+  id = "g3_o_object"
+  pattern = "〜を"
+  meaning = "を marks the thing you act on"
+  example_jp = "きっぷをかいます。"
+  example_romaji = "Kippu o kaimasu."
+  example_en = "I'll buy a ticket."
+
+  [[lessons.grammar]]
+  id = "g3_ikura"
+  pattern = "いくらですか"
+  meaning = "How much is it?"
+  example_jp = "うえのまで、いくらですか。"
+  example_romaji = "Ueno made, ikura desu ka."
+  example_en = "How much is it to Ueno?"
+
+
+  [[lessons.vocab]]
+  jp = "きっぷ"
+  romaji = "kippu"
+  en = "ticket"
+
+  [[lessons.vocab]]
+  jp = "たりません"
+  romaji = "tarimasen"
+  en = "(it's) not enough"
+
+  [[lessons.vocab]]
+  jp = "〜まで"
+  romaji = "~made"
+  en = "as far as / to (a place)"
+
+
+  [[lessons.candos]]
+  id = "l3_going"
+  text = "I can say where I'm going"
+  example = "うえのにいきます。"
+  example_reading = "Ueno ni ikimasu."
+  match_all = [["いきます", "いきたい", "行きます", "行きたい", "ikimasu", "ikitai"]]
+
+  [[lessons.candos]]
+  id = "l3_price"
+  text = "I can ask how much something is"
+  example = "いくらですか。"
+  example_reading = "Ikura desu ka."
+  match_all = [["いくら", "ikura"]]
+
+  [[lessons.candos]]
+  id = "l3_request"
+  text = "I can ask for something politely"
+  example = "きっぷをください。"
+  example_reading = "Kippu o kudasai."
+  match_all = [["ください", "おねがいします", "お願いします", "kudasai", "onegaishimasu", "onegai"]]
+
+[[lessons]]
+index = 4
+title = "The First Date"
+title_jp = "はじめてのデート"
+topic = "あります／います, location words, past tense"
+min_grammar = 3
+min_turns = 3
+
+  [[lessons.grammar]]
+  id = "g4_arimasu_imasu"
+  pattern = "あります／います"
+  meaning = "there is (things) / there is (people & animals)"
+  example_jp = "でんわはありますか。"
+  example_romaji = "Denwa wa arimasu ka."
+  example_en = "Is there a phone?"
+
+  [[lessons.grammar]]
+  id = "g4_location_words"
+  pattern = "うえ／した／まえ／うしろ／となり／なか"
+  meaning = "on / under / in front / behind / next to / inside — X の うえ"
+  example_jp = "おにぎりはレジのとなりにあります。"
+  example_romaji = "Onigiri wa reji no tonari ni arimasu."
+  example_en = "The rice balls are next to the register."
+
+  [[lessons.grammar]]
+  id = "g4_mashita_past"
+  pattern = "〜ました／〜ませんでした"
+  meaning = "polite past tense of verbs"
+  example_jp = "けさ、にほんにきました。"
+  example_romaji = "Kesa, Nihon ni kimashita."
+  example_en = "I came to Japan this morning."
+
+  [[lessons.grammar]]
+  id = "g4_deshita_past"
+  pattern = "〜でした"
+  meaning = "was — past tense of です"
+  example_jp = "たいへんないちにちでした。"
+  example_romaji = "Taihen na ichinichi deshita."
+  example_en = "It was a rough day."
+
+
+  [[lessons.vocab]]
+  jp = "おにぎり"
+  romaji = "onigiri"
+  en = "rice ball"
+
+  [[lessons.vocab]]
+  jp = "でんわ"
+  romaji = "denwa"
+  en = "telephone"
+
+  [[lessons.vocab]]
+  jp = "やすい"
+  romaji = "yasui"
+  en = "cheap"
+
+
+  [[lessons.candos]]
+  id = "l4_is_there"
+  text = "I can ask if something is there"
+  example = "でんわはありますか。"
+  example_reading = "Denwa wa arimasu ka."
+  match_all = [["ありますか", "いますか", "arimasu ka", "arimasuka", "imasu ka", "imasuka"]]
+
+  [[lessons.candos]]
+  id = "l4_past"
+  text = "I can say what happened"
+  example = "きょう、にほんにきました。"
+  example_reading = "Kyou, Nihon ni kimashita."
+  match_all = [["ました", "でした", "mashita", "*mashita", "deshita"]]
+
+  [[lessons.candos]]
+  id = "l4_location"
+  text = "I can say where something is (next to, inside…)"
+  example = "レジのとなりです。"
+  example_reading = "Reji no tonari desu."
+  match_all = [["となり", "うえ", "した", "まえ", "うしろ", "なか", "よこ", "tonari", "ushiro", "naka", "yoko"]]
+
+[[lessons]]
+index = 5
+title = "A Trip"
+title_jp = "りょこう"
+topic = "い／な adjectives, すき, 〜ましょう"
+min_grammar = 2
+min_turns = 3
+
+  [[lessons.grammar]]
+  id = "g5_adjectives"
+  pattern = "い／な adjectives"
+  meaning = "describing things: きれいです, ひろいです, たのしいです"
+  example_jp = "このへやはあたたかいですね。"
+  example_romaji = "Kono heya wa atatakai desu ne."
+  example_en = "This room is warm, isn't it."
+
+  [[lessons.grammar]]
+  id = "g5_suki"
+  pattern = "〜がすきです"
+  meaning = "I like ~"
+  example_jp = "にほんのたべものがすきです。"
+  example_romaji = "Nihon no tabemono ga suki desu."
+  example_en = "I like Japanese food."
+
+  [[lessons.grammar]]
+  id = "g5_mashou"
+  pattern = "〜ましょう／〜ましょうか"
+  meaning = "Let's ~ / shall I ~?"
+  example_jp = "いっしょにたべましょう。"
+  example_romaji = "Issho ni tabemashou."
+  example_en = "Let's eat together."
+
+  [[lessons.vocab]]
+  jp = "おいしい"
+  romaji = "oishii"
+  en = "delicious"
+
+  [[lessons.vocab]]
+  jp = "たのしい"
+  romaji = "tanoshii"
+  en = "fun"
+
+  [[lessons.candos]]
+  id = "c5_describe"
+  text = "I can describe something with an adjective"
+  example = "このへやはしずかですね。"
+  example_reading = "Kono heya wa shizuka desu ne."
+  match_all = [["きれい", "ひろい", "せまい", "あたたかい", "さむい", "あつい", "おおきい", "ちいさい", "しずか", "にぎやか", "たのしい", "おいしい", "かわいい", "すてき", "ふるい", "あたらしい", "おもしろい", "kirei", "hiroi", "semai", "atatakai", "samui", "atsui", "ookii", "chiisai", "shizuka", "nigiyaka", "tanoshii", "oishii", "kawaii", "suteki", "furui", "atarashii", "omoshiroi"], ["です", "desu"]]
+
+  [[lessons.candos]]
+  id = "c5_like"
+  text = "I can say what I like or don't like"
+  example = "このまちがすきです。"
+  example_reading = "Kono machi ga suki desu."
+  match_all = [["すき", "好き", "きらい", "嫌い", "suki", "daisuki", "kirai"]]
+
+  [[lessons.candos]]
+  id = "c5_lets"
+  text = "I can suggest doing something together"
+  example = "いっしょにいきましょう。"
+  example_reading = "Issho ni ikimashou."
+  match_all = [["ましょう", "*masho"]]
+
+  [[lessons.candos]]
+  id = "c5_ask_opinion"
+  text = "I can ask what something or someone is like"
+  example = "あさくさはどうですか。"
+  example_reading = "Asakusa wa dou desu ka."
+  match_all = [["どうですか", "どんな", "dou desu ka", "doudesuka", "donna"]]
+
+[[lessons]]
+index = 6
+title = "A Day in Someone's Life"
+title_jp = "あるひ"
+topic = "て-form: requests, permission, rules, sequences"
+min_grammar = 3
+min_turns = 3
+
+  [[lessons.grammar]]
+  id = "g6_te_kudasai"
+  pattern = "〜てください"
+  meaning = "please do ~ (て-form + ください)"
+  example_jp = "ゆっくりはなしてください。"
+  example_romaji = "Yukkuri hanashite kudasai."
+  example_en = "Please speak slowly."
+
+  [[lessons.grammar]]
+  id = "g6_te_mo_ii"
+  pattern = "〜てもいいですか"
+  meaning = "may I ~ ? (asking permission)"
+  example_jp = "ここにとまってもいいですか。"
+  example_romaji = "Koko ni tomatte mo ii desu ka."
+  example_en = "May I stay here?"
+
+  [[lessons.grammar]]
+  id = "g6_te_wa_ikemasen"
+  pattern = "〜てはいけません"
+  meaning = "you must not ~"
+  example_jp = "ここでたばこをすってはいけません。"
+  example_romaji = "Koko de tabako o sutte wa ikemasen."
+  example_en = "You mustn't smoke here."
+
+  [[lessons.grammar]]
+  id = "g6_te_sequence"
+  pattern = "〜て、〜て"
+  meaning = "do A and then B (linking actions)"
+  example_jp = "あさおきて、シャワーをあびます。"
+  example_romaji = "Asa okite, shawaa o abimasu."
+  example_en = "I get up and take a shower."
+
+  [[lessons.vocab]]
+  jp = "そうじ"
+  romaji = "souji"
+  en = "cleaning"
+
+  [[lessons.vocab]]
+  jp = "てつだいます"
+  romaji = "tetsudaimasu"
+  en = "I'll help"
+
+  [[lessons.vocab]]
+  jp = "アルバイト"
+  romaji = "arubaito"
+  en = "part-time job"
+
+  [[lessons.candos]]
+  id = "c6_please_do"
+  text = "I can ask someone to do something (〜てください)"
+  example = "ゆっくりはなしてください。"
+  example_reading = "Yukkuri hanashite kudasai."
+  match_all = [["てください", "でください", "*te kudasai", "*de kudasai"]]
+
+  [[lessons.candos]]
+  id = "c6_may_i"
+  text = "I can ask for permission (〜てもいいですか)"
+  example = "ここではたらいてもいいですか。"
+  example_reading = "Koko de hataraite mo ii desu ka."
+  match_all = [["てもいい", "でもいい", "*te mo ii", "*de mo ii"]]
+
+  [[lessons.candos]]
+  id = "c6_rule"
+  text = "I can say what isn't allowed (〜てはいけません)"
+  example = "ここでたべてはいけません。"
+  example_reading = "Koko de tabete wa ikemasen."
+  match_all = [["てはいけ", "ではいけ", "てはだめ", "ちゃだめ", "*te wa ike", "*de wa ike", "*te wa dame", "*cha dame"]]
+
+  [[lessons.candos]]
+  id = "c6_then"
+  text = "I can say I'll do one thing and then another (〜てから)"
+  example = "てをあらってから、てつだいます。"
+  example_reading = "Te o aratte kara, tetsudaimasu."
+  match_all = [["てから", "でから", "*te kara", "*de kara"]]
+
+[[lessons]]
+index = 7
+title = "Family Picture"
+title_jp = "かぞくのしゃしん"
+topic = "〜ている, describing people"
+min_grammar = 2
+min_turns = 3
+
+  [[lessons.grammar]]
+  id = "g7_te_iru_wearing"
+  pattern = "〜をきています／〜をかぶっています"
+  meaning = "is wearing (clothes) / is wearing (a hat) — ている for ongoing states"
+  example_jp = "あかいジャケットをきています。"
+  example_romaji = "Akai jaketto o kite imasu."
+  example_en = "He's wearing a red jacket."
+
+  [[lessons.grammar]]
+  id = "g7_describing_people"
+  pattern = "〜は〜が〜です"
+  meaning = "describing features: せがたかいです (tall), かみがみじかいです (short hair)"
+  example_jp = "そのひとはせがたかいです。"
+  example_romaji = "Sono hito wa se ga takai desu."
+  example_en = "That person is tall."
+
+  [[lessons.grammar]]
+  id = "g7_te_iru_ongoing"
+  pattern = "〜ています"
+  meaning = "is doing ~ / has done ~ (ongoing or resulting state)"
+  example_jp = "めがねをかけています。"
+  example_romaji = "Megane o kakete imasu."
+  example_en = "He's wearing glasses."
+
+
+  [[lessons.grammar]]
+  id = "g7_counting_people"
+  pattern = "〜にん／ひとり／ふたり"
+  meaning = "counting people"
+  example_jp = "かぞくはよにんです。"
+  example_romaji = "Kazoku wa yonin desu."
+  example_en = "There are four people in my family."
+
+  [[lessons.vocab]]
+  jp = "はいいろ"
+  romaji = "haiiro"
+  en = "grey"
+
+  [[lessons.vocab]]
+  jp = "ぼうし"
+  romaji = "boushi"
+  en = "hat / cap"
+
+  [[lessons.vocab]]
+  jp = "あかい"
+  romaji = "akai"
+  en = "red"
+
+
+  [[lessons.vocab]]
+  jp = "かぞく"
+  romaji = "kazoku"
+  en = "family"
+
+  [[lessons.candos]]
+  id = "c7_wearing"
+  text = "I can say what someone is wearing"
+  example = "あかいジャケットをきています。"
+  example_reading = "Akai jaketto o kite imasu."
+  match_all = [["きています", "きていました", "きてる", "かぶっています", "かぶっていました", "かぶってる", "かけています", "かけていました", "はいています", "はいていました", "*kite imasu", "*kite imashita", "*kiteru", "*kabutte", "*kakete imasu", "*kakete imashita", "*haite imasu", "*haite imashita"]]
+
+  [[lessons.candos]]
+  id = "c7_looks"
+  text = "I can describe what someone looks like"
+  example = "そのひとはせがたかいです。"
+  example_reading = "Sono hito wa se ga takai desu."
+  match_all = [["せが", "かみが", "めが", "かおが", "se ga", "kami ga", "me ga", "kao ga"], ["たかい", "ひくい", "ながい", "みじかい", "おおきい", "ちいさい", "くろい", "しろい", "きれい", "やさしい", "takai", "hikui", "nagai", "mijikai", "ookii", "chiisai", "kuroi", "shiroi", "kirei", "yasashii"]]
+
+  [[lessons.candos]]
+  id = "c7_doing"
+  text = "I can say what someone is doing right now (〜ています)"
+  example = "このひとはわらっています。"
+  example_reading = "Kono hito wa waratte imasu."
+  match_all = [["ています", "でいます", "ていました", "でいました", "*te imasu", "*de imasu", "*te imashita", "*de imashita"]]
+
+  [[lessons.candos]]
+  id = "c7_family"
+  text = "I can talk about someone's family"
+  example = "わたしのおじいさんのしゃしんです。"
+  example_reading = "Watashi no ojiisan no shashin desu."
+  match_all = [["かぞく", "おじいさん", "おばあさん", "そふ", "そぼ", "おとうさん", "おかあさん", "きょうだい", "おにいさん", "おねえさん", "いもうと", "おとうと", "家族", "kazoku", "ojiisan", "obaasan", "sofu", "sobo", "otousan", "okaasan", "kyoudai", "oniisan", "oneesan", "imouto", "otouto"]]
+
+[[lessons]]
+index = 8
+title = "Barbecue"
+title_jp = "バーベキュー"
+topic = "short forms, 〜と思います, 〜と言っていました, 〜ないでください"
+min_grammar = 2
+min_turns = 3
+
+  [[lessons.grammar]]
+  id = "g8_short_present"
+  pattern = "short forms (いく／いかない)"
+  meaning = "casual present: how friends talk"
+  example_jp = "あした、いく？"
+  example_romaji = "Ashita, iku?"
+  example_en = "Are you going tomorrow?"
+
+  [[lessons.grammar]]
+  id = "g8_to_omoimasu"
+  pattern = "〜と思います"
+  meaning = "I think that ~"
+  example_jp = "あいこさんはやさしいと思います。"
+  example_romaji = "Aiko-san wa yasashii to omoimasu."
+  example_en = "I think Aiko is kind."
+
+  [[lessons.grammar]]
+  id = "g8_to_itte_imashita"
+  pattern = "〜と言っていました"
+  meaning = "(someone) said that ~"
+  example_jp = "もりさんはいそがしいと言っていました。"
+  example_romaji = "Mori-san wa isogashii to itte imashita."
+  example_en = "Mr. Mori said he was busy."
+
+  [[lessons.grammar]]
+  id = "g8_naide_kudasai"
+  pattern = "〜ないでください"
+  meaning = "please don't ~"
+  example_jp = "しんぱいしないでください。"
+  example_romaji = "Shinpai shinaide kudasai."
+  example_en = "Please don't worry."
+
+  [[lessons.grammar]]
+  id = "g8_no_ga_suki"
+  pattern = "verb + のがすき"
+  meaning = "I like doing ~"
+  example_jp = "りょうりをするのがすきです。"
+  example_romaji = "Ryouri o suru no ga suki desu."
+  example_en = "I like cooking."
+
+  [[lessons.vocab]]
+  jp = "やさしい"
+  romaji = "yasashii"
+  en = "kind"
+
+  [[lessons.vocab]]
+  jp = "しんぱい"
+  romaji = "shinpai"
+  en = "worry"
+
+  [[lessons.candos]]
+  id = "c8_think"
+  text = "I can give my opinion (〜と思います)"
+  example = "たこやきがいちばんおいしいと思います。"
+  example_reading = "Takoyaki ga ichiban oishii to omoimasu."
+  match_all = [["とおもいます", "と思います", "とおもう", "と思う", "*to omoimasu", "*to omou"]]
+
+  [[lessons.candos]]
+  id = "c8_said"
+  text = "I can pass on what someone said (〜と言っていました)"
+  example = "もりさんは、やちんはきんようびだと言っていました。"
+  example_reading = "Mori-san wa, yachin wa kin'youbi da to itte imashita."
+  match_all = [["といっていました", "と言っていました", "といってました", "と言ってました", "っていってました", "って言ってました", "*to itte imashita", "*to ittemashita", "*tte itte imashita", "*tte ittemashita"]]
+
+  [[lessons.candos]]
+  id = "c8_dont"
+  text = "I can ask someone not to do something (〜ないでください)"
+  example = "わらわないでください！"
+  example_reading = "Warawanaide kudasai!"
+  match_all = [["ないでください", "ないでね", "*naide kudasai", "*nai de kudasai", "*naide ne"]]
+
+  [[lessons.candos]]
+  id = "c8_like_doing"
+  text = "I can say what I like doing (〜のがすき)"
+  example = "はなびをみるのがすきです。"
+  example_reading = "Hanabi o miru no ga suki desu."
+  match_all = [["のがすき", "のが好き", "のがだいすき", "のがきらい", "のが嫌い", "no ga suki", "no ga daisuki", "no ga kirai"]]
+
+[[lessons]]
+index = 9
+title = "Kabuki"
+title_jp = "かぶき"
+topic = "past short forms, 〜から, まだ〜ていません, describing nouns with verbs"
+min_grammar = 2
+min_turns = 3
+
+  [[lessons.grammar]]
+  id = "g9_short_past"
+  pattern = "short past (いった／いかなかった)"
+  meaning = "casual past"
+  example_jp = "きのう、なにした？"
+  example_romaji = "Kinou, nani shita?"
+  example_en = "What did you do yesterday?"
+
+  [[lessons.grammar]]
+  id = "g9_kara_reason"
+  pattern = "〜から"
+  meaning = "because ~"
+  example_jp = "つかれたから、かえります。"
+  example_romaji = "Tsukareta kara, kaerimasu."
+  example_en = "I'm tired, so I'm going home."
+
+  [[lessons.grammar]]
+  id = "g9_mada_te_imasen"
+  pattern = "まだ〜ていません"
+  meaning = "not ~ yet"
+  example_jp = "まだたべていません。"
+  example_romaji = "Mada tabete imasen."
+  example_en = "I haven't eaten yet."
+
+  [[lessons.grammar]]
+  id = "g9_verb_modify"
+  pattern = "verb + noun"
+  meaning = "a noun described by a verb phrase"
+  example_jp = "あかいジャケットをきているひと"
+  example_romaji = "Akai jaketto o kite iru hito"
+  example_en = "the person wearing a red jacket"
+
+  [[lessons.vocab]]
+  jp = "つかれた"
+  romaji = "tsukareta"
+  en = "tired"
+
+  [[lessons.vocab]]
+  jp = "きのう"
+  romaji = "kinou"
+  en = "yesterday"
+
+  [[lessons.candos]]
+  id = "c9_past_opinion"
+  text = "I can say what I thought of something that happened (short past + と思います)"
+  example = "さいごのところがいちばんよかったと思います。"
+  example_reading = "Saigo no tokoro ga ichiban yokatta to omoimasu."
+  match_all = [["たとおもい", "だとおもい", "たと思い", "だと思い", "たとおもう", "たと思う", "*ta to omoi", "*da to omoi", "*ta to omou", "*da to omou"]]
+
+  [[lessons.candos]]
+  id = "c9_because"
+  text = "I can give a reason (〜から)"
+  example = "よくわからなかったから、おしえてください。"
+  example_reading = "Yoku wakaranakatta kara, oshiete kudasai."
+  match_all = [["たから", "だから", "いから", "ますから", "ですから", "ないから", "*ta kara", "*da kara", "*i kara", "*masu kara", "*desu kara"]]
+  ignore = ["あなたから", "わたしから", "そこから", "どこから", "anata kara", "watashi kara"]
+
+  [[lessons.candos]]
+  id = "c9_not_yet"
+  text = "I can say I haven't done something yet (まだ〜ていません)"
+  example = "まだたべていません。"
+  example_reading = "Mada tabete imasen."
+  match_all = [["まだ", "mada"], ["ていません", "でいません", "てない", "でない", "*te imasen", "*de imasen", "*tenai"]]
+
+  [[lessons.candos]]
+  id = "c9_verb_noun"
+  text = "I can point someone out by what they're doing or wearing"
+  example = "あのあかいきものをきているひとはだれですか。"
+  example_reading = "Ano akai kimono o kite iru hito wa dare desu ka."
+  match_all = [["ている", "でいる", "*te iru", "*de iru"], ["ひと", "人", "おとこ", "おんな", "hito", "otoko", "onna"]]
+
+[[lessons]]
+index = 10
+title = "Winter Plans"
+title_jp = "ふゆやすみのよてい"
+topic = "comparisons, いちばん, 〜つもり, 〜になる"
+min_grammar = 2
+min_turns = 3
+
+  [[lessons.grammar]]
+  id = "g10_yori"
+  pattern = "AはBより〜"
+  meaning = "A is more ~ than B"
+  example_jp = "とうきょうはおおさかよりおおきいです。"
+  example_romaji = "Toukyou wa Oosaka yori ookii desu."
+  example_en = "Tokyo is bigger than Osaka."
+
+  [[lessons.grammar]]
+  id = "g10_ichiban"
+  pattern = "〜がいちばん〜"
+  meaning = "the most ~"
+  example_jp = "ラーメンがいちばんすきです。"
+  example_romaji = "Raamen ga ichiban suki desu."
+  example_en = "I like ramen the most."
+
+  [[lessons.grammar]]
+  id = "g10_tsumori"
+  pattern = "〜つもりです"
+  meaning = "I plan to ~"
+  example_jp = "らいねんもにほんにいるつもりです。"
+  example_romaji = "Rainen mo Nihon ni iru tsumori desu."
+  example_en = "I plan to still be in Japan next year."
+
+  [[lessons.grammar]]
+  id = "g10_naru"
+  pattern = "〜になる／〜くなる"
+  meaning = "to become ~"
+  example_jp = "にほんごがじょうずになりました。"
+  example_romaji = "Nihongo ga jouzu ni narimashita."
+  example_en = "My Japanese got good."
+
+  [[lessons.vocab]]
+  jp = "じょうず"
+  romaji = "jouzu"
+  en = "skilled"
+
+  [[lessons.vocab]]
+  jp = "らいねん"
+  romaji = "rainen"
+  en = "next year"
+
+  [[lessons.candos]]
+  id = "c10_compare"
+  text = "I can compare two things (AはBより〜)"
+  example = "かぶきはえいがよりおもしろいです。"
+  example_reading = "Kabuki wa eiga yori omoshiroi desu."
+  match_all = [["より", "yori"]]
+
+  [[lessons.candos]]
+  id = "c10_most"
+  text = "I can say which one is the most ~ (いちばん)"
+  example = "にほんのたべものでは、すしがいちばんすきです。"
+  example_reading = "Nihon no tabemono de wa, sushi ga ichiban suki desu."
+  match_all = [["いちばん", "一番", "ichiban"]]
+
+  [[lessons.candos]]
+  id = "c10_plan"
+  text = "I can say what I plan to do (〜つもりです)"
+  example = "らいねんもにほんにいるつもりです。"
+  example_reading = "Rainen mo Nihon ni iru tsumori desu."
+  match_all = [["つもり", "tsumori"]]
+
+  [[lessons.candos]]
+  id = "c10_become"
+  text = "I can say how something has changed (〜になりました／〜くなりました)"
+  example = "にほんごがじょうずになりました。"
+  example_reading = "Nihongo ga jouzu ni narimashita."
+  match_all = [["になりました", "くなりました", "になった", "くなった", "になりたい", "*ni narimashita", "*ku narimashita", "*ni natta", "*ku natta", "*ni naritai"]]
+
+[[lessons]]
+index = 11
+title = "After the Vacation"
+title_jp = "やすみのあと"
+topic = "〜たい, 〜たり〜たり, 〜ことがある, や"
+min_grammar = 2
+min_turns = 3
+
+  [[lessons.grammar]]
+  id = "g11_tai"
+  pattern = "〜たいです"
+  meaning = "I want to ~"
+  example_jp = "うちにかえりたいです。"
+  example_romaji = "Uchi ni kaeritai desu."
+  example_en = "I want to go home."
+
+  [[lessons.grammar]]
+  id = "g11_tari"
+  pattern = "〜たり〜たりする"
+  meaning = "do things like ~ and ~"
+  example_jp = "やすみのひは、そうじしたり、はたらいたりします。"
+  example_romaji = "Yasumi no hi wa, souji shitari, hataraitari shimasu."
+  example_en = "On days off I clean, work, and so on."
+
+  [[lessons.grammar]]
+  id = "g11_koto_ga_aru"
+  pattern = "〜たことがあります"
+  meaning = "I have (ever) done ~"
+  example_jp = "かぶきをみたことがあります。"
+  example_romaji = "Kabuki o mita koto ga arimasu."
+  example_en = "I've seen kabuki before."
+
+  [[lessons.grammar]]
+  id = "g11_ya"
+  pattern = "NやN"
+  meaning = "A and B (among others)"
+  example_jp = "おにぎりやおちゃをかいました。"
+  example_romaji = "Onigiri ya ocha o kaimashita."
+  example_en = "I bought rice balls, tea and so on."
+
+  [[lessons.vocab]]
+  jp = "おもいだす"
+  romaji = "omoidasu"
+  en = "to remember"
+
+  [[lessons.candos]]
+  id = "c11_want"
+  text = "I can say what I want to do (〜たいです)"
+  example = "まえのことをおもいだしたいです。"
+  example_reading = "Mae no koto o omoidashitai desu."
+  match_all = [["たいです", "たいんです", "たくない", "たかった", "*tai desu", "*tai n desu", "*takunai", "*takatta"]]
+  ignore = ["がいたい", "もいたい", "、いたい", "がいたく", "がいたかった", "itai desu", "itai n desu", "itakunai", "itakatta"]
+
+  [[lessons.candos]]
+  id = "c11_tari"
+  text = "I can list things I do (〜たり〜たりします)"
+  example = "やすみのひは、さんぽしたり、ほんをよんだりします。"
+  example_reading = "Yasumi no hi wa, sanpo shitari, hon o yondari shimasu."
+  match_all = [["たりします", "たりしました", "たりする", "たりした", "だりします", "だりしました", "だりする", "だりした", "*tari shimasu", "*tari shimashita", "*tari suru", "*tari shita", "*dari shimasu", "*dari shimashita", "*dari suru", "*dari shita"]]
+
+  [[lessons.candos]]
+  id = "c11_ever"
+  text = "I can say whether I've ever done something (〜たことがあります)"
+  example = "まえに、にほんにきたことがあります。"
+  example_reading = "Mae ni, Nihon ni kita koto ga arimasu."
+  match_all = [["ことがあり", "ことがある", "ことがない", "ことある", "ことない", "*koto ga ari", "*koto ga aru", "*koto ga nai", "*koto aru"]]
+
+[[lessons]]
+index = 12
+title = "Feeling Ill"
+title_jp = "びょうき"
+topic = "〜んです, 〜すぎる, 〜ほうがいい, 〜ので, 〜なければいけません"
+min_grammar = 3
+min_turns = 3
+
+  [[lessons.grammar]]
+  id = "g12_n_desu"
+  pattern = "〜んです"
+  meaning = "explaining a situation: it's that ~"
+  example_jp = "あたまがいたいんです。"
+  example_romaji = "Atama ga itai n desu."
+  example_en = "It's that my head hurts."
+
+  [[lessons.grammar]]
+  id = "g12_sugiru"
+  pattern = "〜すぎる"
+  meaning = "too much ~"
+  example_jp = "はたらきすぎました。"
+  example_romaji = "Hatarakisugimashita."
+  example_en = "I worked too much."
+
+  [[lessons.grammar]]
+  id = "g12_hou_ga_ii"
+  pattern = "〜たほうがいいです"
+  meaning = "you'd better ~"
+  example_jp = "やすんだほうがいいです。"
+  example_romaji = "Yasunda hou ga ii desu."
+  example_en = "You'd better rest."
+
+  [[lessons.grammar]]
+  id = "g12_node"
+  pattern = "〜ので"
+  meaning = "because (softer, polite)"
+  example_jp = "きおくがないので、こまっています。"
+  example_romaji = "Kioku ga nai node, komatte imasu."
+  example_en = "I'm in trouble because I have no memory."
+
+  [[lessons.grammar]]
+  id = "g12_nakereba"
+  pattern = "〜なければいけません"
+  meaning = "must ~"
+  example_jp = "かえらなければいけません。"
+  example_romaji = "Kaeranakereba ikemasen."
+  example_en = "I have to go back."
+
+  [[lessons.vocab]]
+  jp = "いたい"
+  romaji = "itai"
+  en = "it hurts"
+
+  [[lessons.vocab]]
+  jp = "きおく"
+  romaji = "kioku"
+  en = "memory"
+
+  [[lessons.candos]]
+  id = "c12_explain"
+  text = "I can explain my situation (〜んです)"
+  example = "くうこうでころんだんです。"
+  example_reading = "Kuukou de koronda n desu."
+  match_all = [["いんです", "るんです", "ったんです", "したんです", "いたんです", "きたんです", "みたんです", "んだんです", "えたんです", "べたんです", "だんです", "n desu", "*ain desu", "*run desu", "*ttan desu", "*shitan desu"]]
+
+  [[lessons.candos]]
+  id = "c12_too_much"
+  text = "I can say something is too much (〜すぎる)"
+  example = "はたらきすぎました。"
+  example_reading = "Hatarakisugimashita."
+  match_all = [["すぎ", "過ぎ", "*sugi"]]
+
+  [[lessons.candos]]
+  id = "c12_advice"
+  text = "I can give or ask for advice (〜ほうがいいです)"
+  example = "やすんだほうがいいですか。"
+  example_reading = "Yasunda hou ga ii desu ka."
+  match_all = [["ほうがいい", "方がいい", "*hou ga ii", "*hoo ga ii", "*ho ga ii"]]
+
+  [[lessons.candos]]
+  id = "c12_probably"
+  text = "I can say what will probably happen (〜でしょう)"
+  example = "またにほんにくるでしょう。"
+  example_reading = "Mata Nihon ni kuru deshou."
+  match_all = [["でしょう", "だろう", "*desho", "*darou"]]
+
+# ─────────────────────────────────────────────────────────────────────────────
+# The big arc, as the player's own thoughts. The current goal is the first
+# one not yet achieved.
+# ─────────────────────────────────────────────────────────────────────────────
+
+[[quests]]
+id = "escape"
+title = "I have to get out of this airport and into Tokyo."
+title_jp = "東京へ"
+flags_any = ["reached_tokyo"]
+
+[[quests]]
+id = "bed"
+title = "I need somewhere to sleep tonight."
+title_jp = "今夜の宿"
+flags_any = ["has_bed"]
+
+[[quests]]
+id = "work"
+title = "No money, no papers. I need a job."
+title_jp = "仕事さがし"
+flags_any = ["has_job"]
+
+[[quests]]
+id = "rent"
+title = "Rent's due. I have to pay Mr. Mori."
+title_jp = "家賃"
+flags_any = ["paid_rent"]
+
+[[quests]]
+id = "love"
+title = "Maybe I'm not so alone here after all…"
+title_jp = "恋"
+flags_any = ["love_aiko", "love_emily", "love_hiroshi"]
+
+[[quests]]
+id = "identity"
+title = "Who am I? I have to remember."
+title_jp = "わたしはだれ？"
+flags_any = ["remembered"]
+
+[[quests]]
+id = "home"
+title = "Where is home now?"
+title_jp = "ふるさと"
+flags_any = ["ending_home", "ending_stay"]
+
+# Things the world does on its own once their conditions are met.
+[[triggers]]
+flag = "bag_found"
+requires_flags = ["paid_rent"]
+min_lesson = 7
+narration = "A pink message slip has been pushed under your door. Two kanji you recognise from the kōban sign — 警察 — and a phone number. Police. Officer Sato. They found something."
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Places. The world is a map: each place has people, a situation, a goal and
+# exits. The player moves by saying where they want to go — the director sets
+# go_to when someone guides them there — or by picking an exit on the map.
+# Exits can wait on story flags or on curriculum progress (min_lesson).
+# Goals are the player's own thoughts, so they are in plain English.
+# ─────────────────────────────────────────────────────────────────────────────
+
+[[places]]
+id = "arrivals_hall"
+name = "Arrivals Hall"
+name_jp = "到着ロビー"
+aliases = ["ロビー", "とうちゃく", "arrivals", "terminal", "inside"]
+scene = "narita_arrivals"
+clock = "7:42 AM"
+act = 1
+cast = ["kenji"]
+situation = """
+The player slipped on a wet escalator, hit their head, and woke on the floor of the arrivals hall. Their backpack — passport, wallet, traveler's cheques — was stolen while they were out. They remember only their first name; everything else is fog. It is Saturday morning. Kenji, a security guard, is kneeling beside them. He can point to the police box just outside the arrivals exit, or to the information counter across the hall, but he is on duty and cannot leave his post.
+"""
+goal = "I need to tell him I'm okay — and that my bag is gone."
+success = """
+The player reassures Kenji (e.g. 大丈夫です) and gets across that their bag is gone, in any Japanese at all. Kenji then points towards the police box (こうばん) outside, or the information counter (あんないじょ). Set go_to only once the player clearly decides where to go.
+"""
+goal_flags = []
+on_enter_flags = []
+items_allowed = []
+max_yen_gain = 0
+max_yen_spend = 0
+reward_yen = 0
+reward_items = []
+recharge = 0
+
+candos = ["l0_okay", "l0_sorry", "l0_dont_understand"]
+
+  [[places.pack]]
+  jp = "だいじょうぶ"
+  romaji = "daijoubu"
+  en = "okay / all right"
+
+  [[places.pack]]
+  jp = "すみません"
+  romaji = "sumimasen"
+  en = "excuse me / sorry"
+
+  [[places.pack]]
+  jp = "かばん"
+  romaji = "kaban"
+  en = "bag"
+
+  [[places.pack]]
+  jp = "ない"
+  romaji = "nai"
+  en = "not there / gone"
+
+  [[places.pack]]
+  jp = "あたま"
+  romaji = "atama"
+  en = "head"
+
+  [[places.pack]]
+  jp = "こうばん"
+  romaji = "kouban"
+  en = "police box"
+
+  [[places.pack]]
+  jp = "あそこ"
+  romaji = "asoko"
+  en = "over there"
+
+  [[places.exits]]
+  to = "koban"
+  label = "The police box Kenji points to, just outside"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "info_counter"
+  label = "The information counter across the hall"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "narita_exterior"
+  label = "Out through the glass doors"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "narita_arrivals"
+  transition = "fade"
+  ambient = "dust"
+  en = "Narita International Airport. Terminal 1, arrivals. April 1998, 7:42 a.m."
+
+  [[places.intro]]
+  speaker = "narrator"
+  en = "Twelve hours of flight. Zero hours of sleep. Every sign is a puzzle of squares and curls; every announcement, a melody without words."
+
+  [[places.intro]]
+  speaker = "narrator"
+  en = "You don't speak a word of Japanese. Not one. The guidebook was in the backpack."
+
+  [[places.intro]]
+  speaker = "narrator"
+  camera = "pan_right"
+  en = "A man in a grey cap and a red jacket shoulders past you at the top of the escalator. He doesn't look back."
+
+  [[places.intro]]
+  speaker = "narrator"
+  en = "The escalator is very long, very shiny, and — you realise far too late — very wet."
+
+  [[places.intro]]
+  speaker = "narrator"
+  camera = "shake"
+  transition = "flash"
+  sfx = "thud"
+  en = "—!"
+
+  [[places.intro]]
+  speaker = "narrator"
+  transition = "blackout"
+  en = "…"
+
+  [[places.intro]]
+  speaker = "extra"
+  speaker_name = "???"
+  jp = "…大丈夫？"
+  romaji = "…daijoubu?"
+  en = "…are you okay?"
+
+  [[places.intro]]
+  speaker = "narrator"
+  transition = "wake"
+  camera = "tilt_blur"
+  en = "Light. Far too much light. A face swims into focus above you."
+
+  [[places.intro]]
+  speaker = "kenji"
+  expression = "worried"
+  action = "enter_right"
+  emote = "exclaim"
+  jp = "大丈夫ですか？！"
+  romaji = "Daijoubu desu ka?!"
+  en = "Are you alright?!"
+
+  [[places.intro]]
+  speaker = "narrator"
+  camera = "zoom_in"
+  en = "You pat your pockets. Wallet — gone. Traveler's cheques — gone. The backpack with your passport — gone."
+
+  [[places.intro]]
+  speaker = "narrator"
+  sfx = "bell"
+  en = "Your fingers close on something in your jacket: the electronic dictionary your aunt lent you. Cracked LCD. Two AA batteries, nearly flat. It looks up words — it can't translate sentences. Better make every press count."
+
+  [[places.intro]]
+  speaker = "kenji"
+  expression = "worried"
+  action = "lean_in"
+  emote = "sweat"
+  jp = "あたま…大丈夫ですか？"
+  romaji = "Atama… daijoubu desu ka?"
+  en = "Your head… is it okay?"
+
+
+  [[places.choices]]
+  jp = "はい、大丈夫です。"
+  romaji = "Hai, daijoubu desu."
+  en = "Yes, I'm okay."
+
+  [[places.choices]]
+  jp = "すみません…かばんがありません！"
+  romaji = "Sumimasen… kaban ga arimasen!"
+  en = "Sorry… my bag is gone!"
+
+  [[places.choices]]
+  jp = "わかりません…"
+  romaji = "Wakarimasen…"
+  en = "I don't understand…"
+
+
+[[places]]
+id = "info_counter"
+name = "Information Counter"
+name_jp = "案内所"
+aliases = ["あんないじょ", "案内所", "インフォメーション", "information", "info", "counter"]
+scene = "info_counter"
+clock = "8:00 AM"
+act = 1
+cast = []
+situation = """
+An airport information counter. Ms. Ono (speaker "extra", speaker_name "おのさん") is polite, precise, and knows only "sorry, English… little". She can phone the police box, draw arrows on a free terminal map, and point to the train station downstairs. She asks one simple question at a time.
+"""
+goal = "Someone here must know where I can get help."
+success = """
+The player asks where something is (〜はどこですか or similar) and Ms. Ono draws the way on a terminal map she gives them.
+"""
+goal_flags = []
+on_enter_flags = []
+items_allowed = ["terminal_map"]
+max_yen_gain = 0
+max_yen_spend = 0
+reward_yen = 0
+reward_items = ["terminal_map"]
+recharge = 0
+
+candos = ["l2_where", "l0_dont_understand"]
+
+  [[places.pack]]
+  jp = "どこ"
+  romaji = "doko"
+  en = "where"
+
+  [[places.pack]]
+  jp = "えき"
+  romaji = "eki"
+  en = "station"
+
+  [[places.pack]]
+  jp = "こうばん"
+  romaji = "kouban"
+  en = "police box"
+
+  [[places.pack]]
+  jp = "ちず"
+  romaji = "chizu"
+  en = "map"
+
+  [[places.pack]]
+  jp = "した"
+  romaji = "shita"
+  en = "downstairs / below"
+
+  [[places.exits]]
+  to = "koban"
+  label = "The police box marked on the map"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "narita_exterior"
+  label = "Outside to the bus bays"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "airport_station"
+  label = "Downstairs to the trains"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "arrivals_hall"
+  label = "Back to the arrivals hall"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "info_counter"
+  transition = "crossfade"
+  en = "A tidy counter, racks of brochures, and a terminal map the size of a wall. Behind the counter, a woman in a navy scarf straightens a stack of leaflets."
+
+  [[places.intro]]
+  speaker = "extra"
+  speaker_name = "おのさん"
+  jp = "いらっしゃいませ。…えいご、すこし…すみません。"
+  romaji = "Irasshaimase. …Eigo, sukoshi… sumimasen."
+  en = "Welcome. …English, a little… sorry."
+
+  [[places.intro]]
+  speaker = "extra"
+  speaker_name = "おのさん"
+  jp = "どうしましたか。"
+  romaji = "Dou shimashita ka."
+  en = "How can I help?"
+
+
+  [[places.choices]]
+  jp = "こうばんはどこですか。"
+  romaji = "Kouban wa doko desu ka."
+  en = "Where's the police box?"
+
+  [[places.choices]]
+  jp = "えきはどこですか。"
+  romaji = "Eki wa doko desu ka."
+  en = "Where's the station?"
+
+  [[places.choices]]
+  jp = "すみません、わかりません…"
+  romaji = "Sumimasen, wakarimasen…"
+  en = "Sorry, I don't understand…"
+
+
+[[places]]
+id = "koban"
+name = "The Kōban"
+name_jp = "交番"
+aliases = ["こうばん", "交番", "けいさつ", "警察", "police", "koban", "kōban"]
+scene = "koban"
+clock = "8:40 AM"
+act = 1
+cast = ["yumi"]
+situation = """
+Officer Yumi Sato runs the tiny police box. She speaks zero English and communicates with a laminated picture board (passport, wallet, bag, train, embassy, phone icons), quick sketches on a notepad, and the wall map. She treats a stolen passport as serious and is patient and kind about it. What really happens here, step by step, whenever the player asks or worries:
+- She takes the theft report: what was stolen (she points at icons), what the bag looked like, and asks for a contact — the player has none, so she writes the report number and the kōban's phone number on a card: "if we find it, we call — you call us".
+- She shows bags from the lost-property shelf asking これはあなたのですか — none are theirs.
+- Passport: she points at the embassy icon, says たいしかん slowly, writes 大使館 and draws Tokyo on the map. Today is Saturday — she points at a calendar and mimes "closed" (しまっています) until Monday (げつようび). That's WHY the player must get to Tokyo and survive the weekend.
+- Money: as Japanese police really can for stranded people, she lends ¥1,000 for the train to Tokyo, and points to the station downstairs.
+If the player asks why, what next, or about their passport, phone or luggage, she always answers with this information — never just "go to the station".
+"""
+goal = "Report my stolen bag and passport to Officer Sato, and get help to reach Tokyo."
+success = """
+The player explains what was stolen (or refuses a wrong bag with 〜じゃありません or いいえ). Yumi files the report, lends ¥1,000 for the train, and directs the player downstairs to the station (`airport_station`). Set `objective_complete: true` and `flags_set: ["reported_theft"]` as soon as Yumi files the report or lends the ¥1,000.
+"""
+goal_flags = ["reported_theft"]
+on_enter_flags = []
+items_allowed = ["theft_report"]
+max_yen_gain = 1000
+max_yen_spend = 0
+reward_yen = 1000
+reward_items = ["theft_report"]
+recharge = 20
+
+candos = ["l2_lost", "l2_not_mine"]
+
+  [[places.pack]]
+  jp = "パスポート"
+  romaji = "pasupooto"
+  en = "passport"
+
+  [[places.pack]]
+  jp = "さいふ"
+  romaji = "saifu"
+  en = "wallet"
+
+  [[places.pack]]
+  jp = "ぬすまれました"
+  romaji = "nusumaremashita"
+  en = "was stolen"
+
+  [[places.pack]]
+  jp = "これ"
+  romaji = "kore"
+  en = "this"
+
+  [[places.pack]]
+  jp = "わたしの"
+  romaji = "watashi no"
+  en = "mine"
+
+  [[places.pack]]
+  jp = "じゃありません"
+  romaji = "ja arimasen"
+  en = "is not"
+
+  [[places.pack]]
+  jp = "たいしかん"
+  romaji = "taishikan"
+  en = "embassy"
+
+  [[places.pack]]
+  jp = "げつようび"
+  romaji = "getsuyoubi"
+  en = "Monday"
+
+  [[places.exits]]
+  to = "airport_station"
+  label = "The station Officer Sato points to"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "narita_exterior"
+  label = "Outside to the bus bays"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "arrivals_hall"
+  label = "Back into the terminal"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "koban"
+  transition = "whip"
+  en = "The kōban is the size of a closet: one desk, one map, one red lamp — and one very upright police officer."
+
+  [[places.intro]]
+  speaker = "yumi"
+  expression = "neutral"
+  action = "enter_right"
+  jp = "こんにちは。どうしましたか。"
+  romaji = "Konnichiwa. Dou shimashita ka."
+  en = "Hello. What happened?"
+
+
+  [[places.choices]]
+  jp = "かばんをぬすまれました。"
+  romaji = "Kaban o nusumaremashita."
+  en = "My bag was stolen."
+
+  [[places.choices]]
+  jp = "パスポートがありません。"
+  romaji = "Pasupooto ga arimasen."
+  en = "My passport is gone."
+
+  [[places.choices]]
+  jp = "さいふもありません。"
+  romaji = "Saifu mo arimasen."
+  en = "My wallet's gone too."
+
+
+[[places]]
+id = "narita_exterior"
+name = "Outside Terminal 1"
+name_jp = "第1ターミナル前"
+aliases = ["そと", "外", "バス", "bus", "outside", "taxi"]
+scene = "narita_exterior"
+clock = "8:05 AM"
+act = 1
+cast = ["aiko"]
+situation = """
+Outside the terminal: bus bays, taxis, a red vending machine. Aiko, a university student just back from a trip, sits on her suitcase eating melon bread, waiting for her bus. She notices the dazed foreigner. She is shy about her English but brave with gestures, and mentions (plant it casually) that she works nights at a konbini in Ueno. She can point to the police box and the station.
+"""
+goal = "Maybe the girl on the suitcase can help me…"
+success = """
+The player tells Aiko their name (〜です) and answers at least one of her questions. She writes 上野 on their hand with a smile and points to the station or the police box.
+"""
+goal_flags = ["met_aiko"]
+on_enter_flags = []
+items_allowed = []
+max_yen_gain = 0
+max_yen_spend = 0
+reward_yen = 0
+reward_items = []
+recharge = 0
+
+candos = ["l1_name", "l1_from", "l1_ask"]
+
+  [[places.pack]]
+  jp = "なまえ"
+  romaji = "namae"
+  en = "name"
+
+  [[places.pack]]
+  jp = "わたし"
+  romaji = "watashi"
+  en = "I / me"
+
+  [[places.pack]]
+  jp = "〜じん"
+  romaji = "-jin"
+  en = "person from (a country)"
+
+  [[places.pack]]
+  jp = "がくせい"
+  romaji = "gakusei"
+  en = "student"
+
+  [[places.pack]]
+  jp = "うえの"
+  romaji = "Ueno"
+  en = "Ueno (in Tokyo)"
+
+  [[places.pack]]
+  jp = "バス"
+  romaji = "basu"
+  en = "bus"
+
+  [[places.exits]]
+  to = "koban"
+  label = "The police box by the taxi rank"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "airport_station"
+  label = "The station entrance Aiko points to"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "arrivals_hall"
+  label = "Back inside"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.intro]]
+  speaker = "narrator"
+  en = "Outside, the air smells like jet fuel and rain. Buses. Taxis. Signs. No kōban that you can see."
+
+  [[places.intro]]
+  speaker = "aiko"
+  expression = "surprised"
+  action = "enter_left"
+  emote = "question"
+  jp = "あの…すみません、大丈夫ですか？"
+  romaji = "Ano… sumimasen, daijoubu desu ka?"
+  en = "Um… excuse me, are you okay?"
+
+  [[places.intro]]
+  speaker = "aiko"
+  expression = "happy"
+  action = "hop"
+  jp = "わたしはあいこです！おなまえは？"
+  romaji = "Watashi wa Aiko desu! O-namae wa?"
+  en = "I'm Aiko! What's your name?"
+
+
+  [[places.choices]]
+  jp = "わたしは＿＿です。"
+  romaji = "Watashi wa ___ desu."
+  en = "I'm ___ ."
+
+  [[places.choices]]
+  jp = "こうばんはどこですか。"
+  romaji = "Kouban wa doko desu ka."
+  en = "Where's the police box?"
+
+  [[places.choices]]
+  jp = "がくせいですか。"
+  romaji = "Gakusei desu ka."
+  en = "Are you a student?"
+
+
+[[places]]
+id = "airport_station"
+name = "Narita Airport Station"
+name_jp = "成田空港駅"
+aliases = ["えき", "駅", "でんしゃ", "電車", "station", "train", "ticket"]
+scene = "station_concourse"
+clock = "10:15 AM"
+act = 1
+cast = ["hiroshi"]
+situation = """
+Ticket machines and a wall-sized fare map in kanji. Ueno costs ¥1,270. Hiroshi, a salaryman heading into the city, notices the player staring at the map. If the player has the police loan, he covers the difference when asked properly; with no money at all, he hesitates, then buys the whole ticket if the player explains sincerely. He writes numbers in his pocket diary to communicate.
+"""
+goal = "I need a ticket to Tokyo. How much is it — and how do I pay?"
+success = """
+The player asks a price or destination and says where they're going (〜にいきます / 〜まで). One way or another they end up holding a ticket, and Hiroshi offers to ride together.
+"""
+goal_flags = ["has_ticket", "met_hiroshi"]
+on_enter_flags = []
+items_allowed = ["train_ticket", "hiroshi_card"]
+max_yen_gain = 300
+max_yen_spend = 1300
+reward_yen = 0
+reward_items = ["train_ticket"]
+recharge = 0
+
+candos = ["l3_price", "l3_going", "l3_request"]
+
+  [[places.pack]]
+  jp = "きっぷ"
+  romaji = "kippu"
+  en = "ticket"
+
+  [[places.pack]]
+  jp = "いくら"
+  romaji = "ikura"
+  en = "how much"
+
+  [[places.pack]]
+  jp = "まで"
+  romaji = "made"
+  en = "as far as"
+
+  [[places.pack]]
+  jp = "たりません"
+  romaji = "tarimasen"
+  en = "not enough"
+
+  [[places.pack]]
+  jp = "でんしゃ"
+  romaji = "densha"
+  en = "train"
+
+  [[places.pack]]
+  jp = "いきます"
+  romaji = "ikimasu"
+  en = "go"
+
+  [[places.events]]
+  flag = "has_ticket"
+  when = "the player ends up holding a ticket to Ueno (bought, or paid for by Hiroshi)"
+
+  [[places.exits]]
+  to = "train_to_ueno"
+  label = "Through the gates to the Ueno train"
+  requires_flags = ["has_ticket"]
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "koban"
+  label = "Back up to the police box"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "narita_exterior"
+  label = "Back outside"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "station_concourse"
+  transition = "fade"
+  sfx = "footsteps"
+  ambient = "clear"
+  en = "Narita Airport Station. A fare map the size of a wall, in kanji. Ticket gates chiming like tiny bells."
+
+  [[places.intro]]
+  speaker = "narrator"
+  camera = "zoom_in"
+  en = "Ueno — ¥1,270. You look at the single crisp ¥1,000 note Officer Sato lent you."
+
+  [[places.intro]]
+  speaker = "hiroshi"
+  expression = "thinking"
+  action = "enter_right"
+  emote = "question"
+  jp = "あの…どちらまでですか。"
+  romaji = "Ano… dochira made desu ka."
+  en = "Um… where are you heading?"
+
+
+  [[places.choices]]
+  jp = "うえのまで、いくらですか。"
+  romaji = "Ueno made, ikura desu ka."
+  en = "How much is it to Ueno?"
+
+  [[places.choices]]
+  jp = "とうきょうにいきます。"
+  romaji = "Toukyou ni ikimasu."
+  en = "I'm going to Tokyo."
+
+  [[places.choices]]
+  jp = "すみません、おかねがたりません。"
+  romaji = "Sumimasen, okane ga tarimasen."
+  en = "Sorry, I don't have enough money."
+
+
+[[places]]
+id = "train_to_ueno"
+name = "Keisei Line to Ueno"
+name_jp = "京成線 上野行き"
+aliases = ["でんしゃ", "電車", "うえの", "上野", "train", "ueno"]
+scene = "train_interior"
+clock = "11:00 AM"
+act = 1
+cast = ["hiroshi"]
+situation = """
+Rice fields, then suburbs, slide past. Hiroshi, formal and kind, asks where the player will go tonight and what they'll do (ます verbs, に／へ, で). He gives them his business card before they arrive, in case they need help.
+"""
+goal = "Just get through the small talk until Tokyo."
+success = """
+The player tells Hiroshi at least one thing they will do or where they'll go, using a ます verb. He hands over his business card as the train pulls into Ueno.
+"""
+goal_flags = []
+on_enter_flags = []
+items_allowed = ["hiroshi_card"]
+max_yen_gain = 0
+max_yen_spend = 0
+reward_yen = 0
+reward_items = ["hiroshi_card"]
+recharge = 0
+
+candos = ["l3_going"]
+
+  [[places.pack]]
+  jp = "こんばん"
+  romaji = "konban"
+  en = "tonight"
+
+  [[places.pack]]
+  jp = "どこ"
+  romaji = "doko"
+  en = "where"
+
+  [[places.pack]]
+  jp = "いきます"
+  romaji = "ikimasu"
+  en = "go"
+
+  [[places.pack]]
+  jp = "めいし"
+  romaji = "meishi"
+  en = "business card"
+
+  [[places.pack]]
+  jp = "とうきょう"
+  romaji = "Toukyou"
+  en = "Tokyo"
+
+  [[places.exits]]
+  to = "ueno_street"
+  label = "Step off the train into Ueno"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "train_interior"
+  transition = "fade"
+  sfx = "train_doors"
+  en = "The doors hiss shut. The train glides out of the airport, and the rice fields begin: green, flat, flooded with spring water and sky."
+
+  [[places.intro]]
+  speaker = "hiroshi"
+  expression = "neutral"
+  action = "enter_right"
+  jp = "こんばん、どこにいきますか。"
+  romaji = "Konban, doko ni ikimasu ka."
+  en = "Where will you go tonight?"
+
+
+  [[places.choices]]
+  jp = "うえのにいきます。"
+  romaji = "Ueno ni ikimasu."
+  en = "I'm going to Ueno."
+
+  [[places.choices]]
+  jp = "わかりません…"
+  romaji = "Wakarimasen…"
+  en = "I don't know…"
+
+  [[places.choices]]
+  jp = "やまもとさんは、どこにいきますか。"
+  romaji = "Yamamoto-san wa, doko ni ikimasu ka."
+  en = "Where are you going, Mr. Yamamoto?"
+
+
+[[places]]
+id = "ueno_street"
+name = "Ueno — Night"
+name_jp = "上野の夜道"
+aliases = ["うえの", "上野", "ueno", "street"]
+scene = "ueno_street_night"
+clock = "9:15 PM"
+act = 2
+cast = []
+situation = """
+Ueno at night: neon, an elevated train rumbling overhead, izakaya lanterns. The player is exhausted and hungry. Passers-by (speaker "extra") are busy but kind if approached politely; one can point to the konbini or the park, or — if asked about somewhere to sleep — mention cheap guesthouses in Asakusa.
+"""
+goal = "I'm starving, and I need somewhere to sleep."
+success = """
+The player asks a passer-by something useful (where, how much) and gets pointed somewhere — the konbini, the park, or the guesthouses in Asakusa.
+"""
+goal_flags = []
+on_enter_flags = ["reached_tokyo"]
+items_allowed = []
+max_yen_gain = 0
+max_yen_spend = 0
+reward_yen = 0
+reward_items = []
+recharge = 0
+
+candos = ["l2_where"]
+
+  [[places.pack]]
+  jp = "ごはん"
+  romaji = "gohan"
+  en = "a meal / food"
+
+  [[places.pack]]
+  jp = "やすい"
+  romaji = "yasui"
+  en = "cheap"
+
+  [[places.pack]]
+  jp = "どこ"
+  romaji = "doko"
+  en = "where"
+
+  [[places.pack]]
+  jp = "ゲストハウス"
+  romaji = "gesutohausu"
+  en = "guesthouse"
+
+  [[places.pack]]
+  jp = "あさくさ"
+  romaji = "Asakusa"
+  en = "Asakusa (district)"
+
+  [[places.events]]
+  flag = "knows_hostel"
+  when = "someone tells the player where to find a cheap guesthouse in Asakusa"
+
+  [[places.exits]]
+  to = "konbini"
+  label = "The bright konbini on the corner"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "ueno_park"
+  label = "The dark park up the hill"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "hostel_lobby"
+  label = "A guesthouse in Asakusa"
+  requires_flags = ["knows_hostel"]
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "asakusa_street"
+  label = "The Asakusa streets"
+  requires_flags = ["has_bed"]
+  min_lesson = 0
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "ueno_street_night"
+  transition = "fade"
+  ambient = "night_bokeh"
+  en = "Ueno. The afternoon dissolved into wrong turns, closed doors and a bench you didn't mean to fall asleep on. Now it's 9:15 p.m."
+
+  [[places.intro]]
+  speaker = "narrator"
+  sfx = "whoosh"
+  en = "A train rumbles across the bridge overhead. Neon signs, red lanterns, the smell of grilled chicken. Your stomach growls loudly enough to turn a head."
+
+  [[places.intro]]
+  speaker = "extra"
+  speaker_name = "おばさん"
+  jp = "…だいじょうぶ？"
+  romaji = "…Daijoubu?"
+  en = "…You okay?"
+
+
+  [[places.choices]]
+  jp = "すみません、コンビニはどこですか。"
+  romaji = "Sumimasen, konbini wa doko desu ka."
+  en = "Excuse me, where's a convenience store?"
+
+  [[places.choices]]
+  jp = "やすいホテルはありますか。"
+  romaji = "Yasui hoteru wa arimasu ka."
+  en = "Is there a cheap hotel?"
+
+  [[places.choices]]
+  jp = "だいじょうぶです。ありがとうございます。"
+  romaji = "Daijoubu desu. Arigatou gozaimasu."
+  en = "I'm okay. Thank you."
+
+
+[[places]]
+id = "konbini"
+name = "Konbini"
+name_jp = "コンビニ"
+aliases = ["コンビニ", "konbini", "convenience", "store", "shop"]
+scene = "konbini_night"
+clock = "9:30 PM"
+act = 2
+cast = ["aiko"]
+situation = """
+A 24-hour convenience store — and the cashier is Aiko from the airport, overjoyed to see the player again. They have little or no money and no phone. She can explain where things are (location words), lend a telephone card for the green payphone, sell two AA batteries for their dictionary at staff discount, and write down the address of Hostel Sakura in Asakusa where her friend Emily works. She asks what happened today (past tense).
+"""
+goal = "Food, a phone, somewhere to sleep… maybe Aiko can help."
+success = """
+The player asks where something is or whether something exists (あります), tells Aiko something that happened today in the past tense, and leaves with her note for Hostel Sakura.
+"""
+goal_flags = ["aiko_friend", "knows_hostel"]
+on_enter_flags = []
+items_allowed = ["onigiri", "telephone_card", "batteries", "hostel_address"]
+max_yen_gain = 0
+max_yen_spend = 300
+reward_yen = 0
+reward_items = ["hostel_address", "batteries"]
+recharge = 100
+
+candos = ["l4_is_there", "l4_past", "l4_location"]
+
+  [[places.pack]]
+  jp = "おにぎり"
+  romaji = "onigiri"
+  en = "rice ball"
+
+  [[places.pack]]
+  jp = "でんわ"
+  romaji = "denwa"
+  en = "telephone"
+
+  [[places.pack]]
+  jp = "ありますか"
+  romaji = "arimasu ka"
+  en = "is there…?"
+
+  [[places.pack]]
+  jp = "となり"
+  romaji = "tonari"
+  en = "next to"
+
+  [[places.pack]]
+  jp = "いくら"
+  romaji = "ikura"
+  en = "how much"
+
+  [[places.pack]]
+  jp = "テレホンカード"
+  romaji = "terehon kaado"
+  en = "telephone card"
+
+  [[places.pack]]
+  jp = "でんち"
+  romaji = "denchi"
+  en = "batteries"
+
+  [[places.events]]
+  flag = "love_aiko"
+  when = "a genuinely warm, romantic moment with Aiko happens and she clearly returns the feeling (only after several visits and high trust)"
+
+  [[places.exits]]
+  to = "hostel_lobby"
+  label = "Aiko's note: Hostel Sakura, Asakusa"
+  requires_flags = ["knows_hostel"]
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "ueno_street"
+  label = "Back out to the street"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "ueno_park"
+  label = "The park up the hill"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.intro]]
+  speaker = "aiko"
+  expression = "surprised"
+  action = "enter_right"
+  emote = "exclaim"
+  jp = "いらっしゃいませ…えっ？！くうこうの…！"
+  romaji = "Irasshaimase… e?! Kuukou no…!"
+  en = "Welcome… huh?! You're the one from the airport…!"
+
+
+  [[places.choices]]
+  jp = "あいこさん！こんばんは！"
+  romaji = "Aiko-san! Konban wa!"
+  en = "Aiko! Good evening!"
+
+  [[places.choices]]
+  jp = "おにぎりはどこにありますか。"
+  romaji = "Onigiri wa doko ni arimasu ka."
+  en = "Where are the rice balls?"
+
+  [[places.choices]]
+  jp = "でんわはありますか。"
+  romaji = "Denwa wa arimasu ka."
+  en = "Is there a phone?"
+
+
+[[places]]
+id = "ueno_park"
+name = "Ueno Park — Night"
+name_jp = "上野公園（夜）"
+aliases = ["こうえん", "公園", "park", "bench"]
+scene = "ueno_park_night"
+clock = "11:40 PM"
+act = 2
+cast = []
+situation = """
+A quiet lamp-lit path, a pond, a lone bench. Gen-san (speaker "extra", speaker_name "げんさん"), an old street musician, is packing up his guitar. He shares warm canned tea, speaks slow, warm Japanese with no English, and tells the player that guesthouses in Asakusa are cheap — some let you work for your bed. The player can also simply sleep on the bench.
+"""
+goal = "It's late. Where do I spend the night?"
+success = """
+The player talks with Gen-san long enough to learn about the Asakusa guesthouses, or decides to sleep on the bench.
+"""
+goal_flags = ["knows_hostel"]
+on_enter_flags = []
+items_allowed = []
+max_yen_gain = 0
+max_yen_spend = 0
+reward_yen = 0
+reward_items = []
+recharge = 0
+
+candos = ["l4_past"]
+
+  [[places.pack]]
+  jp = "こうえん"
+  romaji = "kouen"
+  en = "park"
+
+  [[places.pack]]
+  jp = "おちゃ"
+  romaji = "ocha"
+  en = "tea"
+
+  [[places.pack]]
+  jp = "ベンチ"
+  romaji = "benchi"
+  en = "bench"
+
+  [[places.pack]]
+  jp = "ねます"
+  romaji = "nemasu"
+  en = "sleep"
+
+  [[places.pack]]
+  jp = "あさくさ"
+  romaji = "Asakusa"
+  en = "Asakusa (district)"
+
+  [[places.events]]
+  flag = "slept_in_park"
+  when = "the player decides to sleep on the bench until morning"
+
+  [[places.exits]]
+  to = "hostel_lobby"
+  label = "Walk to Asakusa, as Gen-san described"
+  requires_flags = ["knows_hostel"]
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "ueno_street"
+  label = "Back down to the street"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "ueno_park_night"
+  transition = "fade"
+  ambient = "night_bokeh"
+  sfx = "footsteps"
+  en = "Up the hill, the city noise falls away. Lamps, cherry trees, a dark pond. On a bench, an old man is folding a guitar into its case."
+
+  [[places.intro]]
+  speaker = "extra"
+  speaker_name = "げんさん"
+  jp = "…さむいね。おちゃ、のむ？"
+  romaji = "…Samui ne. Ocha, nomu?"
+  en = "…Cold, huh. Want some tea?"
+
+
+  [[places.choices]]
+  jp = "はい、ありがとうございます。"
+  romaji = "Hai, arigatou gozaimasu."
+  en = "Yes, thank you."
+
+  [[places.choices]]
+  jp = "きょう、にほんにきました。"
+  romaji = "Kyou, Nihon ni kimashita."
+  en = "I came to Japan today."
+
+  [[places.choices]]
+  jp = "やすいホテルはありますか。"
+  romaji = "Yasui hoteru wa arimasu ka."
+  en = "Is there a cheap hotel?"
+
+
+[[places]]
+id = "hostel_lobby"
+name = "Hostel Sakura — Lobby"
+name_jp = "ホステル桜 ロビー"
+aliases = ["ホステル", "ゲストハウス", "やど", "宿", "hostel", "guesthouse", "sakura"]
+scene = "hostel_lobby"
+clock = "10:40 PM"
+act = 2
+cast = ["emily"]
+situation = """
+Hostel Sakura: a narrow wooden lobby and a hand-written 「日本語だけ！」 sign. Emily, an Australian who works the desk, may whisper one English line, then sticks to the owner's Japanese-only rule. Mr. Mori (speaker "extra", speaker_name "もりさん"), the gruff old owner, listens from the back. With no money, the player must ask permission (〜てもいいですか) and offer to work for a bed. On later visits this is home base: Emily chats and teaches, and Mori collects rent (¥7,000 a week) once the player has a job.
+"""
+goal = "I have no money. Can I somehow get a bed here?"
+success = """
+The player asks permission to stay (〜てもいいですか or a て-form request) and offers to help in exchange. Mr. Mori grumbles yes and Emily hands over a key.
+"""
+goal_flags = ["has_bed"]
+on_enter_flags = []
+items_allowed = ["hostel_key"]
+max_yen_gain = 0
+max_yen_spend = 7000
+reward_yen = 0
+reward_items = ["hostel_key"]
+recharge = 100
+
+candos = ["l4_is_there"]
+
+  [[places.pack]]
+  jp = "とまってもいいですか"
+  romaji = "tomatte mo ii desu ka"
+  en = "may I stay?"
+
+  [[places.pack]]
+  jp = "おかね"
+  romaji = "okane"
+  en = "money"
+
+  [[places.pack]]
+  jp = "ありません"
+  romaji = "arimasen"
+  en = "don't have / there isn't"
+
+  [[places.pack]]
+  jp = "そうじ"
+  romaji = "souji"
+  en = "cleaning"
+
+  [[places.pack]]
+  jp = "てつだいます"
+  romaji = "tetsudaimasu"
+  en = "I'll help"
+
+  [[places.pack]]
+  jp = "へや"
+  romaji = "heya"
+  en = "room"
+
+  [[places.events]]
+  flag = "paid_rent"
+  when = "the player pays Mr. Mori the week's rent"
+
+  [[places.events]]
+  flag = "love_emily"
+  when = "a genuinely romantic moment with Emily happens and she clearly returns the feeling (only after several visits and high trust)"
+
+  [[places.exits]]
+  to = "hostel_room"
+  label = "Up to your bunk"
+  requires_flags = ["has_bed"]
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "asakusa_street"
+  label = "Out into Asakusa"
+  requires_flags = ["has_bed"]
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "mori_room"
+  label = "Mr. Mori's office in the back"
+  requires_flags = ["has_job"]
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "ueno_street"
+  label = "Back towards Ueno"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "hostel_lobby"
+  transition = "fade"
+  ambient = "night_bokeh"
+  en = "Asakusa. A narrow wooden door, a paper lantern, and a hand-written sign: 「日本語だけ！」"
+
+  [[places.intro]]
+  speaker = "emily"
+  expression = "happy"
+  action = "enter_left"
+  emote = "sparkle"
+  jp = "あ、あいこちゃんのともだち？こんばんは！"
+  romaji = "A, Aiko-chan no tomodachi? Konban wa!"
+  en = "Oh, you're Aiko's friend? Good evening!"
+
+  [[places.intro]]
+  speaker = "emily"
+  expression = "thinking"
+  action = "lean_in"
+  en = "(whispering) Heads up, mate — the owner's listening. Japanese only in here. You can do it."
+
+
+  [[places.choices]]
+  jp = "こんばんは。おかねがありません…"
+  romaji = "Konban wa. Okane ga arimasen…"
+  en = "Good evening. I have no money…"
+
+  [[places.choices]]
+  jp = "ここにとまってもいいですか。"
+  romaji = "Koko ni tomatte mo ii desu ka."
+  en = "May I stay here?"
+
+  [[places.choices]]
+  jp = "そうじをてつだいます！"
+  romaji = "Souji o tetsudaimasu!"
+  en = "I'll help with cleaning!"
+
+
+[[places]]
+id = "hostel_room"
+name = "Dorm Room"
+name_jp = "ドミトリー"
+aliases = ["へや", "部屋", "ベッド", "bed", "room", "bunk", "sleep"]
+scene = "hostel_room"
+clock = "11:30 PM"
+act = 2
+cast = []
+situation = """
+A six-bed dorm upstairs at Hostel Sakura: bunks with curtains, paper lanterns, a window where Tokyo Tower glows orange in the distance. Bunk 3 is the player's. The other beds hold sleeping backpackers; one in the next bunk (speaker "extra", speaker_name "となりのひと", a sleepy traveller who speaks only a little slow Japanese and no English) mumbles a reply if spoken to, then goes back to sleep.
+First visit: the player is alone with their thoughts after the longest day of their life. Whatever they say — to the bunkmate, to the room, to themselves — the narrator then gives a dream fragment: an old letter in careful Japanese handwriting, a grandfather's voice saying a name, an address in Asakusa they can't quite read, a black-and-white photo of two laughing young men. They wake at dawn with one word in their head: もり (Mori). They do NOT yet connect it to the hostel owner; don't explain it.
+Later visits: morning or late night in the dorm. A quiet place to describe the room and the view (い／な adjectives: しずか, きれい, せまい, あたたかい), to say how the day went (〜でした／〜ました), and to chat with whoever is in the next bunk about what they like. Keep it gentle and short.
+"""
+goal = "A real bed. Sleep — and maybe something will come back to me."
+success = """
+The player says anything at all, ideally describing the room or the view with an adjective (きれい, しずか, あたたかい…) or saying how the day was (たいへんでした). Then the dream fragment plays and they wake at dawn remembering the word もり. Set memory_letter only then.
+"""
+goal_flags = ["memory_letter"]
+on_enter_flags = []
+items_allowed = []
+max_yen_gain = 0
+max_yen_spend = 0
+reward_yen = 0
+reward_items = []
+recharge = 0
+
+candos = ["c5_describe", "l4_past"]
+
+  [[places.pack]]
+  jp = "おやすみなさい"
+  romaji = "oyasuminasai"
+  en = "good night"
+
+  [[places.pack]]
+  jp = "ねます"
+  romaji = "nemasu"
+  en = "sleep / go to bed"
+
+  [[places.pack]]
+  jp = "まど"
+  romaji = "mado"
+  en = "window"
+
+  [[places.pack]]
+  jp = "きれい"
+  romaji = "kirei"
+  en = "pretty / clean"
+
+  [[places.pack]]
+  jp = "しずか"
+  romaji = "shizuka"
+  en = "quiet"
+
+  [[places.pack]]
+  jp = "あたたかい"
+  romaji = "atatakai"
+  en = "warm"
+
+  [[places.pack]]
+  jp = "ゆめ"
+  romaji = "yume"
+  en = "dream"
+
+  [[places.pack]]
+  jp = "てがみ"
+  romaji = "tegami"
+  en = "letter"
+
+  [[places.exits]]
+  to = "hostel_lobby"
+  label = "Down to the lobby"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "asakusa_street"
+  label = "Out into the morning"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "hostel_room"
+  transition = "fade"
+  ambient = "night_bokeh"
+  sfx = "footsteps"
+  en = "Bunk 3. A thin futon, a cotton curtain, a paper lantern. Somewhere in the dark, someone is snoring very politely."
+
+  [[places.intro]]
+  speaker = "narrator"
+  camera = "zoom_in"
+  en = "Far away through the window, Tokyo Tower glows orange. This morning you were lying on the floor of an airport."
+
+  [[places.intro]]
+  speaker = "extra"
+  speaker_name = "となりのひと"
+  jp = "…おやすみなさい。"
+  romaji = "…Oyasuminasai."
+  en = "…Good night."
+
+  [[places.intro]]
+  speaker = "narrator"
+  en = "A sleepy voice from the next bunk, then silence. Your eyelids are very, very heavy."
+
+
+  [[places.choices]]
+  jp = "おやすみなさい。"
+  romaji = "Oyasuminasai."
+  en = "Good night."
+
+  [[places.choices]]
+  jp = "このへやはしずかですね。"
+  romaji = "Kono heya wa shizuka desu ne."
+  en = "This room is quiet, isn't it."
+
+  [[places.choices]]
+  jp = "きょうはたいへんでした…"
+  romaji = "Kyou wa taihen deshita…"
+  en = "Today was rough…"
+
+
+[[places]]
+id = "asakusa_street"
+name = "Asakusa — Shopping Street"
+name_jp = "浅草 仲見世"
+aliases = ["あさくさ", "浅草", "asakusa", "nakamise", "なかみせ"]
+scene = "asakusa_street"
+clock = "10:00 AM"
+act = 2
+cast = ["aiko", "emily"]
+situation = """
+Asakusa by day: the great red lantern of the temple gate, the Nakamise shopping street behind it, rickshaws, rice-cracker stalls, noren curtains, and a green payphone that takes telephone cards. Shopkeepers (speaker "extra") call out いらっしゃいませ and are friendly to anyone who tries.
+Aiko (on her way to university — she works nights) or Emily (running errands for the hostel) may be out and about: at most one of them at a time, or nobody.
+The player has no money. In the window of Izakaya Tanuki down a side street hangs a hand-written sign: アルバイトぼしゅう (part-timer wanted). The player can't read it; whoever they talk to reads it aloud, mimes carrying plates, and points the way. Posters on a lamppost advertise a summer festival by the Sumida River and a kabuki programme in Ginza — plant them, they open up later.
+This is the hub of the player's new life: perfect for small talk with adjectives (きれい, にぎやか, ふるい), saying what they like (〜がすきです), asking what something is like (どうですか), and suggesting things to do together (〜ましょう). Once the player has a job, mention Kissaten Lamp, the little coffee shop where Aiko likes to sit on rainy days. If the police have called (bag_found), the green payphone is how the message reaches them.
+"""
+goal = "I need work. And maybe… a life here."
+success = """
+The player chats about the street or something they like, then notices or asks about the help-wanted sign, and someone reads it for them and points to Izakaya Tanuki (set job_lead). Later visits are free conversation, planning and practice.
+"""
+goal_flags = ["job_lead"]
+on_enter_flags = []
+items_allowed = []
+max_yen_gain = 0
+max_yen_spend = 0
+reward_yen = 0
+reward_items = []
+recharge = 0
+
+candos = ["c5_describe", "c5_like", "c5_lets", "c5_ask_opinion"]
+
+  [[places.pack]]
+  jp = "アルバイト"
+  romaji = "arubaito"
+  en = "part-time job"
+
+  [[places.pack]]
+  jp = "ぼしゅう"
+  romaji = "boshuu"
+  en = "wanted (on a sign)"
+
+  [[places.pack]]
+  jp = "しごと"
+  romaji = "shigoto"
+  en = "work / job"
+
+  [[places.pack]]
+  jp = "まち"
+  romaji = "machi"
+  en = "town / streets"
+
+  [[places.pack]]
+  jp = "おてら"
+  romaji = "otera"
+  en = "temple"
+
+  [[places.pack]]
+  jp = "にぎやか"
+  romaji = "nigiyaka"
+  en = "lively"
+
+  [[places.pack]]
+  jp = "すき"
+  romaji = "suki"
+  en = "like"
+
+  [[places.pack]]
+  jp = "いっしょに"
+  romaji = "issho ni"
+  en = "together"
+
+  [[places.events]]
+  flag = "job_lead"
+  when = "someone points the player to the help-wanted sign at Izakaya Tanuki"
+
+  [[places.exits]]
+  to = "izakaya"
+  label = "Izakaya Tanuki (help wanted)"
+  requires_flags = ["job_lead"]
+  min_lesson = 6
+
+  [[places.exits]]
+  to = "hostel_lobby"
+  label = "Back to Hostel Sakura"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "cafe"
+  label = "Kissaten Lamp, the little coffee shop"
+  requires_flags = ["has_job"]
+  min_lesson = 7
+
+  [[places.exits]]
+  to = "matsuri"
+  label = "The summer festival by the river"
+  requires_flags = ["has_job"]
+  min_lesson = 8
+
+  [[places.exits]]
+  to = "kabuki_theatre"
+  label = "The kabuki theatre"
+  requires_flags = ["has_job"]
+  min_lesson = 9
+
+  [[places.exits]]
+  to = "police_station"
+  label = "Narita Police Station — they called"
+  requires_flags = ["bag_found"]
+  min_lesson = 7
+
+  [[places.exits]]
+  to = "clinic"
+  label = "Ishida Clinic"
+  requires_flags = ["got_backpack"]
+  min_lesson = 11
+
+  [[places.exits]]
+  to = "ueno_street"
+  label = "The train back to Ueno"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "asakusa_street"
+  transition = "fade"
+  ambient = "clear"
+  sfx = "footsteps"
+  en = "Morning in Asakusa. A giant red lantern hangs in the temple gate; behind it, the street is a tunnel of tiny shops."
+
+  [[places.intro]]
+  speaker = "narrator"
+  en = "Rice crackers sizzling on grills. A rickshaw driver stretching his calves. A green payphone. And you, with exactly zero yen."
+
+  [[places.intro]]
+  speaker = "emily"
+  expression = "happy"
+  action = "enter_left"
+  emote = "music"
+  jp = "おはよう！あさくさは、どう？"
+  romaji = "Ohayou! Asakusa wa, dou?"
+  en = "Morning! So — how do you like Asakusa?"
+
+  [[places.intro]]
+  speaker = "narrator"
+  camera = "pan_right"
+  en = "Down a side street, a paper sign flaps in the window of a little izakaya: アルバイトぼしゅう. You can't read a word of it."
+
+
+  [[places.choices]]
+  jp = "きれいなまちですね！"
+  romaji = "Kirei na machi desu ne!"
+  en = "What a pretty town!"
+
+  [[places.choices]]
+  jp = "あのかみはなんですか。"
+  romaji = "Ano kami wa nan desu ka."
+  en = "What's that paper over there?"
+
+  [[places.choices]]
+  jp = "しごとがありません…"
+  romaji = "Shigoto ga arimasen…"
+  en = "I don't have a job…"
+
+
+[[places]]
+id = "izakaya"
+name = "Izakaya Tanuki"
+name_jp = "居酒屋たぬき"
+aliases = ["いざかや", "居酒屋", "たぬき", "izakaya", "tanuki"]
+scene = "izakaya"
+clock = "6:00 PM"
+act = 2
+cast = ["hiroshi"]
+situation = """
+A tiny izakaya with eight stools, a ceramic raccoon by the door and handwritten menus on the wall. Taishō (speaker "extra", speaker_name "たいしょう"), the owner-cook, is loud, warm and impatient; he speaks fast Osaka-flavoured Japanese but slows right down, with big gestures, for the player. He'll hire anyone who can follow instructions and ask when they don't understand.
+Hiroshi, the salaryman from the train, is a regular who drinks a beer here after work. He's astonished and pleased to see the player, quietly vouches for them, and helps by repeating Taishō's words more slowly.
+The interview is really a test shift: Taishō gives requests (〜てください: てをあらってください, これをはこんでください) and rules (〜てはいけません: おきゃくさんのビールをのんではいけません, the tatami seats — くつではいってはいけません). The player should ask permission (ここではたらいてもいいですか, 〜てもいいですか), ask him to repeat or slow down (ゆっくりはなしてください), and say what they'll do in order (〜てから). Once hired, later visits are shifts: taking orders (ビール, やきとり, えだまめ), carrying dishes, being scolded and praised. A full shift pays ¥4,000 (at most two per visit).
+"""
+goal = "If I can just get through this interview, I'll have a job."
+success = """
+The player asks permission or makes a request with the て-form, shows they understood at least one rule (repeating it, or obeying it on screen), and gets through a few minutes of the test shift. Taishō laughs, ties an apron on them and says they start properly tomorrow (set has_job). On later visits, finishing a shift earns ¥4,000 in wages.
+"""
+goal_flags = ["has_job"]
+on_enter_flags = []
+items_allowed = ["apron"]
+max_yen_gain = 8000
+max_yen_spend = 0
+reward_yen = 0
+reward_items = ["apron"]
+recharge = 0
+
+candos = ["c6_please_do", "c6_may_i", "c6_rule", "c6_then", "l3_request"]
+
+  [[places.pack]]
+  jp = "はたらきます"
+  romaji = "hatarakimasu"
+  en = "work"
+
+  [[places.pack]]
+  jp = "ちゅうもん"
+  romaji = "chuumon"
+  en = "an order (food)"
+
+  [[places.pack]]
+  jp = "おさら"
+  romaji = "osara"
+  en = "plate / dish"
+
+  [[places.pack]]
+  jp = "はこんでください"
+  romaji = "hakonde kudasai"
+  en = "please carry (it)"
+
+  [[places.pack]]
+  jp = "てをあらって"
+  romaji = "te o aratte"
+  en = "wash your hands (and…)"
+
+  [[places.pack]]
+  jp = "てはいけません"
+  romaji = "te wa ikemasen"
+  en = "you mustn't ~"
+
+  [[places.pack]]
+  jp = "ゆっくり"
+  romaji = "yukkuri"
+  en = "slowly"
+
+  [[places.events]]
+  flag = "love_hiroshi"
+  when = "a genuinely romantic moment with Hiroshi happens and he clearly returns the feeling (only after several visits and high trust)"
+
+  [[places.exits]]
+  to = "asakusa_street"
+  label = "Back out to Asakusa"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "hostel_lobby"
+  label = "Home to the hostel"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "izakaya"
+  transition = "fade"
+  ambient = "night_bokeh"
+  sfx = "door_chime"
+  en = "Izakaya Tanuki. Eight stools, a ceramic raccoon by the door, and a wall of handwritten menus you can't read."
+
+  [[places.intro]]
+  speaker = "extra"
+  speaker_name = "たいしょう"
+  jp = "いらっしゃい！…ん？アルバイト？"
+  romaji = "Irasshai! …N? Arubaito?"
+  en = "Welcome! …Hm? Here for the job?"
+
+  [[places.intro]]
+  speaker = "narrator"
+  en = "A big man in a headband taps the sign in the window, then points at you, eyebrows up. At the end of the counter, a pair of black-framed glasses turns around."
+
+  [[places.intro]]
+  speaker = "hiroshi"
+  expression = "surprised"
+  action = "enter_right"
+  emote = "exclaim"
+  jp = "あ…！でんしゃの…！"
+  romaji = "A…! Densha no…!"
+  en = "Ah…! From the train…!"
+
+  [[places.intro]]
+  speaker = "extra"
+  speaker_name = "たいしょう"
+  jp = "よし。じゃあ、まず、てをあらってください。"
+  romaji = "Yoshi. Jaa, mazu, te o aratte kudasai."
+  en = "Right. Then first — wash your hands, please."
+
+
+  [[places.choices]]
+  jp = "ここではたらいてもいいですか。"
+  romaji = "Koko de hataraite mo ii desu ka."
+  en = "May I work here?"
+
+  [[places.choices]]
+  jp = "すみません、ゆっくりはなしてください。"
+  romaji = "Sumimasen, yukkuri hanashite kudasai."
+  en = "Sorry, please speak slowly."
+
+  [[places.choices]]
+  jp = "はい！てをあらってから、てつだいます！"
+  romaji = "Hai! Te o aratte kara, tetsudaimasu!"
+  en = "Yes! I'll wash my hands, then help!"
+
+
+[[places]]
+id = "mori_room"
+name = "Mr. Mori's Office"
+name_jp = "森さんの部屋"
+aliases = ["もりさん", "森", "mori", "office"]
+scene = "mori_room"
+clock = "4:00 PM"
+act = 3
+cast = []
+situation = """
+Mr. Mori's tatami office behind the hostel lobby: a low table, a black rotary phone, green tea, and walls covered in old black-and-white photos. Mori (speaker "extra", speaker_name "もりさん"), the owner, is seventy-something, gruff and few-worded, secretly soft. He speaks slow, plain Japanese and no English. Rent is ¥7,000 a week; he writes the amount in a notebook and taps it.
+When the player shows interest in the photos he describes the people in them — this is a describing-people scene (〜をきています, めがねをかけています, せがたかい, わらっています, family words). His late wife in a kimono; his younger self with a moustache; and one photo of two young men laughing in front of Tokyo Tower, dated 1965 in pen. The other man was a young foreigner, lost in Tokyo, who stayed at this very house, tall, glasses, always laughing; he went home, wrote letters for years, then stopped. The player finds him oddly familiar (set memory_photo when it sparks something).
+If the player has the old letter AND remembers who they are (remembered), the truth comes out: the letter is addressed to Mori, from the player's late grandfather — his best friend in that photo (set mori_revealed). Never reveal this before both conditions hold. After the reveal, Mori is quiet, then laughs exactly like the man in the photo, and says that whatever the player decides, this house is theirs to come back to.
+"""
+goal = "Pay the rent. And who are the people in those photos?"
+success = """
+The player pays the week's rent (paid_rent) and talks with Mori about at least one person in his photos — what they're wearing, what they look like, who they are to him — which sparks a memory (memory_photo).
+"""
+goal_flags = ["paid_rent", "memory_photo"]
+on_enter_flags = []
+items_allowed = ["photo"]
+max_yen_gain = 0
+max_yen_spend = 7000
+reward_yen = 0
+reward_items = []
+recharge = 0
+
+candos = ["c7_wearing", "c7_looks", "c7_doing", "c7_family"]
+
+  [[places.pack]]
+  jp = "やちん"
+  romaji = "yachin"
+  en = "rent"
+
+  [[places.pack]]
+  jp = "しゃしん"
+  romaji = "shashin"
+  en = "photo"
+
+  [[places.pack]]
+  jp = "ともだち"
+  romaji = "tomodachi"
+  en = "friend"
+
+  [[places.pack]]
+  jp = "むかし"
+  romaji = "mukashi"
+  en = "long ago"
+
+  [[places.pack]]
+  jp = "わかい"
+  romaji = "wakai"
+  en = "young"
+
+  [[places.pack]]
+  jp = "わらっています"
+  romaji = "waratte imasu"
+  en = "is laughing"
+
+  [[places.pack]]
+  jp = "めがねをかけています"
+  romaji = "megane o kakete imasu"
+  en = "is wearing glasses"
+
+  [[places.pack]]
+  jp = "おじいさん"
+  romaji = "ojiisan"
+  en = "grandfather / old man"
+
+  [[places.events]]
+  flag = "mori_revealed"
+  when = "the player has the old letter and remembers their past, shows Mori the letter, and Mori realises who their grandfather was"
+
+  [[places.exits]]
+  to = "hostel_lobby"
+  label = "Back to the lobby"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "narita_departures"
+  label = "The airport — time to decide"
+  requires_flags = ["remembered", "mori_revealed"]
+  min_lesson = 12
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "mori_room"
+  transition = "fade"
+  sfx = "footsteps"
+  en = "Behind the lobby, a sliding door. Tatami, a low table, a black rotary phone — and walls crowded with old black-and-white photographs."
+
+  [[places.intro]]
+  speaker = "extra"
+  speaker_name = "もりさん"
+  jp = "…すわってください。"
+  romaji = "…Suwatte kudasai."
+  en = "…Sit, please."
+
+  [[places.intro]]
+  speaker = "narrator"
+  en = "Mr. Mori pours two cups of green tea without asking, then taps a notebook with a column of numbers. Rent."
+
+  [[places.intro]]
+  speaker = "narrator"
+  camera = "zoom_in"
+  en = "Your eyes drift to one photo: two young men laughing in front of Tokyo Tower. In pen, in the corner: 1965. One of them looks… strangely familiar."
+
+  [[places.intro]]
+  speaker = "extra"
+  speaker_name = "もりさん"
+  jp = "それは、むかしのしゃしんです。"
+  romaji = "Sore wa, mukashi no shashin desu."
+  en = "That's an old photo."
+
+
+  [[places.choices]]
+  jp = "やちんです。どうぞ。"
+  romaji = "Yachin desu. Douzo."
+  en = "Here's the rent."
+
+  [[places.choices]]
+  jp = "このひとはだれですか。"
+  romaji = "Kono hito wa dare desu ka."
+  en = "Who is this person?"
+
+  [[places.choices]]
+  jp = "このひとはめがねをかけていますね。"
+  romaji = "Kono hito wa megane o kakete imasu ne."
+  en = "This man is wearing glasses, isn't he."
+
+
+[[places]]
+id = "cafe"
+name = "Kissaten Lamp"
+name_jp = "喫茶ランプ"
+aliases = ["きっさてん", "喫茶", "喫茶店", "カフェ", "ランプ", "cafe", "coffee", "kissaten"]
+scene = "cafe"
+clock = "3:00 PM"
+act = 3
+cast = ["aiko"]
+situation = """
+A retro kissaten on a rainy afternoon: wooden booths, stained-glass lamps, a siphon coffee maker bubbling, city-pop on the radio, an old man reading a newspaper, a couple sharing a parfait. The master (speaker "extra", speaker_name "マスター") takes orders silently with a nod. Aiko is here on her day off, relaxed and curious, and wants to get to know the player properly.
+Good topics, in this order of naturalness: what people around them are doing (〜ています: the man is reading, it's raining), family — Aiko talks about hers (parents run a small rice shop in Saitama, a younger brother obsessed with baseball) and asks about the player's, who can't remember theirs (handle that tenderly; a fragment like "a grandfather?" may surface), what they like and like doing (〜がすき, 〜のがすき), and opinions (〜と思います). Aiko confesses she's saving to go back to Melbourne one day.
+She pays for both coffees no matter what the player says, unless the player insists sweetly (then they can pay ¥800 together).
+"""
+goal = "A rainy afternoon with Aiko. Don't mess this up."
+success = """
+The player talks about family or what someone is doing, shares at least one thing they like (or like doing) or an opinion, and the two of them clearly grow closer. If trust is already high and the moment is genuinely romantic, love_aiko may be set.
+"""
+goal_flags = []
+on_enter_flags = []
+items_allowed = []
+max_yen_gain = 0
+max_yen_spend = 800
+reward_yen = 0
+reward_items = []
+recharge = 30
+
+candos = ["c7_family", "c7_doing", "c5_like", "c8_think", "c8_like_doing"]
+
+  [[places.pack]]
+  jp = "コーヒー"
+  romaji = "koohii"
+  en = "coffee"
+
+  [[places.pack]]
+  jp = "こうちゃ"
+  romaji = "koucha"
+  en = "black tea"
+
+  [[places.pack]]
+  jp = "あめ"
+  romaji = "ame"
+  en = "rain"
+
+  [[places.pack]]
+  jp = "かぞく"
+  romaji = "kazoku"
+  en = "family"
+
+  [[places.pack]]
+  jp = "しゅみ"
+  romaji = "shumi"
+  en = "hobby"
+
+  [[places.pack]]
+  jp = "のがすき"
+  romaji = "no ga suki"
+  en = "like doing ~"
+
+  [[places.pack]]
+  jp = "とおもいます"
+  romaji = "to omoimasu"
+  en = "I think (that) ~"
+
+  [[places.events]]
+  flag = "love_aiko"
+  when = "a genuinely romantic moment with Aiko happens and she clearly returns the feeling"
+
+  [[places.exits]]
+  to = "asakusa_street"
+  label = "Back out into the rain"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "cafe"
+  transition = "fade"
+  ambient = "rain"
+  sfx = "door_chime"
+  en = "Kissaten Lamp. Rain streaks the window, stained-glass lamps glow amber, and a siphon coffee maker bubbles like a science experiment."
+
+  [[places.intro]]
+  speaker = "narrator"
+  sfx = "radio"
+  en = "A city-pop song crackles from a radio behind the counter. In a corner booth, someone is waving both arms at you."
+
+  [[places.intro]]
+  speaker = "aiko"
+  expression = "happy"
+  action = "enter_left"
+  emote = "sparkle"
+  jp = "こっち、こっち！"
+  romaji = "Kocchi, kocchi!"
+  en = "Over here, over here!"
+
+  [[places.intro]]
+  speaker = "aiko"
+  expression = "happy"
+  action = "lean_in"
+  jp = "ここのコーヒー、すごくおいしいですよ。なにをのみますか？"
+  romaji = "Koko no koohii, sugoku oishii desu yo. Nani o nomimasu ka?"
+  en = "The coffee here is really good. What will you have?"
+
+
+  [[places.choices]]
+  jp = "コーヒーをおねがいします。"
+  romaji = "Koohii o onegaishimasu."
+  en = "A coffee, please."
+
+  [[places.choices]]
+  jp = "あめがふっていますね。"
+  romaji = "Ame ga futte imasu ne."
+  en = "It's raining, isn't it."
+
+  [[places.choices]]
+  jp = "このみせ、すてきだと思います。"
+  romaji = "Kono mise, suteki da to omoimasu."
+  en = "I think this place is lovely."
+
+
+[[places]]
+id = "matsuri"
+name = "Summer Festival"
+name_jp = "夏祭り"
+aliases = ["まつり", "祭", "祭り", "おまつり", "festival", "matsuri"]
+scene = "matsuri"
+clock = "7:30 PM"
+act = 3
+cast = ["emily", "aiko"]
+situation = """
+A summer festival on the bank of the Sumida River: rows of lantern-lit stalls (takoyaki, yakisoba, shaved ice, goldfish scooping), taiko drums, families in yukata, fireworks starting at eight. Emily and Aiko came together — Aiko in a borrowed yukata, Emily in hers with sneakers — and drag the player along. Among friends everyone slips into casual short forms (たべる？いく？), and the player is encouraged to try them too.
+Natural moments: choosing food and saying which is better (〜と思う／〜と思います), Aiko failing spectacularly at goldfish scooping and begging them not to laugh (わらわないで！ — 〜ないでください), Emily passing on what Mr. Mori or Taishō said (〜と言っていました: "Mori-san said rent's on Friday"), and what everyone likes doing (〜のがすき). Plans for later (〜ましょう) as the fireworks begin.
+At the fireworks there's a quiet moment with whichever of the two the player is closer to.
+"""
+goal = "Fireworks, festival food, and two friends. Enjoy it."
+success = """
+The player gives an opinion or passes on what someone said, uses at least one casual or ないで phrase with the girls, and shares a real moment at the fireworks. If trust is high and the moment is genuinely romantic, love_emily or love_aiko may be set (never both).
+"""
+goal_flags = []
+on_enter_flags = []
+items_allowed = []
+max_yen_gain = 0
+max_yen_spend = 1500
+reward_yen = 0
+reward_items = []
+recharge = 30
+
+candos = ["c8_think", "c8_said", "c8_dont", "c8_like_doing", "c5_lets"]
+
+  [[places.pack]]
+  jp = "ゆかた"
+  romaji = "yukata"
+  en = "summer kimono"
+
+  [[places.pack]]
+  jp = "はなび"
+  romaji = "hanabi"
+  en = "fireworks"
+
+  [[places.pack]]
+  jp = "やたい"
+  romaji = "yatai"
+  en = "food stall"
+
+  [[places.pack]]
+  jp = "たこやき"
+  romaji = "takoyaki"
+  en = "octopus balls"
+
+  [[places.pack]]
+  jp = "やきそば"
+  romaji = "yakisoba"
+  en = "fried noodles"
+
+  [[places.pack]]
+  jp = "きんぎょすくい"
+  romaji = "kingyo sukui"
+  en = "goldfish scooping"
+
+  [[places.pack]]
+  jp = "わらわないで"
+  romaji = "warawanaide"
+  en = "don't laugh"
+
+  [[places.events]]
+  flag = "love_emily"
+  when = "a genuinely romantic moment with Emily happens and she clearly returns the feeling"
+
+  [[places.events]]
+  flag = "love_aiko"
+  when = "a genuinely romantic moment with Aiko happens and she clearly returns the feeling"
+
+  [[places.exits]]
+  to = "asakusa_street"
+  label = "Walk back through the crowds"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "matsuri"
+  transition = "fade"
+  ambient = "night_bokeh"
+  sfx = "footsteps"
+  en = "Dusk by the Sumida River. Red lanterns, sizzling stalls, the boom of taiko drums — and what feels like half of Tokyo in cotton yukata."
+
+  [[places.intro]]
+  speaker = "aiko"
+  expression = "happy"
+  action = "enter_left"
+  emote = "sparkle"
+  jp = "みて！ゆかた！かわいい？"
+  romaji = "Mite! Yukata! Kawaii?"
+  en = "Look! A yukata! Cute?"
+
+  [[places.intro]]
+  speaker = "emily"
+  expression = "happy"
+  action = "enter_right"
+  emote = "music"
+  jp = "おなかすいた！たこやき、たべる？やきそば？"
+  romaji = "Onaka suita! Takoyaki, taberu? Yakisoba?"
+  en = "I'm starving! Want takoyaki? Or yakisoba?"
+
+  [[places.intro]]
+  speaker = "narrator"
+  camera = "zoom_out"
+  sfx = "whoosh"
+  en = "Somewhere over the river, the first firework whistles up — and bursts gold."
+
+
+  [[places.choices]]
+  jp = "たこやきがいいと思う！"
+  romaji = "Takoyaki ga ii to omou!"
+  en = "I think takoyaki!"
+
+  [[places.choices]]
+  jp = "ゆかた、すごくかわいい！"
+  romaji = "Yukata, sugoku kawaii!"
+  en = "The yukata's really cute!"
+
+  [[places.choices]]
+  jp = "はなびをみるのがすきです。"
+  romaji = "Hanabi o miru no ga suki desu."
+  en = "I love watching fireworks."
+
+
+[[places]]
+id = "kabuki_theatre"
+name = "Kabuki Theatre"
+name_jp = "歌舞伎座"
+aliases = ["かぶき", "歌舞伎", "かぶきざ", "歌舞伎座", "kabuki", "theatre", "theater"]
+scene = "kabuki_theatre"
+clock = "5:00 PM"
+act = 3
+cast = ["hiroshi"]
+situation = """
+The Kabuki-za in Ginza. Hiroshi's boss gave him a spare ticket and he invited the player (formally, by leaving a note at the hostel). Red and gold curtain, wooden balconies, an audience so quiet you hear programmes rustle; wooden clappers crack before each act, and fans shout actors' house names from the gallery at exactly the right moment.
+The play is a ghost story: a loyal servant, a wronged woman in white, a villain in a black kimono with red-and-blue makeup. Between acts Hiroshi explains what happened — formally at first, then, as he relaxes, in casual short past forms (どうだった？おもしろかった？). He buys two bentō for the intermission and asks if the player has eaten yet (まだたべていません).
+Natural moments: saying what they thought of the act (〜たと思います), giving reasons (〜から: よくわからなかったから…), pointing out actors by what they're wearing or doing (あのしろいきものをきているひと), and — as a stretch — comparing kabuki with films or with the matsuri (〜より). Hiroshi admits he'd never actually seen kabuki before tonight either.
+"""
+goal = "A night of kabuki with Hiroshi. I'll try to keep up."
+success = """
+The player talks about the play with a past-tense opinion or a から reason, or asks about an actor by what they're doing or wearing, and the evening ends warmly with Hiroshi. If trust is high and the moment is genuinely romantic, love_hiroshi may be set.
+"""
+goal_flags = []
+on_enter_flags = []
+items_allowed = []
+max_yen_gain = 0
+max_yen_spend = 0
+reward_yen = 0
+reward_items = []
+recharge = 30
+
+candos = ["c9_past_opinion", "c9_because", "c9_not_yet", "c9_verb_noun", "c10_compare"]
+
+  [[places.pack]]
+  jp = "しばい"
+  romaji = "shibai"
+  en = "play (on stage)"
+
+  [[places.pack]]
+  jp = "やくしゃ"
+  romaji = "yakusha"
+  en = "actor"
+
+  [[places.pack]]
+  jp = "きもの"
+  romaji = "kimono"
+  en = "kimono"
+
+  [[places.pack]]
+  jp = "けしょう"
+  romaji = "keshou"
+  en = "makeup"
+
+  [[places.pack]]
+  jp = "おもしろかった"
+  romaji = "omoshirokatta"
+  en = "it was interesting / fun"
+
+  [[places.pack]]
+  jp = "わからなかった"
+  romaji = "wakaranakatta"
+  en = "didn't understand"
+
+  [[places.pack]]
+  jp = "まだ"
+  romaji = "mada"
+  en = "not yet / still"
+
+  [[places.pack]]
+  jp = "べんとう"
+  romaji = "bentou"
+  en = "boxed meal"
+
+  [[places.events]]
+  flag = "love_hiroshi"
+  when = "a genuinely romantic moment with Hiroshi happens and he clearly returns the feeling"
+
+  [[places.exits]]
+  to = "asakusa_street"
+  label = "Out into the night"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "kabuki_theatre"
+  transition = "fade"
+  ambient = "clear"
+  en = "The Kabuki-za, Ginza. Red and gold, three tiers of wooden balconies, and an audience so hushed you can hear programmes rustle."
+
+  [[places.intro]]
+  speaker = "hiroshi"
+  expression = "happy"
+  action = "bow"
+  jp = "こんばんは。きょうは、いっしょにみましょう。"
+  romaji = "Konban wa. Kyou wa, issho ni mimashou."
+  en = "Good evening. Let's watch it together tonight."
+
+  [[places.intro]]
+  speaker = "narrator"
+  sfx = "bell"
+  en = "Wooden clappers crack. The curtain slides open, and for an hour men in white makeup move like a dream. Someone in the gallery shouts a name at exactly the right moment."
+
+  [[places.intro]]
+  speaker = "narrator"
+  transition = "crossfade"
+  en = "Intermission. The lights come up, and the whole theatre exhales."
+
+  [[places.intro]]
+  speaker = "hiroshi"
+  expression = "thinking"
+  action = "lean_in"
+  emote = "question"
+  jp = "どうだった？おもしろかった？"
+  romaji = "Dou datta? Omoshirokatta?"
+  en = "So? Did you enjoy it?"
+
+
+  [[places.choices]]
+  jp = "おもしろかった！"
+  romaji = "Omoshirokatta!"
+  en = "It was great!"
+
+  [[places.choices]]
+  jp = "よくわからなかったから、おしえてください。"
+  romaji = "Yoku wakaranakatta kara, oshiete kudasai."
+  en = "I didn't really get it, so please explain."
+
+  [[places.choices]]
+  jp = "あのしろいきものをきているひとはだれですか。"
+  romaji = "Ano shiroi kimono o kite iru hito wa dare desu ka."
+  en = "Who's the person wearing the white kimono?"
+
+
+[[places]]
+id = "police_station"
+name = "Narita Police Station"
+name_jp = "成田警察署"
+aliases = ["けいさつしょ", "警察署", "police station"]
+scene = "police_station"
+clock = "8:30 AM"
+act = 4
+cast = ["yumi", "kenji"]
+situation = """
+Officer Sato called the hostel: a man was caught at Narita with several stolen bags. The player rode the early train out. Kenji, the security guard who found them on the floor weeks ago, is here as a witness and is thrilled to hear how much Japanese they speak now. Yumi is as precise as ever and still speaks no English.
+Step by step:
+- Yumi lays out a folder of photos: a tall man in a suit and glasses, a young man with long hair in a T-shirt, an old man in a hat, and a thin man in a grey cap and red jacket. She asks one question at a time: どんなひとでしたか。なにをきていましたか。The player must describe the thief (はいいろのぼうしをかぶっていました, あかいジャケットをきていました, せがたかくない…). Kenji backs them up when they get it right.
+- Then she brings out a black backpack and two wrong bags: これはあなたのですか。The player must claim the right one (and can refuse the wrong ones).
+- Inside: passport (their full name, a photo of a stranger who is them), traveler's cheques, and an old letter in Japanese handwriting. Kenji reads the address aloud slowly: あさくさ…もり…さま. The player can't make sense of it yet — leave the mystery hanging.
+"""
+goal = "They found my bag. I just have to describe the man who took it."
+success = """
+The player describes the thief with at least one 〜ています／〜ていました sentence that matches (grey cap, red jacket) and claims the right backpack. They get back their passport (and with it their full name), the traveler's cheques, and an old letter addressed to someone called Mori in Asakusa (set got_backpack).
+"""
+goal_flags = ["got_backpack"]
+on_enter_flags = []
+items_allowed = ["backpack", "passport", "cheques", "letter"]
+max_yen_gain = 0
+max_yen_spend = 0
+reward_yen = 0
+reward_items = ["backpack", "passport", "cheques", "letter"]
+recharge = 40
+
+candos = ["c7_wearing", "c7_looks", "c7_doing", "l2_not_mine", "l4_past"]
+
+  [[places.pack]]
+  jp = "おとこのひと"
+  romaji = "otoko no hito"
+  en = "man"
+
+  [[places.pack]]
+  jp = "はいいろ"
+  romaji = "haiiro"
+  en = "grey"
+
+  [[places.pack]]
+  jp = "ぼうし"
+  romaji = "boushi"
+  en = "hat / cap"
+
+  [[places.pack]]
+  jp = "かぶっています"
+  romaji = "kabutte imasu"
+  en = "is wearing (on the head)"
+
+  [[places.pack]]
+  jp = "あかい"
+  romaji = "akai"
+  en = "red"
+
+  [[places.pack]]
+  jp = "ジャケット"
+  romaji = "jaketto"
+  en = "jacket"
+
+  [[places.pack]]
+  jp = "きています"
+  romaji = "kite imasu"
+  en = "is wearing (clothes)"
+
+  [[places.pack]]
+  jp = "リュック"
+  romaji = "ryukku"
+  en = "backpack"
+
+  [[places.exits]]
+  to = "asakusa_street"
+  label = "The long train ride back to Asakusa"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "clinic"
+  label = "Ishida Clinic — get that head checked"
+  requires_flags = []
+  min_lesson = 11
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "police_station"
+  transition = "fade"
+  ambient = "clear"
+  en = "8:30 a.m. Narita Police Station. Plastic chairs. Bad coffee. A folder of photographs on the desk."
+
+  [[places.intro]]
+  speaker = "kenji"
+  expression = "happy"
+  action = "enter_left"
+  emote = "sparkle"
+  jp = "あ！くうこうの！げんきですか？"
+  romaji = "A! Kuukou no! Genki desu ka?"
+  en = "Ah! You're the one from the airport! How are you doing?"
+
+  [[places.intro]]
+  speaker = "yumi"
+  expression = "neutral"
+  action = "enter_right"
+  jp = "おはようございます。このひとたちをみてください。"
+  romaji = "Ohayou gozaimasu. Kono hitotachi o mite kudasai."
+  en = "Good morning. Please look at these people."
+
+  [[places.intro]]
+  speaker = "yumi"
+  expression = "thinking"
+  jp = "そのおとこのひとは、どんなひとでしたか。"
+  romaji = "Sono otoko no hito wa, donna hito deshita ka."
+  en = "That man — what did he look like?"
+
+
+  [[places.choices]]
+  jp = "はいいろのぼうしをかぶっていました。"
+  romaji = "Haiiro no boushi o kabutte imashita."
+  en = "He was wearing a grey cap."
+
+  [[places.choices]]
+  jp = "あかいジャケットをきています。"
+  romaji = "Akai jaketto o kite imasu."
+  en = "He's wearing a red jacket."
+
+  [[places.choices]]
+  jp = "このひとです！"
+  romaji = "Kono hito desu!"
+  en = "It's this person!"
+
+
+[[places]]
+id = "clinic"
+name = "Ishida Clinic"
+name_jp = "石田クリニック"
+aliases = ["びょういん", "病院", "クリニック", "いしだ", "clinic", "doctor", "hospital"]
+scene = "clinic"
+clock = "2:00 PM"
+act = 4
+cast = []
+situation = """
+A small neighbourhood clinic: vinyl benches, a rubber plant, an old CRT TV showing high-school baseball with the sound off. A receptionist (speaker "extra", speaker_name "うけつけ") takes the player's passport — now that they have one — and calls their real name. Dr. Ishida (speaker "extra", speaker_name "いしだせんせい"), calm, precise, sixty, speaks slow clear Japanese and draws on a notepad: a head, a star where it hit.
+The consultation: what happened (the player explains with 〜んです: ころんだんです, おもいだせないんです), what they want (〜たいです: おもいだしたいです), how they've been spending their days (〜たり〜たりしています: はたらいたり、べんきょうしたり), and whether they've ever been to Japan or hit their head before (〜たことがありますか). The doctor advises with 〜ほうがいいです and 〜なければいけません (rest, don't work too much — はたらきすぎないで).
+As they talk, especially when asked about the letter or why they came, the fog lifts in fragments: a grandfather's voice, a hospital bed back home, a promise — "give this to Mori in Asakusa". The player remembers who they are and why they came to Japan: to deliver their late grandfather's letter to his old friend. Let the player put it into words if they can.
+"""
+goal = "I have to tell the doctor what happened. Maybe then I'll remember."
+success = """
+The player explains their situation (〜んです or similar) and says what they want or have done, the doctor reassures them the injury is healing, and their memory returns: their grandfather, the letter, Mori in Asakusa (set remembered).
+"""
+goal_flags = ["remembered"]
+on_enter_flags = []
+items_allowed = []
+max_yen_gain = 0
+max_yen_spend = 3000
+reward_yen = 0
+reward_items = []
+recharge = 50
+
+candos = ["c11_want", "c11_tari", "c11_ever", "c12_explain"]
+
+  [[places.pack]]
+  jp = "あたま"
+  romaji = "atama"
+  en = "head"
+
+  [[places.pack]]
+  jp = "いたい"
+  romaji = "itai"
+  en = "it hurts"
+
+  [[places.pack]]
+  jp = "ころびました"
+  romaji = "korobimashita"
+  en = "I fell over"
+
+  [[places.pack]]
+  jp = "きおく"
+  romaji = "kioku"
+  en = "memory"
+
+  [[places.pack]]
+  jp = "おもいだしたい"
+  romaji = "omoidashitai"
+  en = "I want to remember"
+
+  [[places.pack]]
+  jp = "くすり"
+  romaji = "kusuri"
+  en = "medicine"
+
+  [[places.pack]]
+  jp = "やすんだほうがいい"
+  romaji = "yasunda hou ga ii"
+  en = "you'd better rest"
+
+  [[places.exits]]
+  to = "mori_room"
+  label = "To Mr. Mori — with the letter"
+  requires_flags = ["remembered"]
+  min_lesson = 0
+
+  [[places.exits]]
+  to = "asakusa_street"
+  label = "Back to Asakusa"
+  requires_flags = []
+  min_lesson = 0
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "clinic"
+  transition = "fade"
+  ambient = "clear"
+  sfx = "door_chime"
+  en = "Ishida Clinic. Vinyl benches, a rubber plant, and an old TV showing high-school baseball with the sound off."
+
+  [[places.intro]]
+  speaker = "extra"
+  speaker_name = "うけつけ"
+  jp = "こんにちは。ここにすわって、まってください。"
+  romaji = "Konnichiwa. Koko ni suwatte, matte kudasai."
+  en = "Hello. Please sit here and wait."
+
+  [[places.intro]]
+  speaker = "narrator"
+  en = "Twenty minutes and one magazine you can't read later, a voice calls your name — your real name, the one from your passport. It still sounds like someone else's."
+
+  [[places.intro]]
+  speaker = "extra"
+  speaker_name = "いしだせんせい"
+  jp = "こんにちは。いしだです。きょうは、どうしましたか。"
+  romaji = "Konnichiwa. Ishida desu. Kyou wa, dou shimashita ka."
+  en = "Hello, I'm Dr. Ishida. What brings you in today?"
+
+
+  [[places.choices]]
+  jp = "くうこうでころんだんです。"
+  romaji = "Kuukou de koronda n desu."
+  en = "I fell at the airport, you see."
+
+  [[places.choices]]
+  jp = "まえのことを、おもいだしたいです。"
+  romaji = "Mae no koto o, omoidashitai desu."
+  en = "I want to remember my past."
+
+  [[places.choices]]
+  jp = "ときどき、あたまがいたいんです。"
+  romaji = "Tokidoki, atama ga itai n desu."
+  en = "My head hurts sometimes."
+
+
+[[places]]
+id = "narita_departures"
+name = "Narita — Departures"
+name_jp = "出発ロビー"
+aliases = ["くうこう", "空港", "airport", "departures", "flight"]
+scene = "narita_departures"
+clock = "6:00 PM"
+act = 4
+cast = ["kenji", "aiko", "emily", "hiroshi"]
+situation = """
+Golden hour at Narita, where it all began. The player has a temporary passport from the embassy, their traveler's cheques cashed, and a ticket home in their hand. Everyone they met came to see them off — or to ask them to stay: Kenji (on duty here, in uniform, beaming), Aiko (trying not to cry), Emily (enforcing the Japanese-only rule one last time), Hiroshi (formal, with a small wrapped gift). Mr. Mori (speaker "extra", speaker_name "もりさん") stands back by a pillar holding the 1965 photo, gruff as ever.
+This is the finale. The player decides, in Japanese, whether to go home or stay. Going home: 〜たいです, 〜なければいけません, and a promise to return (またきます, またくるでしょう). Staying: 〜つもりです (にほんにのこるつもりです, ここではたらくつもりです). Each friend reacts in character, in short simple Japanese, and the player should say a proper goodbye or thank-you. Let them explain why (〜んです, 〜から) if they want to; don't rush the decision, but don't let it drift either.
+Set ending_home or ending_stay only when the player's decision is unmistakable.
+"""
+goal = "The ticket home is in my hand. Do I go — or stay?"
+success = """
+The player clearly states their decision in Japanese (going home, or staying) and says goodbye or thank you to the people who helped them. Set ending_home or ending_stay accordingly.
+"""
+goal_flags = []
+on_enter_flags = []
+items_allowed = []
+max_yen_gain = 0
+max_yen_spend = 0
+reward_yen = 0
+reward_items = []
+recharge = 0
+
+candos = ["c10_plan", "c11_want", "c12_explain", "c12_probably", "l0_thanks"]
+
+  [[places.pack]]
+  jp = "ひこうき"
+  romaji = "hikouki"
+  en = "plane"
+
+  [[places.pack]]
+  jp = "チケット"
+  romaji = "chiketto"
+  en = "ticket"
+
+  [[places.pack]]
+  jp = "かえります"
+  romaji = "kaerimasu"
+  en = "go home"
+
+  [[places.pack]]
+  jp = "のこります"
+  romaji = "nokorimasu"
+  en = "stay (behind)"
+
+  [[places.pack]]
+  jp = "つもり"
+  romaji = "tsumori"
+  en = "intention / plan"
+
+  [[places.pack]]
+  jp = "また"
+  romaji = "mata"
+  en = "again"
+
+  [[places.pack]]
+  jp = "げんきで"
+  romaji = "genki de"
+  en = "take care"
+
+  [[places.pack]]
+  jp = "さようなら"
+  romaji = "sayounara"
+  en = "goodbye"
+
+  [[places.events]]
+  flag = "ending_home"
+  when = "the player decides to fly home"
+
+  [[places.events]]
+  flag = "ending_stay"
+  when = "the player decides to stay in Japan"
+
+  [[places.intro]]
+  speaker = "narrator"
+  scene = "narita_departures"
+  transition = "fade"
+  ambient = "clear"
+  en = "Narita, again. The departures hall is gold with evening light; the flip-board clatters through cities — London, Sydney, Los Angeles."
+
+  [[places.intro]]
+  speaker = "narrator"
+  en = "The ticket home is in your hand. And this time, you are not alone."
+
+  [[places.intro]]
+  speaker = "kenji"
+  expression = "happy"
+  action = "enter_left"
+  emote = "exclaim"
+  jp = "あ！きましたね！"
+  romaji = "A! Kimashita ne!"
+  en = "Ah! You made it!"
+
+  [[places.intro]]
+  speaker = "aiko"
+  expression = "sad"
+  action = "enter_right"
+  jp = "ほんとうに…かえるんですか。"
+  romaji = "Hontou ni… kaeru n desu ka."
+  en = "Are you really… going home?"
+
+  [[places.intro]]
+  speaker = "emily"
+  expression = "happy"
+  action = "lean_in"
+  emote = "sparkle"
+  jp = "にほんごで、いってね。"
+  romaji = "Nihongo de, itte ne."
+  en = "Say it in Japanese, okay?"
+
+
+  [[places.choices]]
+  jp = "うちにかえりたいです。でも、またきます。"
+  romaji = "Uchi ni kaeritai desu. Demo, mata kimasu."
+  en = "I want to go home. But I'll come back."
+
+  [[places.choices]]
+  jp = "にほんにのこるつもりです。"
+  romaji = "Nihon ni nokoru tsumori desu."
+  en = "I'm planning to stay in Japan."
+
+  [[places.choices]]
+  jp = "みなさん、ほんとうにありがとうございました。"
+  romaji = "Minasan, hontou ni arigatou gozaimashita."
+  en = "Everyone, thank you so much — truly."
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Endings, chosen by the flag the finale sets.
+# ─────────────────────────────────────────────────────────────────────────────
+
+[[endings]]
+flag = "ending_home"
+title = "Going Home"
+
+  [[endings.beats]]
+  speaker = "narrator"
+  transition = "fade"
+  ambient = "petals"
+  en = "The plane lifts over the rice fields. You can read the seatbelt sign now. You can read a lot of things now."
+
+  [[endings.beats]]
+  speaker = "narrator"
+  en = "In your bag: a photo of two young men in 1965, and a new one — five people squinting into the sun at Narita."
+
+  [[endings.beats]]
+  speaker = "narrator"
+  camera = "zoom_out"
+  en = "You came to deliver your grandfather's letter. You're leaving with an answer, and a reason to come back."
+
+[[endings]]
+flag = "ending_stay"
+title = "Staying"
+
+  [[endings.beats]]
+  speaker = "narrator"
+  transition = "fade"
+  ambient = "petals"
+  en = "You tear the ticket in half. Aiko cheers. Mr. Mori grumbles that rent is due on Friday."
+
+  [[endings.beats]]
+  speaker = "narrator"
+  en = "Your grandfather came here once, young and lost, and someone helped him. Now it's your turn to be the one who helps."
+
+  [[endings.beats]]
+  speaker = "narrator"
+  camera = "zoom_out"
+  en = "Japan was an alien planet. Somewhere along the way, it became home."

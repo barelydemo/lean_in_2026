@@ -1,0 +1,36 @@
+# Local production-like stack:  cp .env.example .env  &&  docker compose up --build
+services:
+  server:
+    build: ./server
+    env_file: .env
+    environment:
+      CORS_ORIGINS: ${PUBLIC_WEB_URL:-http://localhost:3000}
+    volumes:
+      - lexical-data:/data
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  # One-off: render music, ambience and sound effects with ElevenLabs.
+  #   docker compose run --rm generate-audio
+  generate-audio:
+    build: ./server
+    env_file: .env
+    command: ["lexical-server", "generate-audio"]
+    volumes:
+      - lexical-data:/data
+    profiles: ["tools"]
+
+  web:
+    build:
+      context: ./web
+      args:
+        NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:8080}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - server
+    restart: unless-stopped
+
+volumes:
+  lexical-data:

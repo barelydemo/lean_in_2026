@@ -1,0 +1,319 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="826" height="1038" viewBox="0 0 826 1038" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" role="img">
+<metadata id="figure-spec"><![CDATA[{"props":{"speed":950,"layout":{"direction":"row","gap":24,"children":[{"label":"Web client","direction":"column","gap":32,"children":[{"id":"mic","label":"Voice recorder","sub":"WebAudio capture","width":168,"lines":2,"source":"web/lib/voice.ts#useRecorder"},{"id":"stage","label":"Game stage","sub":"Next.js UI & HUD","width":168,"lines":2,"source":"web/components/Game.tsx#Game"}]},{"label":"Rust game server","direction":"column","gap":28,"children":[{"id":"stt_api","label":"Speech handler","sub":"POST /api/v1/stt","width":172,"lines":2,"source":"server/src/api.rs#stt"},{"id":"turn_api","label":"Turn handler","sub":"POST /runs/:id/turn","width":172,"lines":2,"source":"server/src/api.rs#take_turn"},{"id":"director","label":"Story director","sub":"Prompt & JSON schema","width":172,"lines":2,"source":"server/src/director.rs#Director.direct_turn"},{"id":"rules","label":"Rules & skills","sub":"Clamps & Genki tree","width":172,"lines":2,"source":"server/src/game.rs#apply_turn_with_pron"},{"id":"tts_api","label":"Voice output","sub":"POST /api/v1/tts","width":172,"lines":2,"source":"server/src/api.rs#tts"}]},{"label":"AI, voice & storage","direction":"column","gap":28,"children":[{"id":"bolna","label":"Bolna Voice AI","sub":"Primary Japanese STT","width":172,"lines":2,"source":"server/src/bolna.rs#Bolna.new"},{"id":"db","label":"SQLite store","sub":"Runs, lines & scores","shape":"store","width":172,"lines":2,"source":"server/src/db.rs#update_run"},{"id":"deepseek","label":"DeepSeek LLM","sub":"Scene improvisation","width":172,"lines":2,"source":"server/src/deepseek.rs#DeepSeek.new"},{"id":"eleven","label":"ElevenLabs TTS","sub":"Cast voices & cache","width":172,"lines":2,"source":"server/src/voice.rs#ElevenLabs.speak"}]}]},"edges":[{"id":"capture","from":"stage","to":"mic","label":"record","source":"web/components/Game.tsx#Game"},{"id":"upload_audio","from":"stage","to":"stt_api","label":"audio","source":"web/lib/api.ts#api.stt","via":"/stt"},{"id":"transcribe","from":"stt_api","to":"bolna","label":"STT","source":"server/src/main.rs#main"},{"id":"send_turn","from":"stage","to":"turn_api","label":"turn","source":"web/lib/api.ts#api.turn","via":"/turn"},{"id":"ask_director","from":"turn_api","to":"director","label":"direct","source":"server/src/api.rs#take_turn"},{"id":"llm_call","from":"director","to":"deepseek","label":"JSON","source":"server/src/director.rs#Director.new"},{"id":"validate","from":"director","to":"rules","label":"clamp","source":"server/src/api.rs#take_turn"},{"id":"save_state","from":"turn_api","to":"db","label":"save","source":"server/src/api.rs#take_turn"},{"id":"request_tts","from":"stage","to":"tts_api","label":"voice","source":"web/lib/api.ts#api.tts","via":"/tts"},{"id":"synth_voice","from":"tts_api","to":"eleven","label":"TTS","source":"server/src/api.rs#tts"}],"steps":[{"label":"1. Speak & transcribe","caption":"The player holds Space and speaks Japanese into the microphone.","flow":[{"edges":{"edge":"capture","data":"Hold Space"},"light":["stage","mic"],"show":{"mic":[{"tag":"mic","tone":"blue","text":"speech.webm · 48kHz"},{"tag":"VAD","tone":"gray","text":"Auto-stops on silence"}]},"say":"The player holds Space to record a Japanese line."},{"edges":{"edge":"upload_audio","data":"speech.webm"},"light":["stt_api"],"show":{"stt_api":[{"tag":"POST","tone":"blue","text":"/api/v1/stt"},{"tag":"ref","tone":"purple","text":"駅はどこですか"}]},"say":"The stage uploads the audio blob to the speech handler."},{"edges":{"edge":"transcribe","data":"ja · nova-3"},"light":["bolna"],"show":{"bolna":[{"tag":"STT","tone":"purple","text":"駅はどこですか？"},{"tag":"lang","tone":"green","text":"Japanese (ja)"}]},"say":"Bolna Voice AI transcribes the recording with Japanese biasing."},{"edges":{"edge":"upload_audio","back":true,"tone":"green","data":"94% · Great"},"light":["stage"],"show":{"stage":[{"tag":"heard","tone":"green","text":"駅はどこですか？"},{"tag":"score","tone":"green","text":"Accuracy: 94%"}]},"say":"The speech handler returns the transcript and pronunciation score."}]},{"label":"2. Direct & validate","caption":"DeepSeek improvises the NPC reaction and the rules engine validates every change.","flow":[{"edges":{"edge":"send_turn","data":"voice · 94%"},"light":["turn_api"],"show":{"turn_api":[{"tag":"place","tone":"blue","text":"Arrivals Hall"},{"tag":"heard","tone":"green","text":"駅はどこですか？"}]},"say":"The stage submits the spoken turn to the turn handler."},{"edges":{"edge":"ask_director","data":"brief + state"},"light":["director"],"show":{"director":[{"tag":"prompt","tone":"purple","text":"World + Lesson 1"},{"tag":"cast","tone":"blue","text":"Kenji Tanaka"}]},"say":"The turn handler builds the scene context for the story director."},{"edges":{"edge":"llm_call","data":"strict schema"},"light":["deepseek"],"show":{"deepseek":[{"tag":"verdict","tone":"green","text":"Great · Trust +1"},{"tag":"kenji","tone":"blue","text":"駅はあそこですよ！"}]},"say":"DeepSeek generates the coach verdict and Kenji's reply as JSON."},{"edges":{"edge":"validate","data":"DirectorTurn"},"light":["rules"],"show":{"rules":[{"tag":"clamp","tone":"orange","text":"Trust +1 · Exit open"},{"tag":"skill","tone":"green","text":"Asking Where Lv.2"}]},"say":"The rules engine clamps rewards and levels up the Genki skill tree."},{"edges":{"edge":"save_state","data":"SQLite tx"},"light":["db"],"show":{"db":[{"tag":"runs","tone":"green","text":"State & skills saved"},{"tag":"lines","tone":"gray","text":"2 beats appended"}]},"say":"The turn handler commits the run state and dialogue lines to SQLite."}]},{"label":"3. Voice & stage","caption":"The stage animates the character sprite and plays ElevenLabs voice audio.","flow":[{"edges":{"edge":"send_turn","back":true,"tone":"green","data":"beats + skill"},"light":["stage"],"show":{"stage":[{"tag":"stage","tone":"blue","text":"Kenji: happy · nod"},{"tag":"toast","tone":"green","text":"Asking Where Lv.2"}]},"say":"The turn handler returns the validated beats and skill unlock."},{"edges":{"edge":"request_tts","data":"line_id: 42"},"light":["tts_api"],"show":{"tts_api":[{"tag":"voice","tone":"purple","text":"Kenji Tanaka"},{"tag":"line","tone":"blue","text":"駅はあそこですよ！"}]},"say":"The stage requests spoken audio for Kenji's dialogue line."},{"edges":{"edge":"synth_voice","data":"kenji · mp3"},"light":["eleven"],"show":{"eleven":[{"tag":"TTS","tone":"purple","text":"ElevenLabs v2"},{"tag":"cache","tone":"green","text":"Cached as MP3"}]},"say":"ElevenLabs synthesizes Kenji's voice and caches the MP3 on disk."},{"edges":{"edge":"request_tts","back":true,"tone":"green","data":"audio/mpeg"},"light":["stage"],"show":{"stage":[{"tag":"audio","tone":"green","text":"Playing Kenji voice"},{"tag":"next","tone":"blue","text":"Ready for next turn"}]},"say":"The stage plays Kenji's voice while animating the scene."}]}]}}]]></metadata>
+<title>Flow figure: Voice recorder, Game stage, Speech handler, Turn handler, Story director, Rules &amp; skills, Voice output, Bolna Voice AI, SQLite store, DeepSeek LLM, ElevenLabs TTS. Steps: 1. Speak &amp; transcribe, 2. Direct &amp; validate, 3. Voice &amp; stage.</title>
+<desc>The figure has these boxes: Voice recorder, Game stage, Speech handler, Turn handler, Story director, Rules &amp; skills, Voice output, Bolna Voice AI, SQLite store, DeepSeek LLM, ElevenLabs TTS.
+1. Speak &amp; transcribe.
+The player holds Space to record a Japanese line.
+The stage uploads the audio blob to the speech handler.
+Bolna Voice AI transcribes the recording with Japanese biasing.
+The speech handler returns the transcript and pronunciation score.
+2. Direct &amp; validate.
+The stage submits the spoken turn to the turn handler.
+The turn handler builds the scene context for the story director.
+DeepSeek generates the coach verdict and Kenji's reply as JSON.
+The rules engine clamps rewards and levels up the Genki skill tree.
+The turn handler commits the run state and dialogue lines to SQLite.
+3. Voice &amp; stage.
+The turn handler returns the validated beats and skill unlock.
+The stage requests spoken audio for Kenji's dialogue line.
+ElevenLabs synthesizes Kenji's voice and caches the MP3 on disk.
+The stage plays Kenji's voice while animating the scene.</desc>
+<style>
+svg { --accent:#0074d9; --fg:#1c1e21; --muted:#606770; --bg:#ffffff; --surface:#f5f7fa; --border:#d0d7de; --card-on:#eef5fd; --tint:color-mix(in srgb, var(--accent) 10%, var(--surface)); }
+@media (prefers-color-scheme: dark) { svg { --accent:#1f78c8; --fg:#e3e3e3; --muted:#9aa0a6; --bg:#1b1b1d; --surface:#242526; --border:#3a3b3c; --card-on:#1d2733; --tint:color-mix(in srgb, var(--accent) 10%, var(--surface)); } }
+.label { fill: var(--fg); font-size: 14px; font-weight: 500; text-anchor: middle; }
+.sub { fill: var(--muted); font-size: 12px; text-anchor: middle; }
+.frame { fill: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: .04em; }
+.edgelabel { fill: var(--muted); font-size: 11px; text-anchor: middle; font-family: ui-monospace, Menlo, monospace; }
+.row { fill: var(--fg); font-size: 11px; }
+.row.mono { font-size: 10.5px; font-family: ui-monospace, Menlo, monospace; }
+.muted { fill: var(--muted); }
+.bar { fill: var(--fg); font-size: 13px; font-weight: 500; }
+.tick { fill: var(--muted); font-size: 11px; }
+.today { fill: var(--accent); font-size: 11px; font-weight: 600; }
+.tag { font-size: 9px; font-weight: 600; letter-spacing: .03em; text-anchor: middle; }
+.mark { fill: var(--accent); font-size: 11px; font-weight: 600; text-anchor: end; }
+.chip { fill: #ffffff; font-size: 11.5px; text-anchor: middle; }
+.steplabel { fill: var(--fg); font-size: 13px; font-weight: 600; text-anchor: middle; font-family: ui-monospace, Menlo, monospace; }
+.caption { fill: var(--muted); font-size: 13.5px; text-anchor: middle; }
+.railcol { fill: var(--fg); font-size: 12px; font-weight: 500; text-anchor: middle; }
+.railphase { fill: var(--fg); font-size: 13px; font-weight: 600; font-family: ui-monospace, Menlo, monospace; }
+.railphase.muted { fill: var(--muted); }
+.end { text-anchor: end; }
+@keyframes a0 { 0%,1.73% { fill: var(--bg); stroke: var(--accent); stroke-width: 1; filter: drop-shadow(0 0 0 transparent) } 1.74%,6.4% { fill: var(--tint); stroke: var(--accent); stroke-width: 2; filter: drop-shadow(0 0 4px var(--accent)) } 7.32%,29.73% { fill: var(--bg); stroke: var(--accent); stroke-width: 1; filter: drop-shadow(0 0 0 transparent) } 29.74%,99.99% { fill: var(--bg); stroke: var(--border); stroke-width: 1; filter: drop-shadow(0 0 0 transparent) } }
+.a0 { animation: a0 43.8s infinite linear; }
+@keyframes a1 { 0%,29.73% { stroke: var(--accent); fill: var(--card-on) } 29.74%,99.99% { stroke: var(--border); fill: var(--surface) } }
+.a1 { animation: a1 43.8s infinite step-end; }
+@keyframes a2 { 0%,29.73% { opacity: 1 } 29.74%,99.99% { opacity: 0 } }
+.a2 { animation: a2 43.8s infinite step-end; }
+@keyframes a3 { 0%,29.73% { opacity: 0 } 29.74%,99.99% { opacity: 1 } }
+.a3 { animation: a3 43.8s infinite step-end; }
+@keyframes a4 { 0%,21.4% { fill: var(--bg); stroke: var(--accent); stroke-width: 1; filter: drop-shadow(0 0 0 transparent) } 21.41%,29.73% { fill: color-mix(in srgb, #10b981 10%, var(--surface)); stroke: #10b981; stroke-width: 2; filter: drop-shadow(0 0 4px #10b981) } 30.65%,71.55% { fill: var(--bg); stroke: var(--accent); stroke-width: 1; filter: drop-shadow(0 0 0 transparent) } 71.56%,76.67% { fill: color-mix(in srgb, #10b981 10%, var(--surface)); stroke: #10b981; stroke-width: 2; filter: drop-shadow(0 0 4px #10b981) } 77.59%,91.66% { fill: var(--bg); stroke: var(--accent); stroke-width: 1; filter: drop-shadow(0 0 0 transparent) } 91.67%,99.08% { fill: color-mix(in srgb, #10b981 10%, var(--surface)); stroke: #10b981; stroke-width: 2; filter: drop-shadow(0 0 4px #10b981) } 99.98%,99.99% { fill: var(--bg); stroke: var(--accent); stroke-width: 1; filter: drop-shadow(0 0 0 transparent) } }
+.a4 { animation: a4 43.8s infinite linear; }
+@keyframes a5 { 0%,19.66% { stroke: var(--border); fill: var(--surface) } 19.67%,29.73% { stroke: var(--accent); fill: var(--card-on) } 29.74%,69.82% { stroke: var(--border); fill: var(--surface) } 69.83%,99.99% { stroke: var(--accent); fill: var(--card-on) } }
+.a5 { animation: a5 43.8s infinite step-end; }
+@keyframes a6 { 0%,19.66% { opacity: 0 } 19.67%,29.73% { opacity: 1 } 29.74%,99.99% { opacity: 0 } }
+.a6 { animation: a6 43.8s infinite step-end; }
+@keyframes a7 { 0%,69.82% { opacity: 0 } 69.83%,89.93% { opacity: 1 } 89.94%,99.99% { opacity: 0 } }
+.a7 { animation: a7 43.8s infinite step-end; }
+@keyframes a8 { 0%,89.93% { opacity: 0 } 89.94%,99.99% { opacity: 1 } }
+.a8 { animation: a8 43.8s infinite step-end; }
+@keyframes a9 { 0%,19.66% { opacity: 1 } 19.67%,29.73% { opacity: 0 } 29.74%,69.82% { opacity: 1 } 69.83%,99.99% { opacity: 0 } }
+.a9 { animation: a9 43.8s infinite step-end; }
+@keyframes a10 { 0%,6.4% { fill: var(--bg); stroke: var(--border); stroke-width: 1; filter: drop-shadow(0 0 0 transparent) } 6.41%,8.14% { fill: var(--bg); stroke: var(--accent); stroke-width: 1; filter: drop-shadow(0 0 0 transparent) } 8.15%,13.25% { fill: var(--tint); stroke: var(--accent); stroke-width: 2; filter: drop-shadow(0 0 4px var(--accent)) } 14.17%,29.73% { fill: var(--bg); stroke: var(--accent); stroke-width: 1; filter: drop-shadow(0 0 0 transparent) } 29.74%,99.99% { fill: var(--bg); stroke: var(--border); stroke-width: 1; filter: drop-shadow(0 0 0 transparent) } }
+.a10 { animation: a10 43.8s infinite linear; }
+@keyframes a11 { 0%,6.4% { stroke: var(--border); fill: var(--surface) } 6.41%,29.73% { stroke: var(--accent); fill: var(--card-on) } 29.74%,99.99% { stroke: var(--border); fill: var(--surface) } }
+.a11 { animation: a11 43.8s infinite step-end; }
+@keyframes a12 { 0%,6.4% { opacity: 0 } 6.41%,29.73% { opacity: 1 } 29.74%,99.99% { opacity: 0 } }
+.a12 { animation: a12 43.8s infinite step-end; }
+@keyframes a13 { 0%,6.4% { opacity: 1 } 6.41%,29.73% { opacity: 0 } 29.74%,99.99% { opacity: 1 } }
+.a13 { animation: a13 43.8s infinite step-end; }
+@keyframes a14 { 0%,29.73% { fill: var(--bg); stroke: var(--border); stroke-width: 1; filter: drop-shadow(0 0 0 transparent) } 29.74%,31.46% { fill: var(--bg); stroke: var(--accent); stroke-width: 1; filter: drop-shadow(0 0 0 transparent) } 31.47%,36.57% { fill: var(--tint); stroke: var(--accent); stroke-width: 2; filter: drop-shadow(0 0 4px var(--accent)) } 37.5%,99.99% { fill: var(--bg); stroke: var(--accent); stroke-width: 1; filter: drop-shadow(0 0 0 transparent) } }
+.a14 { animation: a14 43.8s infinite linear; }
+@keyframes a15 { 0%,29.73% { stroke: var(--border); fill: var(--surface) } 29.74%,69.82% { stroke: var(--accent); fill: var(--card-on) } 69.83%,99.99% { stroke: var(--border); fill: var(--surface) } }
+.a15 { animation: a15 43.8s infinite step-end; }
+@keyframes a16 { 0%,29.73% { opacity: 0 } 29.74%,69.82% { opacity: 1 } 69.83%,99.99% { opacity: 0 } }
+.a16 { animation: a16 43.8s infinite step-end; }
+@keyframes a17 { 0%,29.73% { opacity: 1 } 29.74%,69.82% { opacity: 0 } 69.83%,99.99% { opacity: 1 } }
+.a17 { animation: a17 43.8s infinite step-end; }
+@keyframes a18 { 0%,36.57% { fill: var(--bg); stroke: var(--border); stroke-width: 1; filter: drop-shadow(0 0 0 transparent) } 36.58%,38.31% { fill: var(--bg); stroke: var(--accent); stroke-width: 1; filter: drop-shadow(0 0 0 transparent) } 38.32%,43.86% { fill: var(--tint); stroke: var(--accent); stroke-width: 2; filter: drop-shadow(0 0 4px var(--accent)) } 44.79%,69.82% { fill: var(--bg); stroke: var(--accent); stroke-width: 1; filter: drop-shadow(0 0 0 transparent) } 69.83%,99.99% { fill: var(--bg); stroke: var(--border); stroke-width: 1; filter: drop-shadow(0 0 0 transparent) } }
+.a18 { animation: a18 43.8s infinite linear; }
+@keyframes a19 { 0%,36.57% { stroke: var(--border); fill: var(--surface) } 36.58%,69.82% { stroke: var(--accent); fill: var(--card-on) } 69.83%,99.99% { stroke: var(--border); fill: var(--surface) } }
+.a19 { animation: a19 43.8s infinite step-end; }
+@keyframes a20 { 0%,36.57% { opacity: 0 } 36.58%,69.82% { opacity: 1 } 69.83%,99.99% { opacity: 0 } }
+.a20 { animation: a20 43.8s infinite step-end; }
+@keyframes a21 { 0%,36.57% { opacity: 1 } 36.58%,69.82% { opacity: 0 } 69.83%,99.99% { opacity: 1 } }
+.a21 { animation: a21 43.8s infinite step-end; }
+@keyframes a22 { 0%,50.71% { fill: var(--bg); stroke: var(--border); stroke-width: 1; filter: drop-shadow(0 0 0 transparent) } 50.72%,52.45% { fill: var(--bg); stroke: var(--accent); stroke-width: 1; filter: drop-shadow(0 0 0 transparent) } 52.46%,58.44% { fill: var(--tint); stroke: var(--accent); stroke-width: 2; filter: drop-shadow(0 0 4px var(--accent)) } 59.36%,69.82% { fill: var(--bg); stroke: var(--accent); stroke-width: 1; filter: drop-shadow(0 0 0 transparent) } 69.83%,99.99% { fill: var(--bg); stroke: var(--border); stroke-width: 1; filter: drop-shadow(0 0 0 transparent) } }
+.a22 { animation: a22 43.8s infinite linear; }
+@keyframes a23 { 0%,50.71% { stroke: var(--border); fill: var(--surface) } 50.72%,69.82% { stroke: var(--accent); fill: var(--card-on) } 69.83%,99.99% { stroke: var(--border); fill: var(--surface) } }
+.a23 { animation: a23 43.8s infinite step-end; }
+@keyframes a24 { 0%,50.71% { opacity: 0 } 50.72%,69.82% { opacity: 1 } 69.83%,99.99% { opacity: 0 } }
+.a24 { animation: a24 43.8s infinite step-end; }
+@keyframes a25 { 0%,50.71% { opacity: 1 } 50.72%,69.82% { opacity: 0 } 69.83%,99.99% { opacity: 1 } }
+.a25 { animation: a25 43.8s infinite step-end; }
+@keyframes a26 { 0%,76.67% { fill: var(--bg); stroke: var(--border); stroke-width: 1; filter: drop-shadow(0 0 0 transparent) } 76.68%,78.4% { fill: var(--bg); stroke: var(--accent); stroke-width: 1; filter: drop-shadow(0 0 0 transparent) } 78.41%,83.08% { fill: var(--tint); stroke: var(--accent); stroke-width: 2; filter: drop-shadow(0 0 4px var(--accent)) } 84%,99.99% { fill: var(--bg); stroke: var(--accent); stroke-width: 1; filter: drop-shadow(0 0 0 transparent) } }
+.a26 { animation: a26 43.8s infinite linear; }
+@keyframes a27 { 0%,76.67% { stroke: var(--border); fill: var(--surface) } 76.68%,99.99% { stroke: var(--accent); fill: var(--card-on) } }
+.a27 { animation: a27 43.8s infinite step-end; }
+@keyframes a28 { 0%,76.67% { opacity: 0 } 76.68%,99.99% { opacity: 1 } }
+.a28 { animation: a28 43.8s infinite step-end; }
+@keyframes a29 { 0%,76.67% { opacity: 1 } 76.68%,99.99% { opacity: 0 } }
+.a29 { animation: a29 43.8s infinite step-end; }
+@keyframes a30 { 0%,13.25% { fill: var(--bg); stroke: var(--border); stroke-width: 1; filter: drop-shadow(0 0 0 transparent) } 13.26%,14.99% { fill: var(--bg); stroke: var(--accent); stroke-width: 1; filter: drop-shadow(0 0 0 transparent) } 15%,19.66% { fill: var(--tint); stroke: var(--accent); stroke-width: 2; filter: drop-shadow(0 0 4px var(--accent)) } 20.58%,29.73% { fill: var(--bg); stroke: var(--accent); stroke-width: 1; filter: drop-shadow(0 0 0 transparent) } 29.74%,99.99% { fill: var(--bg); stroke: var(--border); stroke-width: 1; filter: drop-shadow(0 0 0 transparent) } }
+.a30 { animation: a30 43.8s infinite linear; }
+@keyframes a31 { 0%,13.25% { stroke: var(--border); fill: var(--surface) } 13.26%,29.73% { stroke: var(--accent); fill: var(--card-on) } 29.74%,99.99% { stroke: var(--border); fill: var(--surface) } }
+.a31 { animation: a31 43.8s infinite step-end; }
+@keyframes a32 { 0%,13.25% { opacity: 0 } 13.26%,29.73% { opacity: 1 } 29.74%,99.99% { opacity: 0 } }
+.a32 { animation: a32 43.8s infinite step-end; }
+@keyframes a33 { 0%,13.25% { opacity: 1 } 13.26%,29.73% { opacity: 0 } 29.74%,99.99% { opacity: 1 } }
+.a33 { animation: a33 43.8s infinite step-end; }
+@keyframes a34 { 0%,58.44% { fill: var(--bg); stroke: var(--border); stroke-width: 1; filter: drop-shadow(0 0 0 transparent) } 58.45%,60.17% { fill: var(--bg); stroke: var(--accent); stroke-width: 1; filter: drop-shadow(0 0 0 transparent) } 60.18%,69.82% { fill: var(--tint); stroke: var(--accent); stroke-width: 2; filter: drop-shadow(0 0 4px var(--accent)) } 70.74%,99.99% { fill: var(--bg); stroke: var(--border); stroke-width: 1; filter: drop-shadow(0 0 0 transparent) } }
+.a34 { animation: a34 43.8s infinite linear; }
+@keyframes a35 { 0%,58.44% { stroke: var(--border); stroke-width: 1 } 58.45%,60.17% { stroke: var(--accent); stroke-width: 1 } 60.18%,69.82% { stroke: var(--accent); stroke-width: 2 } 70.74%,99.99% { stroke: var(--border); stroke-width: 1 } }
+.a35 { animation: a35 43.8s infinite linear; }
+@keyframes a36 { 0%,58.44% { stroke: var(--border); fill: var(--surface) } 58.45%,69.82% { stroke: var(--accent); fill: var(--card-on) } 69.83%,99.99% { stroke: var(--border); fill: var(--surface) } }
+.a36 { animation: a36 43.8s infinite step-end; }
+@keyframes a37 { 0%,58.44% { opacity: 0 } 58.45%,69.82% { opacity: 1 } 69.83%,99.99% { opacity: 0 } }
+.a37 { animation: a37 43.8s infinite step-end; }
+@keyframes a38 { 0%,58.44% { opacity: 1 } 58.45%,69.82% { opacity: 0 } 69.83%,99.99% { opacity: 1 } }
+.a38 { animation: a38 43.8s infinite step-end; }
+@keyframes a39 { 0%,43.86% { fill: var(--bg); stroke: var(--border); stroke-width: 1; filter: drop-shadow(0 0 0 transparent) } 43.87%,45.6% { fill: var(--bg); stroke: var(--accent); stroke-width: 1; filter: drop-shadow(0 0 0 transparent) } 45.61%,50.71% { fill: var(--tint); stroke: var(--accent); stroke-width: 2; filter: drop-shadow(0 0 4px var(--accent)) } 51.63%,69.82% { fill: var(--bg); stroke: var(--accent); stroke-width: 1; filter: drop-shadow(0 0 0 transparent) } 69.83%,99.99% { fill: var(--bg); stroke: var(--border); stroke-width: 1; filter: drop-shadow(0 0 0 transparent) } }
+.a39 { animation: a39 43.8s infinite linear; }
+@keyframes a40 { 0%,43.86% { stroke: var(--border); fill: var(--surface) } 43.87%,69.82% { stroke: var(--accent); fill: var(--card-on) } 69.83%,99.99% { stroke: var(--border); fill: var(--surface) } }
+.a40 { animation: a40 43.8s infinite step-end; }
+@keyframes a41 { 0%,43.86% { opacity: 0 } 43.87%,69.82% { opacity: 1 } 69.83%,99.99% { opacity: 0 } }
+.a41 { animation: a41 43.8s infinite step-end; }
+@keyframes a42 { 0%,43.86% { opacity: 1 } 43.87%,69.82% { opacity: 0 } 69.83%,99.99% { opacity: 1 } }
+.a42 { animation: a42 43.8s infinite step-end; }
+@keyframes a43 { 0%,83.08% { fill: var(--bg); stroke: var(--border); stroke-width: 1; filter: drop-shadow(0 0 0 transparent) } 83.09%,84.81% { fill: var(--bg); stroke: var(--accent); stroke-width: 1; filter: drop-shadow(0 0 0 transparent) } 84.82%,89.93% { fill: var(--tint); stroke: var(--accent); stroke-width: 2; filter: drop-shadow(0 0 4px var(--accent)) } 90.85%,99.99% { fill: var(--bg); stroke: var(--accent); stroke-width: 1; filter: drop-shadow(0 0 0 transparent) } }
+.a43 { animation: a43 43.8s infinite linear; }
+@keyframes a44 { 0%,83.08% { stroke: var(--border); fill: var(--surface) } 83.09%,99.99% { stroke: var(--accent); fill: var(--card-on) } }
+.a44 { animation: a44 43.8s infinite step-end; }
+@keyframes a45 { 0%,83.08% { opacity: 0 } 83.09%,99.99% { opacity: 1 } }
+.a45 { animation: a45 43.8s infinite step-end; }
+@keyframes a46 { 0%,83.08% { opacity: 1 } 83.09%,99.99% { opacity: 0 } }
+.a46 { animation: a46 43.8s infinite step-end; }
+@keyframes a47 { 0%,29.73% { stroke: var(--accent); stroke-width: 2 } 29.74%,99.99% { stroke: var(--muted); stroke-width: 1.25 } }
+.a47 { animation: a47 43.8s infinite step-end; }
+@keyframes a48 { 0%,29.73% { fill: var(--accent); stroke: var(--accent) } 29.74%,99.99% { fill: var(--bg); stroke: var(--border) } }
+.a48 { animation: a48 43.8s infinite step-end; }
+@keyframes a49 { 0%,29.73% { fill: #ffffff } 29.74%,99.99% { fill: var(--muted) } }
+.a49 { animation: a49 43.8s infinite step-end; }
+@keyframes a50 { 0%,6.4% { stroke: var(--muted); stroke-width: 1.25 } 6.41%,19.66% { stroke: var(--accent); stroke-width: 2 } 19.67%,29.73% { stroke: #10b981; stroke-width: 2 } 29.74%,99.99% { stroke: var(--muted); stroke-width: 1.25 } }
+.a50 { animation: a50 43.8s infinite step-end; }
+@keyframes a51 { 0%,6.4% { fill: var(--bg); stroke: var(--border) } 6.41%,19.66% { fill: var(--accent); stroke: var(--accent) } 19.67%,29.73% { fill: color-mix(in srgb, #10b981 64%, #000); stroke: #10b981 } 29.74%,99.99% { fill: var(--bg); stroke: var(--border) } }
+.a51 { animation: a51 43.8s infinite step-end; }
+@keyframes a52 { 0%,6.4% { fill: var(--muted) } 6.41%,29.73% { fill: #ffffff } 29.74%,99.99% { fill: var(--muted) } }
+.a52 { animation: a52 43.8s infinite step-end; }
+@keyframes a53 { 0%,13.25% { stroke: var(--muted); stroke-width: 1.25 } 13.26%,29.73% { stroke: var(--accent); stroke-width: 2 } 29.74%,99.99% { stroke: var(--muted); stroke-width: 1.25 } }
+.a53 { animation: a53 43.8s infinite step-end; }
+@keyframes a54 { 0%,13.25% { fill: var(--bg); stroke: var(--border) } 13.26%,29.73% { fill: var(--accent); stroke: var(--accent) } 29.74%,99.99% { fill: var(--bg); stroke: var(--border) } }
+.a54 { animation: a54 43.8s infinite step-end; }
+@keyframes a55 { 0%,13.25% { fill: var(--muted) } 13.26%,29.73% { fill: #ffffff } 29.74%,99.99% { fill: var(--muted) } }
+.a55 { animation: a55 43.8s infinite step-end; }
+@keyframes a56 { 0%,29.73% { stroke: var(--muted); stroke-width: 1.25 } 29.74%,69.82% { stroke: var(--accent); stroke-width: 2 } 69.83%,76.67% { stroke: #10b981; stroke-width: 2 } 76.68%,99.99% { stroke: var(--accent); stroke-width: 2 } }
+.a56 { animation: a56 43.8s infinite step-end; }
+@keyframes a57 { 0%,29.73% { fill: var(--bg); stroke: var(--border) } 29.74%,69.82% { fill: var(--accent); stroke: var(--accent) } 69.83%,76.67% { fill: color-mix(in srgb, #10b981 64%, #000); stroke: #10b981 } 76.68%,99.99% { fill: var(--accent); stroke: var(--accent) } }
+.a57 { animation: a57 43.8s infinite step-end; }
+@keyframes a58 { 0%,29.73% { fill: var(--muted) } 29.74%,99.99% { fill: #ffffff } }
+.a58 { animation: a58 43.8s infinite step-end; }
+@keyframes a59 { 0%,36.57% { stroke: var(--muted); stroke-width: 1.25 } 36.58%,69.82% { stroke: var(--accent); stroke-width: 2 } 69.83%,99.99% { stroke: var(--muted); stroke-width: 1.25 } }
+.a59 { animation: a59 43.8s infinite step-end; }
+@keyframes a60 { 0%,36.57% { fill: var(--bg); stroke: var(--border) } 36.58%,69.82% { fill: var(--accent); stroke: var(--accent) } 69.83%,99.99% { fill: var(--bg); stroke: var(--border) } }
+.a60 { animation: a60 43.8s infinite step-end; }
+@keyframes a61 { 0%,36.57% { fill: var(--muted) } 36.58%,69.82% { fill: #ffffff } 69.83%,99.99% { fill: var(--muted) } }
+.a61 { animation: a61 43.8s infinite step-end; }
+@keyframes a62 { 0%,43.86% { stroke: var(--muted); stroke-width: 1.25 } 43.87%,69.82% { stroke: var(--accent); stroke-width: 2 } 69.83%,99.99% { stroke: var(--muted); stroke-width: 1.25 } }
+.a62 { animation: a62 43.8s infinite step-end; }
+@keyframes a63 { 0%,43.86% { fill: var(--bg); stroke: var(--border) } 43.87%,69.82% { fill: var(--accent); stroke: var(--accent) } 69.83%,99.99% { fill: var(--bg); stroke: var(--border) } }
+.a63 { animation: a63 43.8s infinite step-end; }
+@keyframes a64 { 0%,43.86% { fill: var(--muted) } 43.87%,69.82% { fill: #ffffff } 69.83%,99.99% { fill: var(--muted) } }
+.a64 { animation: a64 43.8s infinite step-end; }
+@keyframes a65 { 0%,50.71% { stroke: var(--muted); stroke-width: 1.25 } 50.72%,69.82% { stroke: var(--accent); stroke-width: 2 } 69.83%,99.99% { stroke: var(--muted); stroke-width: 1.25 } }
+.a65 { animation: a65 43.8s infinite step-end; }
+@keyframes a66 { 0%,50.71% { fill: var(--bg); stroke: var(--border) } 50.72%,69.82% { fill: var(--accent); stroke: var(--accent) } 69.83%,99.99% { fill: var(--bg); stroke: var(--border) } }
+.a66 { animation: a66 43.8s infinite step-end; }
+@keyframes a67 { 0%,50.71% { fill: var(--muted) } 50.72%,69.82% { fill: #ffffff } 69.83%,99.99% { fill: var(--muted) } }
+.a67 { animation: a67 43.8s infinite step-end; }
+@keyframes a68 { 0%,58.44% { stroke: var(--muted); stroke-width: 1.25 } 58.45%,69.82% { stroke: var(--accent); stroke-width: 2 } 69.83%,99.99% { stroke: var(--muted); stroke-width: 1.25 } }
+.a68 { animation: a68 43.8s infinite step-end; }
+@keyframes a69 { 0%,58.44% { fill: var(--bg); stroke: var(--border) } 58.45%,69.82% { fill: var(--accent); stroke: var(--accent) } 69.83%,99.99% { fill: var(--bg); stroke: var(--border) } }
+.a69 { animation: a69 43.8s infinite step-end; }
+@keyframes a70 { 0%,58.44% { fill: var(--muted) } 58.45%,69.82% { fill: #ffffff } 69.83%,99.99% { fill: var(--muted) } }
+.a70 { animation: a70 43.8s infinite step-end; }
+@keyframes a71 { 0%,76.67% { stroke: var(--muted); stroke-width: 1.25 } 76.68%,89.93% { stroke: var(--accent); stroke-width: 2 } 89.94%,99.99% { stroke: #10b981; stroke-width: 2 } }
+.a71 { animation: a71 43.8s infinite step-end; }
+@keyframes a72 { 0%,76.67% { fill: var(--bg); stroke: var(--border) } 76.68%,89.93% { fill: var(--accent); stroke: var(--accent) } 89.94%,99.99% { fill: color-mix(in srgb, #10b981 64%, #000); stroke: #10b981 } }
+.a72 { animation: a72 43.8s infinite step-end; }
+@keyframes a73 { 0%,76.67% { fill: var(--muted) } 76.68%,99.99% { fill: #ffffff } }
+.a73 { animation: a73 43.8s infinite step-end; }
+@keyframes a74 { 0%,83.08% { stroke: var(--muted); stroke-width: 1.25 } 83.09%,99.99% { stroke: var(--accent); stroke-width: 2 } }
+.a74 { animation: a74 43.8s infinite step-end; }
+@keyframes a75 { 0%,83.08% { fill: var(--bg); stroke: var(--border) } 83.09%,99.99% { fill: var(--accent); stroke: var(--accent) } }
+.a75 { animation: a75 43.8s infinite step-end; }
+@keyframes a76 { 0%,83.08% { fill: var(--muted) } 83.09%,99.99% { fill: #ffffff } }
+.a76 { animation: a76 43.8s infinite step-end; }
+@keyframes p0 { 0%,0% { opacity: 0 } 0.01%,6.4% { opacity: 1 } 6.41%,100% { opacity: 0 } }
+.p0 { animation: p0 43.8s infinite step-end; }
+@keyframes p1 { 0%,6.41% { opacity: 0 } 6.42%,13.25% { opacity: 1 } 13.26%,100% { opacity: 0 } }
+.p1 { animation: p1 43.8s infinite step-end; }
+@keyframes p2 { 0%,13.26% { opacity: 0 } 13.27%,19.66% { opacity: 1 } 19.67%,100% { opacity: 0 } }
+.p2 { animation: p2 43.8s infinite step-end; }
+@keyframes p3 { 0%,19.67% { opacity: 0 } 19.68%,26.07% { opacity: 1 } 26.08%,100% { opacity: 0 } }
+.p3 { animation: p3 43.8s infinite step-end; }
+@keyframes p4 { 0%,29.74% { opacity: 0 } 29.75%,36.57% { opacity: 1 } 36.58%,100% { opacity: 0 } }
+.p4 { animation: p4 43.8s infinite step-end; }
+@keyframes p5 { 0%,36.58% { opacity: 0 } 36.59%,43.86% { opacity: 1 } 43.87%,100% { opacity: 0 } }
+.p5 { animation: p5 43.8s infinite step-end; }
+@keyframes p6 { 0%,43.87% { opacity: 0 } 43.88%,50.71% { opacity: 1 } 50.72%,100% { opacity: 0 } }
+.p6 { animation: p6 43.8s infinite step-end; }
+@keyframes p7 { 0%,50.72% { opacity: 0 } 50.73%,58.44% { opacity: 1 } 58.45%,100% { opacity: 0 } }
+.p7 { animation: p7 43.8s infinite step-end; }
+@keyframes p8 { 0%,58.45% { opacity: 0 } 58.46%,66.16% { opacity: 1 } 66.17%,100% { opacity: 0 } }
+.p8 { animation: p8 43.8s infinite step-end; }
+@keyframes p9 { 0%,69.83% { opacity: 0 } 69.84%,76.67% { opacity: 1 } 76.68%,100% { opacity: 0 } }
+.p9 { animation: p9 43.8s infinite step-end; }
+@keyframes p10 { 0%,76.68% { opacity: 0 } 76.69%,83.08% { opacity: 1 } 83.09%,100% { opacity: 0 } }
+.p10 { animation: p10 43.8s infinite step-end; }
+@keyframes p11 { 0%,83.09% { opacity: 0 } 83.1%,89.93% { opacity: 1 } 89.94%,100% { opacity: 0 } }
+.p11 { animation: p11 43.8s infinite step-end; }
+@keyframes p12 { 0%,89.94% { opacity: 0 } 89.95%,96.34% { opacity: 1 } 96.35%,100% { opacity: 0 } }
+.p12 { animation: p12 43.8s infinite step-end; }
+@keyframes a77 { 0%,29.73% { opacity: 1 } 29.74%,99.99% { opacity: 0 } }
+.a77 { animation: a77 43.8s infinite step-end; }
+@keyframes a78 { 0%,29.73% { opacity: 0 } 29.74%,69.82% { opacity: 1 } 69.83%,99.99% { opacity: 0 } }
+.a78 { animation: a78 43.8s infinite step-end; }
+@keyframes a79 { 0%,69.82% { opacity: 0 } 69.83%,99.99% { opacity: 1 } }
+.a79 { animation: a79 43.8s infinite step-end; }
+@keyframes a80 { 0%,6.4% { opacity: 1 } 6.41%,99.99% { opacity: 0 } }
+.a80 { animation: a80 43.8s infinite step-end; }
+@keyframes a81 { 0%,6.4% { opacity: 0 } 6.41%,13.25% { opacity: 1 } 13.26%,99.99% { opacity: 0 } }
+.a81 { animation: a81 43.8s infinite step-end; }
+@keyframes a82 { 0%,13.25% { opacity: 0 } 13.26%,19.66% { opacity: 1 } 19.67%,99.99% { opacity: 0 } }
+.a82 { animation: a82 43.8s infinite step-end; }
+@keyframes a83 { 0%,19.66% { opacity: 0 } 19.67%,29.73% { opacity: 1 } 29.74%,99.99% { opacity: 0 } }
+.a83 { animation: a83 43.8s infinite step-end; }
+@keyframes a84 { 0%,29.73% { opacity: 0 } 29.74%,36.57% { opacity: 1 } 36.58%,99.99% { opacity: 0 } }
+.a84 { animation: a84 43.8s infinite step-end; }
+@keyframes a85 { 0%,36.57% { opacity: 0 } 36.58%,43.86% { opacity: 1 } 43.87%,99.99% { opacity: 0 } }
+.a85 { animation: a85 43.8s infinite step-end; }
+@keyframes a86 { 0%,43.86% { opacity: 0 } 43.87%,50.71% { opacity: 1 } 50.72%,99.99% { opacity: 0 } }
+.a86 { animation: a86 43.8s infinite step-end; }
+@keyframes a87 { 0%,50.71% { opacity: 0 } 50.72%,58.44% { opacity: 1 } 58.45%,99.99% { opacity: 0 } }
+.a87 { animation: a87 43.8s infinite step-end; }
+@keyframes a88 { 0%,58.44% { opacity: 0 } 58.45%,69.82% { opacity: 1 } 69.83%,99.99% { opacity: 0 } }
+.a88 { animation: a88 43.8s infinite step-end; }
+@keyframes a89 { 0%,69.82% { opacity: 0 } 69.83%,76.67% { opacity: 1 } 76.68%,99.99% { opacity: 0 } }
+.a89 { animation: a89 43.8s infinite step-end; }
+@keyframes a90 { 0%,76.67% { opacity: 0 } 76.68%,83.08% { opacity: 1 } 83.09%,99.99% { opacity: 0 } }
+.a90 { animation: a90 43.8s infinite step-end; }
+@keyframes a91 { 0%,83.08% { opacity: 0 } 83.09%,89.93% { opacity: 1 } 89.94%,99.99% { opacity: 0 } }
+.a91 { animation: a91 43.8s infinite step-end; }
+@keyframes a92 { 0%,89.93% { opacity: 0 } 89.94%,99.99% { opacity: 1 } }
+.a92 { animation: a92 43.8s infinite step-end; }
+@media (prefers-reduced-motion: reduce) { * { animation-play-state: paused !important; animation-delay: -12.9s !important; } }
+</style>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 1 L 9 5 L 0 9 z" fill="context-stroke"/></marker></defs>
+<rect width="100%" height="100%" fill="var(--bg)"/>
+<g transform="translate(0 0)">
+
+
+
+<rect x="24" y="304.5" width="204" height="379" rx="14" fill="var(--surface)" stroke="var(--border)"/><text x="42" y="324.5" class="frame">WEB CLIENT</text>
+<g><title>web/lib/voice.ts#useRecorder</title><rect x="42" y="341.5" width="168" height="137" rx="10" fill="var(--bg)" stroke="var(--border)" class="a0"/><text x="126" y="364.5" class="label">Voice recorder</text><text x="126" y="379.5" class="sub">WebAudio capture</text><rect x="52" y="392.5" width="148" height="76" rx="6" fill="var(--surface)" stroke="var(--border)" stroke-dasharray="3 3" class="a1"/><g opacity="0" class="a2"><rect x="60" y="399.5" width="24.9" height="14" rx="4" fill="#3b82f6" fill-opacity="0.15"/><text x="72.5" y="410" class="tag" fill="#3b82f6">MIC</text><text x="60" y="424.5" class="row">speech.webm · 48kHz</text><rect x="60" y="433.5" width="26.1" height="14" rx="4" fill="#8b949e" fill-opacity="0.15"/><text x="73" y="444" class="tag" fill="#8b949e">VAD</text><text x="60" y="458.5" class="row">Auto-stops on silence</text></g><text x="60" y="409.5" opacity="0" class="row muted a3">—</text></g>
+<g><title>web/components/Game.tsx#Game</title><rect x="42" y="528.5" width="168" height="137" rx="10" fill="var(--bg)" stroke="var(--border)" class="a4"/><text x="126" y="551.5" class="label">Game stage</text><text x="126" y="566.5" class="sub">Next.js UI &amp; HUD</text><rect x="52" y="579.5" width="148" height="76" rx="6" fill="var(--surface)" stroke="var(--border)" stroke-dasharray="3 3" class="a5"/><g opacity="0" class="a6"><rect x="60" y="586.5" width="38.2" height="14" rx="4" fill="#10b981" fill-opacity="0.15"/><text x="79.1" y="597" class="tag" fill="#10b981">HEARD</text><text x="60" y="611.5" class="row">駅はどこですか？</text><rect x="60" y="620.5" width="38.2" height="14" rx="4" fill="#10b981" fill-opacity="0.15"/><text x="79.1" y="631" class="tag" fill="#10b981">SCORE</text><text x="60" y="645.5" class="row">Accuracy: 94%</text></g><g opacity="0" class="a7"><rect x="60" y="586.5" width="38.2" height="14" rx="4" fill="#3b82f6" fill-opacity="0.15"/><text x="79.1" y="597" class="tag" fill="#3b82f6">STAGE</text><text x="60" y="611.5" class="row">Kenji: happy · nod</text><rect x="60" y="620.5" width="38.2" height="14" rx="4" fill="#10b981" fill-opacity="0.15"/><text x="79.1" y="631" class="tag" fill="#10b981">TOAST</text><text x="60" y="645.5" class="row">Asking Where Lv.2</text></g><g opacity="0" class="a8"><rect x="60" y="586.5" width="35.1" height="14" rx="4" fill="#10b981" fill-opacity="0.15"/><text x="77.5" y="597" class="tag" fill="#10b981">AUDIO</text><text x="60" y="611.5" class="row">Playing Kenji voice</text><rect x="60" y="620.5" width="32.1" height="14" rx="4" fill="#3b82f6" fill-opacity="0.15"/><text x="76.1" y="631" class="tag" fill="#3b82f6">NEXT</text><text x="60" y="645.5" class="row">Ready for next turn</text></g><text x="60" y="596.5" opacity="0" class="row muted a9">—</text></g>
+<rect x="307" y="24" width="208" height="940" rx="14" fill="var(--surface)" stroke="var(--border)"/><text x="325" y="44" class="frame">RUST GAME SERVER</text>
+<g><title>server/src/api.rs#stt</title><rect x="325" y="61" width="172" height="137" rx="10" fill="var(--bg)" stroke="var(--border)" class="a10"/><text x="411" y="84" class="label">Speech handler</text><text x="411" y="99" class="sub">POST /api/v1/stt</text><rect x="335" y="112" width="152" height="76" rx="6" fill="var(--surface)" stroke="var(--border)" stroke-dasharray="3 3" class="a11"/><g opacity="0" class="a12"><rect x="343" y="119" width="32.1" height="14" rx="4" fill="#3b82f6" fill-opacity="0.15"/><text x="359.1" y="129.5" class="tag" fill="#3b82f6">POST</text><text x="343" y="144" class="row">/api/v1/stt</text><rect x="343" y="153" width="26.1" height="14" rx="4" fill="#8b5cf6" fill-opacity="0.15"/><text x="356" y="163.5" class="tag" fill="#8b5cf6">REF</text><text x="343" y="178" class="row">駅はどこですか</text></g><text x="343" y="129" opacity="0" class="row muted a13">—</text></g>
+<g><title>server/src/api.rs#take_turn</title><rect x="325" y="248" width="172" height="137" rx="10" fill="var(--bg)" stroke="var(--border)" class="a14"/><text x="411" y="271" class="label">Turn handler</text><text x="411" y="286" class="sub">POST /runs/:id/turn</text><rect x="335" y="299" width="152" height="76" rx="6" fill="var(--surface)" stroke="var(--border)" stroke-dasharray="3 3" class="a15"/><g opacity="0" class="a16"><rect x="343" y="306" width="38.2" height="14" rx="4" fill="#3b82f6" fill-opacity="0.15"/><text x="362.1" y="316.5" class="tag" fill="#3b82f6">PLACE</text><text x="343" y="331" class="row">Arrivals Hall</text><rect x="343" y="340" width="38.2" height="14" rx="4" fill="#10b981" fill-opacity="0.15"/><text x="362.1" y="350.5" class="tag" fill="#10b981">HEARD</text><text x="343" y="365" class="row">駅はどこですか？</text></g><text x="343" y="316" opacity="0" class="row muted a17">—</text></g>
+<g><title>server/src/director.rs#Director.direct_turn</title><rect x="325" y="435" width="172" height="137" rx="10" fill="var(--bg)" stroke="var(--border)" class="a18"/><text x="411" y="458" class="label">Story director</text><text x="411" y="473" class="sub">Prompt &amp; JSON schema</text><rect x="335" y="486" width="152" height="76" rx="6" fill="var(--surface)" stroke="var(--border)" stroke-dasharray="3 3" class="a19"/><g opacity="0" class="a20"><rect x="343" y="493" width="46.1" height="14" rx="4" fill="#8b5cf6" fill-opacity="0.15"/><text x="366" y="503.5" class="tag" fill="#8b5cf6">PROMPT</text><text x="343" y="518" class="row">World + Lesson 1</text><rect x="343" y="527" width="32.1" height="14" rx="4" fill="#3b82f6" fill-opacity="0.15"/><text x="359.1" y="537.5" class="tag" fill="#3b82f6">CAST</text><text x="343" y="552" class="row">Kenji Tanaka</text></g><text x="343" y="503" opacity="0" class="row muted a21">—</text></g>
+<g><title>server/src/game.rs#apply_turn_with_pron</title><rect x="325" y="622" width="172" height="137" rx="10" fill="var(--bg)" stroke="var(--border)" class="a22"/><text x="411" y="645" class="label">Rules &amp; skills</text><text x="411" y="660" class="sub">Clamps &amp; Genki tree</text><rect x="335" y="673" width="152" height="76" rx="6" fill="var(--surface)" stroke="var(--border)" stroke-dasharray="3 3" class="a23"/><g opacity="0" class="a24"><rect x="343" y="680" width="40" height="14" rx="4" fill="#f59e0b" fill-opacity="0.15"/><text x="363" y="690.5" class="tag" fill="#f59e0b">CLAMP</text><text x="343" y="705" class="row">Trust +1 · Exit open</text><rect x="343" y="714" width="35.1" height="14" rx="4" fill="#10b981" fill-opacity="0.15"/><text x="360.5" y="724.5" class="tag" fill="#10b981">SKILL</text><text x="343" y="739" class="row">Asking Where Lv.2</text></g><text x="343" y="690" opacity="0" class="row muted a25">—</text></g>
+<g><title>server/src/api.rs#tts</title><rect x="325" y="809" width="172" height="137" rx="10" fill="var(--bg)" stroke="var(--border)" class="a26"/><text x="411" y="832" class="label">Voice output</text><text x="411" y="847" class="sub">POST /api/v1/tts</text><rect x="335" y="860" width="152" height="76" rx="6" fill="var(--surface)" stroke="var(--border)" stroke-dasharray="3 3" class="a27"/><g opacity="0" class="a28"><rect x="343" y="867" width="35.1" height="14" rx="4" fill="#8b5cf6" fill-opacity="0.15"/><text x="360.5" y="877.5" class="tag" fill="#8b5cf6">VOICE</text><text x="343" y="892" class="row">Kenji Tanaka</text><rect x="343" y="901" width="29.1" height="14" rx="4" fill="#3b82f6" fill-opacity="0.15"/><text x="357.5" y="911.5" class="tag" fill="#3b82f6">LINE</text><text x="343" y="926" class="row">駅はあそこですよ！</text></g><text x="343" y="877" opacity="0" class="row muted a29">—</text></g>
+<rect x="594" y="143.5" width="208" height="701" rx="14" fill="var(--surface)" stroke="var(--border)"/><text x="612" y="163.5" class="frame">AI, VOICE &amp; STORAGE</text>
+<g><title>server/src/bolna.rs#Bolna.new</title><rect x="612" y="180.5" width="172" height="137" rx="10" fill="var(--bg)" stroke="var(--border)" class="a30"/><text x="698" y="203.5" class="label">Bolna Voice AI</text><text x="698" y="218.5" class="sub">Primary Japanese STT</text><rect x="622" y="231.5" width="152" height="76" rx="6" fill="var(--surface)" stroke="var(--border)" stroke-dasharray="3 3" class="a31"/><g opacity="0" class="a32"><rect x="630" y="238.5" width="26.1" height="14" rx="4" fill="#8b5cf6" fill-opacity="0.15"/><text x="643" y="249" class="tag" fill="#8b5cf6">STT</text><text x="630" y="263.5" class="row">駅はどこですか？</text><rect x="630" y="272.5" width="32.1" height="14" rx="4" fill="#10b981" fill-opacity="0.15"/><text x="646.1" y="283" class="tag" fill="#10b981">LANG</text><text x="630" y="297.5" class="row">Japanese (ja)</text></g><text x="630" y="248.5" opacity="0" class="row muted a33">—</text></g>
+<g><title>server/src/db.rs#update_run</title><path d="M612 357.5 a 86 12 0 0 1 172 0 v 127 a 86 12 0 0 1 -172 0 z" fill="var(--bg)" stroke="var(--border)" class="a34"/><path d="M612 357.5 a 86 12 0 0 0 172 0" fill="none" stroke="var(--border)" class="a35"/><text x="698" y="382.5" class="label">SQLite store</text><text x="698" y="397.5" class="sub">Runs, lines &amp; scores</text><rect x="622" y="410.5" width="152" height="76" rx="6" fill="var(--surface)" stroke="var(--border)" stroke-dasharray="3 3" class="a36"/><g opacity="0" class="a37"><rect x="630" y="417.5" width="32.1" height="14" rx="4" fill="#10b981" fill-opacity="0.15"/><text x="646.1" y="428" class="tag" fill="#10b981">RUNS</text><text x="630" y="442.5" class="row">State &amp; skills saved</text><rect x="630" y="451.5" width="35.1" height="14" rx="4" fill="#8b949e" fill-opacity="0.15"/><text x="647.5" y="462" class="tag" fill="#8b949e">LINES</text><text x="630" y="476.5" class="row">2 beats appended</text></g><text x="630" y="427.5" opacity="0" class="row muted a38">—</text></g>
+<g><title>server/src/deepseek.rs#DeepSeek.new</title><rect x="612" y="524.5" width="172" height="137" rx="10" fill="var(--bg)" stroke="var(--border)" class="a39"/><text x="698" y="547.5" class="label">DeepSeek LLM</text><text x="698" y="562.5" class="sub">Scene improvisation</text><rect x="622" y="575.5" width="152" height="76" rx="6" fill="var(--surface)" stroke="var(--border)" stroke-dasharray="3 3" class="a40"/><g opacity="0" class="a41"><rect x="630" y="582.5" width="47.2" height="14" rx="4" fill="#10b981" fill-opacity="0.15"/><text x="653.6" y="593" class="tag" fill="#10b981">VERDICT</text><text x="630" y="607.5" class="row">Great · Trust +1</text><rect x="630" y="616.5" width="35.1" height="14" rx="4" fill="#3b82f6" fill-opacity="0.15"/><text x="647.5" y="627" class="tag" fill="#3b82f6">KENJI</text><text x="630" y="641.5" class="row">駅はあそこですよ！</text></g><text x="630" y="592.5" opacity="0" class="row muted a42">—</text></g>
+<g><title>server/src/voice.rs#ElevenLabs.speak</title><rect x="612" y="689.5" width="172" height="137" rx="10" fill="var(--bg)" stroke="var(--border)" class="a43"/><text x="698" y="712.5" class="label">ElevenLabs TTS</text><text x="698" y="727.5" class="sub">Cast voices &amp; cache</text><rect x="622" y="740.5" width="152" height="76" rx="6" fill="var(--surface)" stroke="var(--border)" stroke-dasharray="3 3" class="a44"/><g opacity="0" class="a45"><rect x="630" y="747.5" width="26.1" height="14" rx="4" fill="#8b5cf6" fill-opacity="0.15"/><text x="643" y="758" class="tag" fill="#8b5cf6">TTS</text><text x="630" y="772.5" class="row">ElevenLabs v2</text><rect x="630" y="781.5" width="38.2" height="14" rx="4" fill="#10b981" fill-opacity="0.15"/><text x="649.1" y="792" class="tag" fill="#10b981">CACHE</text><text x="630" y="806.5" class="row">Cached as MP3</text></g><text x="630" y="757.5" opacity="0" class="row muted a46">—</text></g>
+<g><title>web/components/Game.tsx#Game</title><path id="p-capture" d="M 126 528.5 C 126 503.5, 126 503.5, 126 478.5" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arrow)" class="a47"/></g><rect x="99.2" y="494.5" width="53.6" height="18" rx="9" fill="var(--bg)" stroke="var(--border)" class="a48"/><text x="126" y="507.5" class="edgelabel a49">record</text>
+<g><title>web/lib/api.ts#api.stt</title><path id="p-upload_audio" d="M 210 562.75 C 267.5 562.75, 267.5 129.5, 325 129.5" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arrow)" class="a50"/></g><rect x="244" y="337.1" width="47" height="18" rx="9" fill="var(--bg)" stroke="var(--border)" class="a51"/><text x="267.5" y="350.1" class="edgelabel a52">audio</text>
+<g><title>server/src/main.rs#main</title><path id="p-transcribe" d="M 497 129.5 C 554.5 129.5, 554.5 249, 612 249" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arrow)" class="a53"/></g><rect x="537.6" y="180.3" width="33.8" height="18" rx="9" fill="var(--bg)" stroke="var(--border)" class="a54"/><text x="554.5" y="193.3" class="edgelabel a55">STT</text>
+<g><title>web/lib/api.ts#api.turn</title><path id="p-send_turn" d="M 210 597 C 267.5 597, 267.5 316.5, 325 316.5" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arrow)" class="a56"/></g><rect x="258.1" y="450" width="40.4" height="18" rx="9" fill="var(--bg)" stroke="var(--border)" class="a57"/><text x="278.3" y="463" class="edgelabel a58">turn</text>
+<g><title>server/src/api.rs#take_turn</title><path id="p-ask_director" d="M 411 385 C 411 410, 411 410, 411 435" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arrow)" class="a59"/></g><rect x="384.2" y="401" width="53.6" height="18" rx="9" fill="var(--bg)" stroke="var(--border)" class="a60"/><text x="411" y="414" class="edgelabel a61">direct</text>
+<g><title>server/src/director.rs#Director.new</title><path id="p-llm_call" d="M 497 503.5 C 554.5 503.5, 554.5 593, 612 593" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arrow)" class="a62"/></g><rect x="534.3" y="539.3" width="40.4" height="18" rx="9" fill="var(--bg)" stroke="var(--border)" class="a63"/><text x="554.5" y="552.3" class="edgelabel a64">JSON</text>
+<g><title>server/src/api.rs#take_turn</title><path id="p-validate" d="M 411 572 C 411 597, 411 597, 411 622" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arrow)" class="a65"/></g><rect x="387.5" y="588" width="47" height="18" rx="9" fill="var(--bg)" stroke="var(--border)" class="a66"/><text x="411" y="601" class="edgelabel a67">clamp</text>
+<g><title>server/src/api.rs#take_turn</title><path id="p-save_state" d="M 497 316.5 C 554.5 316.5, 554.5 421, 612 421" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arrow)" class="a68"/></g><rect x="534.3" y="359.8" width="40.4" height="18" rx="9" fill="var(--bg)" stroke="var(--border)" class="a69"/><text x="554.5" y="372.8" class="edgelabel a70">save</text>
+<g><title>web/lib/api.ts#api.tts</title><path id="p-request_tts" d="M 210 631.25 C 267.5 631.25, 267.5 877.5, 325 877.5" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arrow)" class="a71"/></g><rect x="244" y="745.4" width="47" height="18" rx="9" fill="var(--bg)" stroke="var(--border)" class="a72"/><text x="267.5" y="758.4" class="edgelabel a73">voice</text>
+<g><title>server/src/api.rs#tts</title><path id="p-synth_voice" d="M 497 877.5 C 554.5 877.5, 554.5 758, 612 758" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arrow)" class="a74"/></g><rect x="537.6" y="808.8" width="33.8" height="18" rx="9" fill="var(--bg)" stroke="var(--border)" class="a75"/><text x="554.5" y="821.8" class="edgelabel a76">TTS</text>
+<g class="p0" opacity="0"><circle r="10" fill="var(--accent)" opacity="0.2"/><circle r="4.5" fill="var(--accent)"/><rect x="-38.1" y="-35" width="76.2" height="23" rx="8" fill="var(--accent)"/><text x="0" y="-20" class="chip">Hold Space</text><animateMotion dur="43.8s" repeatCount="indefinite" keyTimes="0;0;0.0174;1" keyPoints="0;0;1;1" calcMode="linear"><mpath href="#p-capture" xlink:href="#p-capture"/></animateMotion></g>
+<g class="p1" opacity="0"><circle r="10" fill="var(--accent)" opacity="0.2"/><circle r="4.5" fill="var(--accent)"/><rect x="-44.9" y="-35" width="89.8" height="23" rx="8" fill="var(--accent)"/><text x="0" y="-20" class="chip">speech.webm</text><animateMotion dur="43.8s" repeatCount="indefinite" keyTimes="0;0.0641;0.0815;1" keyPoints="0;0;1;1" calcMode="linear"><mpath href="#p-upload_audio" xlink:href="#p-upload_audio"/></animateMotion></g>
+<g class="p2" opacity="0"><circle r="10" fill="var(--accent)" opacity="0.2"/><circle r="4.5" fill="var(--accent)"/><rect x="-39.2" y="-35" width="78.4" height="23" rx="8" fill="var(--accent)"/><text x="0" y="-20" class="chip">ja · nova-3</text><animateMotion dur="43.8s" repeatCount="indefinite" keyTimes="0;0.1326;0.15;1" keyPoints="0;0;1;1" calcMode="linear"><mpath href="#p-transcribe" xlink:href="#p-transcribe"/></animateMotion></g>
+<g class="p3" opacity="0"><circle r="10" fill="#10b981" opacity="0.2"/><circle r="4.5" fill="#10b981"/><rect x="-41" y="-35" width="81.9" height="23" rx="8" fill="color-mix(in srgb, #10b981 64%, #000)"/><text x="0" y="-20" class="chip">94% · Great</text><animateMotion dur="43.8s" repeatCount="indefinite" keyTimes="0;0.1967;0.2141;1" keyPoints="1;1;0;0" calcMode="linear"><mpath href="#p-upload_audio" xlink:href="#p-upload_audio"/></animateMotion></g>
+<g class="p4" opacity="0"><circle r="10" fill="var(--accent)" opacity="0.2"/><circle r="4.5" fill="var(--accent)"/><rect x="-41.7" y="-35" width="83.3" height="23" rx="8" fill="var(--accent)"/><text x="0" y="-20" class="chip">voice · 94%</text><animateMotion dur="43.8s" repeatCount="indefinite" keyTimes="0;0.2974;0.3147;1" keyPoints="0;0;1;1" calcMode="linear"><mpath href="#p-send_turn" xlink:href="#p-send_turn"/></animateMotion></g>
+<g class="p5" opacity="0"><circle r="10" fill="var(--accent)" opacity="0.2"/><circle r="4.5" fill="var(--accent)"/><rect x="-39.4" y="-35" width="78.7" height="23" rx="8" fill="var(--accent)"/><text x="0" y="-20" class="chip">brief + state</text><animateMotion dur="43.8s" repeatCount="indefinite" keyTimes="0;0.3658;0.3832;1" keyPoints="0;0;1;1" calcMode="linear"><mpath href="#p-ask_director" xlink:href="#p-ask_director"/></animateMotion></g>
+<g class="p6" opacity="0"><circle r="10" fill="var(--accent)" opacity="0.2"/><circle r="4.5" fill="var(--accent)"/><rect x="-43.8" y="-35" width="87.7" height="23" rx="8" fill="var(--accent)"/><text x="0" y="-20" class="chip">strict schema</text><animateMotion dur="43.8s" repeatCount="indefinite" keyTimes="0;0.4387;0.4561;1" keyPoints="0;0;1;1" calcMode="linear"><mpath href="#p-llm_call" xlink:href="#p-llm_call"/></animateMotion></g>
+<g class="p7" opacity="0"><circle r="10" fill="var(--accent)" opacity="0.2"/><circle r="4.5" fill="var(--accent)"/><rect x="-40.2" y="-35" width="80.4" height="23" rx="8" fill="var(--accent)"/><text x="0" y="-20" class="chip">DirectorTurn</text><animateMotion dur="43.8s" repeatCount="indefinite" keyTimes="0;0.5072;0.5246;1" keyPoints="0;0;1;1" calcMode="linear"><mpath href="#p-validate" xlink:href="#p-validate"/></animateMotion></g>
+<g class="p8" opacity="0"><circle r="10" fill="var(--accent)" opacity="0.2"/><circle r="4.5" fill="var(--accent)"/><rect x="-33" y="-35" width="66.1" height="23" rx="8" fill="var(--accent)"/><text x="0" y="-20" class="chip">SQLite tx</text><animateMotion dur="43.8s" repeatCount="indefinite" keyTimes="0;0.5845;0.6018;1" keyPoints="0;0;1;1" calcMode="linear"><mpath href="#p-save_state" xlink:href="#p-save_state"/></animateMotion></g>
+<g class="p9" opacity="0"><circle r="10" fill="#10b981" opacity="0.2"/><circle r="4.5" fill="#10b981"/><rect x="-40.7" y="-35" width="81.4" height="23" rx="8" fill="color-mix(in srgb, #10b981 64%, #000)"/><text x="0" y="-20" class="chip">beats + skill</text><animateMotion dur="43.8s" repeatCount="indefinite" keyTimes="0;0.6983;0.7156;1" keyPoints="1;1;0;0" calcMode="linear"><mpath href="#p-send_turn" xlink:href="#p-send_turn"/></animateMotion></g>
+<g class="p10" opacity="0"><circle r="10" fill="var(--accent)" opacity="0.2"/><circle r="4.5" fill="var(--accent)"/><rect x="-37.2" y="-35" width="74.3" height="23" rx="8" fill="var(--accent)"/><text x="0" y="-20" class="chip">line_id: 42</text><animateMotion dur="43.8s" repeatCount="indefinite" keyTimes="0;0.7668;0.7841;1" keyPoints="0;0;1;1" calcMode="linear"><mpath href="#p-request_tts" xlink:href="#p-request_tts"/></animateMotion></g>
+<g class="p11" opacity="0"><circle r="10" fill="var(--accent)" opacity="0.2"/><circle r="4.5" fill="var(--accent)"/><rect x="-39.7" y="-35" width="79.4" height="23" rx="8" fill="var(--accent)"/><text x="0" y="-20" class="chip">kenji · mp3</text><animateMotion dur="43.8s" repeatCount="indefinite" keyTimes="0;0.8309;0.8482;1" keyPoints="0;0;1;1" calcMode="linear"><mpath href="#p-synth_voice" xlink:href="#p-synth_voice"/></animateMotion></g>
+<g class="p12" opacity="0"><circle r="10" fill="#10b981" opacity="0.2"/><circle r="4.5" fill="#10b981"/><rect x="-40" y="-35" width="80" height="23" rx="8" fill="color-mix(in srgb, #10b981 64%, #000)"/><text x="0" y="-20" class="chip">audio/mpeg</text><animateMotion dur="43.8s" repeatCount="indefinite" keyTimes="0;0.8994;0.9167;1" keyPoints="1;1;0;0" calcMode="linear"><mpath href="#p-request_tts" xlink:href="#p-request_tts"/></animateMotion></g>
+
+</g>
+
+<text x="413" y="1004" opacity="0" class="steplabel a77">1. Speak &amp; transcribe</text>
+<text x="413" y="1004" opacity="0" class="steplabel a78">2. Direct &amp; validate</text>
+<text x="413" y="1004" opacity="0" class="steplabel a79">3. Voice &amp; stage</text>
+<g opacity="0" class="a80"><text x="413" y="1030" class="caption">The player holds Space to record a Japanese line.</text></g>
+<g opacity="0" class="a81"><text x="413" y="1030" class="caption">The stage uploads the audio blob to the speech handler.</text></g>
+<g opacity="0" class="a82"><text x="413" y="1030" class="caption">Bolna Voice AI transcribes the recording with Japanese biasing.</text></g>
+<g opacity="0" class="a83"><text x="413" y="1030" class="caption">The speech handler returns the transcript and pronunciation score.</text></g>
+<g opacity="0" class="a84"><text x="413" y="1030" class="caption">The stage submits the spoken turn to the turn handler.</text></g>
+<g opacity="0" class="a85"><text x="413" y="1030" class="caption">The turn handler builds the scene context for the story director.</text></g>
+<g opacity="0" class="a86"><text x="413" y="1030" class="caption">DeepSeek generates the coach verdict and Kenji's reply as JSON.</text></g>
+<g opacity="0" class="a87"><text x="413" y="1030" class="caption">The rules engine clamps rewards and levels up the Genki skill tree.</text></g>
+<g opacity="0" class="a88"><text x="413" y="1030" class="caption">The turn handler commits the run state and dialogue lines to SQLite.</text></g>
+<g opacity="0" class="a89"><text x="413" y="1030" class="caption">The turn handler returns the validated beats and skill unlock.</text></g>
+<g opacity="0" class="a90"><text x="413" y="1030" class="caption">The stage requests spoken audio for Kenji's dialogue line.</text></g>
+<g opacity="0" class="a91"><text x="413" y="1030" class="caption">ElevenLabs synthesizes Kenji's voice and caches the MP3 on disk.</text></g>
+<g opacity="0" class="a92"><text x="413" y="1030" class="caption">The stage plays Kenji's voice while animating the scene.</text></g>
+</svg>
